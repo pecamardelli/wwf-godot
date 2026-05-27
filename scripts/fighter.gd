@@ -57,7 +57,7 @@ func _update_facing(dir: Vector2) -> void:
 func _update_animation(dir: Vector2) -> void:
 	if sprite == null or sprite.sprite_frames == null:
 		return
-	var anim: String = "walk" if dir != Vector2.ZERO else "idle"
+	var anim: String = "walk_horisontal_front" if dir != Vector2.ZERO else "idle_front"
 	if sprite.sprite_frames.has_animation(anim) and sprite.animation != anim:
 		sprite.play(anim)
 	elif not sprite.is_playing():

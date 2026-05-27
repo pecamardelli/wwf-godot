@@ -9,14 +9,13 @@ func test_fighter_scene_instantiates_as_fighter():
 	assert_not_null(f.get_node_or_null("AnimatedSprite2D"), "has AnimatedSprite2D child")
 	assert_not_null(f.get_node_or_null("CollisionShape2D"), "has CollisionShape2D child")
 
-func test_fighter_has_idle_and_walk_animations():
+func test_fighter_has_core_doink_animations():
 	var f: Node = load("res://scenes/Fighter.tscn").instantiate()
 	add_child_autofree(f)
 	var spr: AnimatedSprite2D = f.get_node("AnimatedSprite2D")
 	assert_not_null(spr.sprite_frames, "AnimatedSprite2D has SpriteFrames")
-	assert_true(spr.sprite_frames.has_animation("idle"), "has 'idle' animation")
-	assert_true(spr.sprite_frames.has_animation("walk"), "has 'walk' animation")
-	assert_eq(spr.sprite_frames.get_frame_count("walk"), 18, "walk has 18 frames")
+	for anim in ["idle_front", "walk_horisontal_front", "mid_punch_front", "mid_kick_front", "big_boot"]:
+		assert_true(spr.sprite_frames.has_animation(anim), "has animation: " + anim)
 
 func test_fighters_do_not_block_each_other():
 	# Co-op partners overlap freely; depth-sort handles ordering.
