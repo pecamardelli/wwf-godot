@@ -17,3 +17,9 @@ func test_fighter_has_idle_and_walk_animations():
 	assert_true(spr.sprite_frames.has_animation("idle"), "has 'idle' animation")
 	assert_true(spr.sprite_frames.has_animation("walk"), "has 'walk' animation")
 	assert_eq(spr.sprite_frames.get_frame_count("walk"), 18, "walk has 18 frames")
+
+func test_fighters_do_not_block_each_other():
+	# Co-op partners overlap freely; depth-sort handles ordering.
+	var f: CharacterBody2D = load("res://scenes/Fighter.tscn").instantiate()
+	add_child_autofree(f)
+	assert_eq(f.collision_mask, 0, "Fighter collides with nothing (no body blocking)")
