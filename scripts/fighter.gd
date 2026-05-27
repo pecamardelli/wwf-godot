@@ -3,7 +3,15 @@ extends CharacterBody2D
 ## Base fighter: depth-plane movement, facing, walk/idle animation.
 ## Movement input is supplied by subclasses via get_input_direction().
 
-@export var walk_speed: float = 140.0
+## PLYRMODE-style state (arcade PLYR.EQU MODE_*). Helpless modes never read input —
+## that is exactly how the arcade disables control while stunned/down.
+enum Mode { NORMAL, RUNNING, INAIR, ONGROUND, BLOCK, DIZZY }
+var mode: int = Mode.NORMAL
+
+## Input is only read in NORMAL/RUNNING (arcade: other mode_* handlers are rets).
+static func input_allowed(m: int) -> bool:
+	return m == Mode.NORMAL or m == Mode.RUNNING
+
 ## Walkable depth band in global Y. The fighter's origin sits at its feet.
 @export var floor_min_y: float = 360.0
 @export var floor_max_y: float = 660.0
@@ -21,7 +29,9 @@ func get_input_direction() -> Vector2:
 	return Vector2.ZERO
 
 func _physics_process(_delta: float) -> void:
-	var dir: Vector2 = get_input_direction()
+	var dir: Vector2 = Vector2.ZERO
+	if Fighter.input_allowed(mode):
+		dir = get_input_direction()
 	velocity = MovementMath.walk_velocity(dir)
 	move_and_slide()
 	_apply_separation()
