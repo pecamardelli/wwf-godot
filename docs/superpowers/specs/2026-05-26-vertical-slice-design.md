@@ -62,8 +62,8 @@ unlocks when they are cleared so players can advance. One pit hazard is present.
    visibly distinct foes from one Doink sprite set.
 4. **Multi-attacker AI** — several enemies approach/surround, gated by an
    **attack-token manager** so only 1–2 attack at once (genre fairness rule).
-5. **Wrestling combat** — 2 strikes + 1 grapple/throw + **dizzy**, with an
-   exported **`disable_dizzy_lockout`** toggle (the original modding goal).
+5. **Wrestling combat** — strikes + grapple/throw + **knockdown/getup**, reproduced
+   faithfully from the arcade (incl. mash-to-recover). No custom rule toggles.
 6. **Depth movement** — 8-way on a floor plane with Y-sort draw order.
 7. **Fixed 60 Hz logic** — gameplay in `_physics_process`; ported arcade timing
    constants expressed as frame counts.
@@ -116,8 +116,8 @@ Explicit GDScript enum + `match`: `IDLE`, `WALK`, `ATTACK`, `GRAB`, `THROW`,
   model).
 - Hurtbox `Area2D` per fighter; overlap → resolve `AttackDef` → apply damage,
   knockback, hit reaction, and optionally enter `DIZZY`.
-- `DIZZY` normally locks input for a timer; `disable_dizzy_lockout = true`
-  keeps input live (configurable rule).
+- Knockdown sets a `GETUP_TIME`-style countdown; helpless modes ignore input and
+  the player mashes to recover — reproduced from the arcade, no custom toggle.
 
 ### Modifier / variant system (honest note)
 
@@ -162,8 +162,8 @@ slice de-risks the cloth recolor on Doink.
 - [ ] ~3 Doink enemies spawn, each visibly distinct via modifiers
       (size/speed/pitch/cloth color).
 - [ ] Players clear them using 2 strikes + 1 grapple/throw.
-- [ ] A hit can trigger `DIZZY`; the `disable_dizzy_lockout` toggle visibly
-      switches between arcade-lockout and keep-control.
+- [ ] A knockdown move puts the victim down with an arcade-accurate getup time,
+      and mashing buttons/stick speeds recovery (mash-to-recover).
 - [ ] Attack-token manager prevents all enemies attacking at once.
 - [ ] At least one enemy (or player) can fall into the pit and take the result.
 - [ ] Impact SFX + a pitch-shifted voice play.

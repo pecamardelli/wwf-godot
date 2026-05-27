@@ -22,4 +22,5 @@ Current target: the SP-0 vertical slice (see
 
 - Native Linux development and build — no Windows, no proprietary IDE.
 - Fixed 60 Hz tick logic; arcade combat constants ported as data.
-- Configurable rule tweaks (e.g. an option to disable the dizzy input-lockout).
+- Player mechanics reproduced faithfully from the original arcade source
+  (movement, moves, damage, reactions, knockdown/getup with mash-to-recover).
