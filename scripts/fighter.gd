@@ -104,6 +104,9 @@ func _physics_process(delta: float) -> void:
 		dir = get_input_direction()
 		var walk_vel: Vector2 = MovementMath.walk_velocity(dir) * walk_speed_scale
 		walk_vel.y *= depth_speed_scale
+		var rel := RelativeInput.resolve(dir, _facing)
+		var target_down: bool = target != null and is_instance_valid(target) and target.mode == Mode.ONGROUND
+		walk_vel.x *= walk_dir_multiplier(rel.away, target_down)
 		velocity = velocity.move_toward(walk_vel, walk_acceleration * delta)
 	else:
 		# Stun cuts control instantly (arcade): no coasting while helpless.
@@ -163,6 +166,15 @@ func _update_animation(dir: Vector2) -> void:
 		sprite.play(anim)
 	elif not sprite.is_playing():
 		sprite.play(anim)
+
+## Walk-speed multiplier from facing-relative state (arcade walk table modifiers).
+func walk_dir_multiplier(moving_away: bool, target_down: bool) -> float:
+	var m := 1.0
+	if moving_away:
+		m *= ArcadeUnits.BACKWARD_MULT
+	if target_down:
+		m *= ArcadeUnits.OPP_DOWN_MULT
+	return m
 
 ## Begin a move sequence (ignored while attacking-uninterruptable or in a reaction).
 func start_move(move: MoveSequence) -> void:

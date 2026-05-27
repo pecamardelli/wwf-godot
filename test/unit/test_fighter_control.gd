@@ -61,3 +61,11 @@ func test_keeps_facing_target_while_walking_away():
 	for _i in range(5):
 		me._physics_process(FRAME)
 	assert_eq(me.facing(), 1.0, "back-pedals: still faces the right-side target while walking left")
+
+func test_walk_dir_multiplier_backward_and_opp_down():
+	var f := Fighter.new()
+	add_child_autofree(f)
+	assert_almost_eq(f.walk_dir_multiplier(false, false), 1.0, 0.001)                       # toward, target standing
+	assert_almost_eq(f.walk_dir_multiplier(true, false), ArcadeUnits.BACKWARD_MULT, 0.001)  # away
+	assert_almost_eq(f.walk_dir_multiplier(false, true), ArcadeUnits.OPP_DOWN_MULT, 0.001)  # target down
+	assert_almost_eq(f.walk_dir_multiplier(true, true), ArcadeUnits.BACKWARD_MULT * ArcadeUnits.OPP_DOWN_MULT, 0.001)
