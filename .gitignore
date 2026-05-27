@@ -1,0 +1,28 @@
+# Godot 4+ ----------------------------------------------------
+# Godot's import cache and engine-generated metadata
+.godot/
+
+# Mono/.NET (only if a C# build is ever added)
+.mono/
+data_*/
+mono_crash.*.json
+
+# Exported native builds
+/build/
+/exports/
+*.x86_64
+*.pck
+
+# Editor / OS cruft -------------------------------------------
+*.tmp
+*~
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Large / copyrighted source material kept out of version control.
+# (Raw arcade rips live in ../WWF Sources; imported game-ready
+#  assets under assets/ are committed so the project runs.)
+/reference/arcade-src/
+*.rar
