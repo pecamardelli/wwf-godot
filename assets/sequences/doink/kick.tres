@@ -1,0 +1,49 @@
+[gd_resource type="Resource" script_class="MoveSequence" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/sequence_frame.gd" id="1_pmfpx"]
+[ext_resource type="Script" path="res://scripts/combat/box3.gd" id="2_ldgu1"]
+[ext_resource type="Script" path="res://scripts/combat/move_sequence.gd" id="3_iywye"]
+
+[sub_resource type="Resource" id="Resource_qwiqs"]
+script = ExtResource("1_pmfpx")
+duration_ticks = 3
+
+[sub_resource type="Resource" id="Resource_vxpin"]
+script = ExtResource("1_pmfpx")
+duration_ticks = 2
+anim_frame = 1
+command = 1
+
+[sub_resource type="Resource" id="Resource_uir85"]
+script = ExtResource("2_ldgu1")
+offset = Vector3(26, 50, 0)
+size = Vector3(60, 14, 10)
+
+[sub_resource type="Resource" id="Resource_iinqm"]
+script = ExtResource("1_pmfpx")
+duration_ticks = 2
+anim_frame = 2
+command = 2
+attack_box = SubResource("Resource_uir85")
+
+[sub_resource type="Resource" id="Resource_dnjfd"]
+script = ExtResource("1_pmfpx")
+duration_ticks = 2
+anim_frame = 3
+
+[sub_resource type="Resource" id="Resource_b2b3j"]
+script = ExtResource("1_pmfpx")
+duration_ticks = 2
+anim_frame = 3
+command = 3
+
+[sub_resource type="Resource" id="Resource_7tmmh"]
+script = ExtResource("1_pmfpx")
+duration_ticks = 5
+
+[resource]
+script = ExtResource("3_iywye")
+id = "kick"
+anim_name = "mid_kick_front"
+attack_mode = 2
+frames = Array[ExtResource("1_pmfpx")]([SubResource("Resource_qwiqs"), SubResource("Resource_vxpin"), SubResource("Resource_iinqm"), SubResource("Resource_dnjfd"), SubResource("Resource_b2b3j"), SubResource("Resource_7tmmh")])
