@@ -26,7 +26,7 @@ func test_punch_in_range_damages_victim():
 	var resolver := AttackResolver.new()
 	add_child_autofree(resolver)
 	attacker.start_move(_punch())
-	for _i in range(20):
+	for _i in range(40):
 		attacker._physics_process(FRAME)
 		victim._physics_process(FRAME)
 		resolver.resolve_tick()
@@ -38,7 +38,7 @@ func test_punch_out_of_range_does_nothing():
 	var resolver := AttackResolver.new()
 	add_child_autofree(resolver)
 	attacker.start_move(_punch())
-	for _i in range(20):
+	for _i in range(40):
 		attacker._physics_process(FRAME)
 		victim._physics_process(FRAME)
 		resolver.resolve_tick()
@@ -50,7 +50,7 @@ func test_a_single_swing_hits_only_once():
 	var resolver := AttackResolver.new()
 	add_child_autofree(resolver)
 	attacker.start_move(_punch())
-	for _i in range(30):
+	for _i in range(40):
 		attacker._physics_process(FRAME)
 		victim._physics_process(FRAME)
 		resolver.resolve_tick()
@@ -62,7 +62,7 @@ func test_knockback_pushes_victim_away_from_attacker():
 	var resolver := AttackResolver.new()
 	add_child_autofree(resolver)
 	attacker.start_move(_punch())
-	for _i in range(20):
+	for _i in range(40):
 		attacker._physics_process(FRAME)
 		victim._physics_process(FRAME)
 		resolver.resolve_tick()
@@ -74,12 +74,12 @@ func test_second_hit_within_repeat_window_uses_two_thirds_column():
 	var resolver := AttackResolver.new()
 	add_child_autofree(resolver)
 	attacker.start_move(_punch())                 # first hit: full punch = 10
-	for _i in range(20):
+	for _i in range(35):
 		attacker._physics_process(FRAME)
 		victim._physics_process(FRAME)
 		resolver.resolve_tick()
 	attacker.start_move(_punch())                 # second hit, well within ~0.94s window
-	for _i in range(20):
+	for _i in range(35):
 		attacker._physics_process(FRAME)
 		victim._physics_process(FRAME)
 		resolver.resolve_tick()
@@ -92,7 +92,7 @@ func test_knockdown_puts_victim_onground():
 	var resolver := AttackResolver.new()
 	add_child_autofree(resolver)
 	attacker.start_move(load("res://assets/sequences/doink/big_boot.tres"))
-	for _i in range(30):
+	for _i in range(40):
 		attacker._physics_process(FRAME)
 		victim._physics_process(FRAME)
 		resolver.resolve_tick()
@@ -110,7 +110,7 @@ func test_punch_auto_faces_then_hits_opponent_on_the_left():
 	var resolver := AttackResolver.new()
 	add_child_autofree(resolver)
 	attacker.start_move(_punch())
-	for _i in range(20):
+	for _i in range(40):
 		attacker._physics_process(FRAME)
 		victim._physics_process(FRAME)
 		resolver.resolve_tick()

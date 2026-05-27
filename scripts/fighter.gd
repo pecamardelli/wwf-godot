@@ -26,6 +26,8 @@ static func input_allowed(m: int) -> bool:
 ## AND diagonal — move_toward eases the whole velocity vector.
 @export var walk_speed_scale: float = 0.8
 @export var walk_acceleration: float = 1100.0  ## px/s^2
+## Depth (vertical/Y) walk runs slower than horizontal — belt-scroll convention.
+@export var depth_speed_scale: float = 0.6
 
 ## Combat state.
 var health: int = Damage.LIFE_MAX
@@ -75,6 +77,7 @@ func _physics_process(delta: float) -> void:
 	if Fighter.input_allowed(mode):
 		dir = get_input_direction()
 		var target: Vector2 = MovementMath.walk_velocity(dir) * walk_speed_scale
+		target.y *= depth_speed_scale
 		velocity = velocity.move_toward(target, walk_acceleration * delta)
 	else:
 		# Stun cuts control instantly (arcade): no coasting while helpless.
@@ -184,9 +187,20 @@ func _enter_reaction(r: Dictionary, side: int) -> void:
 	if sprite != null and sprite.sprite_frames != null and sprite.sprite_frames.has_animation(r.anim):
 		sprite.play(r.anim)
 
+## Puppet-style playback: the SEQUENCE drives which sprite frame shows, so the
+## hitbox window and the visible frame share one clock. We pause auto-advance and
+## set the frame from the current SequenceFrame.anim_frame each tick.
 func _play_sequence_anim() -> void:
 	if sprite == null or _player.sequence == null:
 		return
 	var anim: String = _player.sequence.anim_name
-	if sprite.sprite_frames != null and sprite.sprite_frames.has_animation(anim) and sprite.animation != anim:
-		sprite.play(anim)
+	if sprite.sprite_frames == null or not sprite.sprite_frames.has_animation(anim):
+		return
+	if sprite.animation != anim:
+		sprite.animation = anim
+	if sprite.is_playing():
+		sprite.pause()
+	var f: SequenceFrame = _player.current_frame()
+	if f != null:
+		var last: int = sprite.sprite_frames.get_frame_count(anim) - 1
+		sprite.frame = clampi(f.anim_frame, 0, maxi(last, 0))

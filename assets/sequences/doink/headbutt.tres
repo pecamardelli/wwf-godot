@@ -10,36 +10,41 @@ duration_ticks = 3
 
 [sub_resource type="Resource" id="Resource_1e6y8"]
 script = ExtResource("1_8ytua")
-duration_ticks = 2
+duration_ticks = 3
 anim_frame = 1
-command = 1
 
 [sub_resource type="Resource" id="Resource_72nsc"]
+script = ExtResource("1_8ytua")
+duration_ticks = 3
+anim_frame = 2
+
+[sub_resource type="Resource" id="Resource_hu5i8"]
 script = ExtResource("2_a3sxx")
 offset = Vector3(18, 92, 0)
 size = Vector3(40, 12, 10)
 
-[sub_resource type="Resource" id="Resource_hu5i8"]
-script = ExtResource("1_8ytua")
-duration_ticks = 3
-anim_frame = 2
-command = 2
-attack_box = SubResource("Resource_72nsc")
-
 [sub_resource type="Resource" id="Resource_pc6mb"]
 script = ExtResource("1_8ytua")
 duration_ticks = 3
-anim_frame = 2
-command = 3
+anim_frame = 3
+command = 2
+attack_box = SubResource("Resource_hu5i8")
 
 [sub_resource type="Resource" id="Resource_eejg8"]
 script = ExtResource("1_8ytua")
-duration_ticks = 5
+duration_ticks = 3
+anim_frame = 4
+
+[sub_resource type="Resource" id="Resource_s7kg6"]
+script = ExtResource("1_8ytua")
+duration_ticks = 3
+anim_frame = 5
+command = 3
 
 [resource]
 script = ExtResource("3_na8se")
 id = "headbutt"
 anim_name = "headbutt_front"
 attack_mode = 1
-frames = Array[ExtResource("1_8ytua")]([SubResource("Resource_626df"), SubResource("Resource_1e6y8"), SubResource("Resource_hu5i8"), SubResource("Resource_pc6mb"), SubResource("Resource_eejg8")])
+frames = Array[ExtResource("1_8ytua")]([SubResource("Resource_626df"), SubResource("Resource_1e6y8"), SubResource("Resource_72nsc"), SubResource("Resource_pc6mb"), SubResource("Resource_eejg8"), SubResource("Resource_s7kg6")])
 causes_dizzy = true

@@ -6,11 +6,11 @@ const OUT := "res://assets/sequences/doink"
 
 func _init() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT))
-	_save(_punch())
-	_save(_headbutt())
-	_save(_kick())
-	_save(_uppercut())
-	_save(_big_boot())
+	_save(_strike("punch",    "mid_punch_front", AMode.PUNCH,   8, 4, _ab(22, 86, 0, 55, 9, 10)))
+	_save(_strike("headbutt", "headbutt_front",  AMode.HDBUTT,  6, 3, _ab(18, 92, 0, 40, 12, 10), true))
+	_save(_strike("kick",     "mid_kick_front",  AMode.KICK,    9, 5, _ab(26, 50, 0, 60, 14, 10)))
+	_save(_strike("uppercut", "uppercut",        AMode.UPRCUT,  6, 3, _ab(20, 70, 0, 44, 30, 10)))
+	_save(_strike("big_boot", "big_boot",        AMode.BIGBOOT, 8, 4, _ab(34, 60, 0, 70, 20, 10)))
 	quit()
 
 func _ab(ox: float, oy: float, oz: float, w: float, h: float, d: float) -> Box3:
@@ -21,58 +21,24 @@ func _frame(dur: int, img: int, cmd: int = SequenceFrame.Command.NONE, box: Box3
 	f.duration_ticks = dur; f.anim_frame = img; f.command = cmd; f.attack_box = box
 	return f
 
-func _punch() -> MoveSequence:
+## Build a strike that walks the whole SpriteFrames clip: one SequenceFrame per
+## image (anim_frame = i), 3 ticks each, with the hitbox live from `contact` to
+## `contact+2` (capped). This keeps the visible frame and the hit window in sync.
+func _strike(id: String, anim_name: String, amode: int, frame_count: int, contact: int, box: Box3, dizzy: bool = false) -> MoveSequence:
 	var m := MoveSequence.new()
-	m.id = "punch"; m.anim_name = "mid_punch_front"; m.attack_mode = AMode.PUNCH
-	m.frames = [
-		_frame(3, 0),
-		_frame(2, 1, SequenceFrame.Command.STARTATTACK),
-		_frame(2, 2, SequenceFrame.Command.ATTACK_ON, _ab(22, 86, 0, 55, 9, 10)),
-		_frame(2, 3),
-		_frame(2, 3, SequenceFrame.Command.ATTACK_OFF),
-		_frame(4, 0),
-	]
-	return m
-
-func _headbutt() -> MoveSequence:
-	var m := MoveSequence.new()
-	m.id = "headbutt"; m.anim_name = "headbutt_front"; m.attack_mode = AMode.HDBUTT
-	m.causes_dizzy = true
-	m.frames = [
-		_frame(3, 0), _frame(2, 1, SequenceFrame.Command.STARTATTACK),
-		_frame(3, 2, SequenceFrame.Command.ATTACK_ON, _ab(18, 92, 0, 40, 12, 10)),
-		_frame(3, 2, SequenceFrame.Command.ATTACK_OFF), _frame(5, 0),
-	]
-	return m
-
-func _kick() -> MoveSequence:
-	var m := MoveSequence.new()
-	m.id = "kick"; m.anim_name = "mid_kick_front"; m.attack_mode = AMode.KICK
-	m.frames = [
-		_frame(3, 0), _frame(2, 1, SequenceFrame.Command.STARTATTACK),
-		_frame(2, 2, SequenceFrame.Command.ATTACK_ON, _ab(26, 50, 0, 60, 14, 10)),
-		_frame(2, 3), _frame(2, 3, SequenceFrame.Command.ATTACK_OFF), _frame(5, 0),
-	]
-	return m
-
-func _uppercut() -> MoveSequence:
-	var m := MoveSequence.new()
-	m.id = "uppercut"; m.anim_name = "uppercut"; m.attack_mode = AMode.UPRCUT
-	m.frames = [
-		_frame(4, 0), _frame(2, 1, SequenceFrame.Command.STARTATTACK),
-		_frame(3, 2, SequenceFrame.Command.ATTACK_ON, _ab(20, 70, 0, 44, 30, 10)),
-		_frame(3, 2, SequenceFrame.Command.ATTACK_OFF), _frame(6, 0),
-	]
-	return m
-
-func _big_boot() -> MoveSequence:
-	var m := MoveSequence.new()
-	m.id = "big_boot"; m.anim_name = "big_boot"; m.attack_mode = AMode.BIGBOOT
-	m.frames = [
-		_frame(3, 0), _frame(2, 1, SequenceFrame.Command.STARTATTACK),
-		_frame(3, 2, SequenceFrame.Command.ATTACK_ON, _ab(34, 60, 0, 70, 20, 10)),
-		_frame(3, 2, SequenceFrame.Command.ATTACK_OFF), _frame(6, 0),
-	]
+	m.id = id; m.anim_name = anim_name; m.attack_mode = amode; m.causes_dizzy = dizzy
+	var off_frame := mini(contact + 2, frame_count - 1)
+	var arr: Array[SequenceFrame] = []
+	for i in range(frame_count):
+		var cmd := SequenceFrame.Command.NONE
+		var b: Box3 = null
+		if i == contact:
+			cmd = SequenceFrame.Command.ATTACK_ON
+			b = box
+		elif i == off_frame:
+			cmd = SequenceFrame.Command.ATTACK_OFF
+		arr.append(_frame(3, i, cmd, b))
+	m.frames = arr
 	return m
 
 func _save(m: MoveSequence) -> void:

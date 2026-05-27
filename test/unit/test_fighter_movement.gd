@@ -11,6 +11,25 @@ class _HoldDownRight extends Fighter:
 	func get_input_direction() -> Vector2:
 		return Vector2(1, 1)
 
+class _HoldDown extends Fighter:
+	func get_input_direction() -> Vector2:
+		return Vector2.DOWN
+
+func test_vertical_walk_is_slower_than_horizontal():
+	var f := _HoldDown.new()
+	add_child_autofree(f)
+	assert_lt(f.depth_speed_scale, 1.0, "depth axis is scaled down")
+
+func test_vertical_walk_reaches_depth_scaled_top_speed():
+	var f := _HoldDown.new()
+	add_child_autofree(f)
+	f.mode = Fighter.Mode.NORMAL
+	f.velocity = Vector2.ZERO
+	for _i in range(120):
+		f._physics_process(FRAME)
+	var expected := ArcadeUnits.WALK_CARDINAL * f.walk_speed_scale * f.depth_speed_scale
+	assert_almost_eq(f.velocity.y, expected, 0.5, "vertical top speed = cardinal * walk_speed_scale * depth_speed_scale")
+
 func _scaled_cardinal(f: Fighter) -> float:
 	return ArcadeUnits.WALK_CARDINAL * f.walk_speed_scale
 
