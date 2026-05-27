@@ -34,6 +34,7 @@ var _react_timer: float = 0.0          # seconds left in a reaction (hitstun/get
 var _react_recover_mode: int = Mode.NORMAL
 var _last_damage_time: float = -999.0  # seconds; for the ⅔ repeat window
 var _hit_by_current_move: Array = []   # victims already hit by the swing in progress
+var _sim_time: float = 0.0             # accumulated per-fighter sim clock (fixed-tick determinism)
 
 @onready var sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 
@@ -48,6 +49,7 @@ func is_attacking() -> bool:
 	return _player.is_playing()
 
 func _physics_process(delta: float) -> void:
+	_sim_time += delta
 	# 1) Reaction countdown (hitstun / getup / dizzy): no control, no walk.
 	if _react_timer > 0.0:
 		_react_timer -= delta
@@ -136,8 +138,9 @@ func current_move() -> MoveSequence:
 
 ## Apply a landed hit from `attacker` using `move`. Called by AttackResolver.
 func receive_hit(attacker: Fighter, move: MoveSequence) -> void:
+	# A victim already in a reaction CAN be re-hit by a different swing (juggling) - intentional for 2b.
 	attacker._hit_by_current_move.append(self)
-	var now := Time.get_ticks_msec() / 1000.0
+	var now := _sim_time
 	var repeat := (now - _last_damage_time) <= ArcadeUnits.ticks_to_seconds(Damage.REPEAT_WINDOW_TICKS)
 	var blocked := mode == Mode.BLOCK
 	var dmg := Damage.resolve(move.attack_mode, repeat, blocked)
@@ -151,8 +154,9 @@ func receive_hit(attacker: Fighter, move: MoveSequence) -> void:
 
 func _enter_reaction(r: Dictionary, side: int) -> void:
 	_player.play(null)                       # cancel any move in progress
+	_hit_by_current_move.clear()             # a cancelled move leaves no stale hit-list
 	mode = r.mode
-	global_position.x += -side * r.knockback # pushed away from the attacker
+	global_position.x += side * r.knockback  # push the victim AWAY from the attacker
 	_react_recover_mode = Mode.NORMAL
 	_react_timer = ArcadeUnits.ticks_to_seconds(maxi(r.hitstun_ticks, r.getup_ticks))
 	if sprite != null and sprite.sprite_frames != null and sprite.sprite_frames.has_animation(r.anim):
