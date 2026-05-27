@@ -19,6 +19,14 @@ static func input_allowed(m: int) -> bool:
 ## Depth is much smaller so fighters can stand close front-to-back.
 @export var separation_radii: Vector2 = Vector2(50, 20)
 
+## --- Feel layer (deliberately NOT arcade-faithful) ---
+## The arcade snaps velocity to the table value with no ramp. We slow the walk a
+## touch (walk_speed_scale) and ease velocity in/out (walk_acceleration) so the
+## footfall animation reads in sync instead of sliding. Both apply to cardinal
+## AND diagonal — move_toward eases the whole velocity vector.
+@export var walk_speed_scale: float = 0.8
+@export var walk_acceleration: float = 1100.0  ## px/s^2
+
 @onready var sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 
 func _ready() -> void:
@@ -28,11 +36,15 @@ func _ready() -> void:
 func get_input_direction() -> Vector2:
 	return Vector2.ZERO
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	var dir: Vector2 = Vector2.ZERO
 	if Fighter.input_allowed(mode):
 		dir = get_input_direction()
-	velocity = MovementMath.walk_velocity(dir)
+		var target: Vector2 = MovementMath.walk_velocity(dir) * walk_speed_scale
+		velocity = velocity.move_toward(target, walk_acceleration * delta)
+	else:
+		# Stun cuts control instantly (arcade): no coasting while helpless.
+		velocity = Vector2.ZERO
 	move_and_slide()
 	_apply_separation()
 	global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
