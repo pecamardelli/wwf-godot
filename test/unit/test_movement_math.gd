@@ -1,14 +1,20 @@
 extends "res://addons/gut/test.gd"
 
-func test_zero_input_gives_zero_velocity():
-	assert_eq(MovementMath.move_velocity(Vector2.ZERO, 100.0), Vector2.ZERO)
+func test_walk_zero_input_is_zero():
+	assert_eq(MovementMath.walk_velocity(Vector2.ZERO), Vector2.ZERO)
 
-func test_right_input_gives_rightward_velocity():
-	assert_eq(MovementMath.move_velocity(Vector2.RIGHT, 100.0), Vector2(100.0, 0.0))
+func test_walk_cardinal_uses_cardinal_speed():
+	assert_almost_eq(MovementMath.walk_velocity(Vector2.RIGHT).x, ArcadeUnits.WALK_CARDINAL, 0.01)
+	assert_almost_eq(MovementMath.walk_velocity(Vector2.RIGHT).y, 0.0, 0.01)
 
-func test_diagonal_input_is_normalized_to_speed():
-	var v: Vector2 = MovementMath.move_velocity(Vector2(1.0, 1.0), 100.0)
-	assert_almost_eq(v.length(), 100.0, 0.01)
+func test_walk_diagonal_uses_per_axis_diagonal_speed_not_normalized():
+	var v: Vector2 = MovementMath.walk_velocity(Vector2(1, 1))
+	assert_almost_eq(v.x, ArcadeUnits.WALK_DIAGONAL_AXIS, 0.01)
+	assert_almost_eq(v.y, ArcadeUnits.WALK_DIAGONAL_AXIS, 0.01)
+	assert_gt(v.length(), ArcadeUnits.WALK_CARDINAL)
+
+func test_walk_uses_sign_only_of_input():
+	assert_almost_eq(MovementMath.walk_velocity(Vector2(0.3, 0)).x, ArcadeUnits.WALK_CARDINAL, 0.01)
 
 func test_clamp_below_band_snaps_to_max_y():
 	assert_eq(MovementMath.clamp_to_floor(Vector2(50.0, 999.0), 200.0, 400.0), Vector2(50.0, 400.0))

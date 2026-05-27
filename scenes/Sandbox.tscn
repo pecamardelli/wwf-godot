@@ -1,37 +1,38 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://xe50wkahqu8n"]
 
 [ext_resource type="PackedScene" path="res://scenes/Fighter.tscn" id="1"]
-[ext_resource type="Script" path="res://scripts/player.gd" id="2"]
+[ext_resource type="Script" uid="uid://jvapegdi11vw" path="res://scripts/player.gd" id="2"]
 
-[node name="Sandbox" type="Node2D"]
+[node name="Sandbox" type="Node2D" unique_id=788869202]
 y_sort_enabled = true
 
-[node name="BG" type="CanvasLayer" parent="."]
+[node name="BG" type="CanvasLayer" parent="." unique_id=1099638374]
 layer = -1
 
-[node name="Backdrop" type="ColorRect" parent="BG"]
-offset_right = 1280.0
+[node name="Backdrop" type="ColorRect" parent="BG" unique_id=74193569]
+offset_left = -1.0
+offset_right = 1279.0
 offset_bottom = 720.0
 color = Color(0.12, 0.12, 0.14, 1)
 
-[node name="FloorBandTop" type="ColorRect" parent="BG"]
+[node name="FloorBandTop" type="ColorRect" parent="BG" unique_id=1925448282]
 offset_top = 360.0
 offset_right = 1280.0
 offset_bottom = 363.0
 color = Color(0.3, 0.3, 0.35, 1)
 
-[node name="FloorBandBottom" type="ColorRect" parent="BG"]
+[node name="FloorBandBottom" type="ColorRect" parent="BG" unique_id=772014494]
 offset_top = 657.0
 offset_right = 1280.0
 offset_bottom = 660.0
 color = Color(0.3, 0.3, 0.35, 1)
 
-[node name="Player1" parent="." instance=ExtResource("1")]
+[node name="Player1" parent="." unique_id=1108365263 instance=ExtResource("1")]
 position = Vector2(480, 480)
 script = ExtResource("2")
 player_index = 0
 
-[node name="Player2" parent="." instance=ExtResource("1")]
+[node name="Player2" parent="." unique_id=1551463737 instance=ExtResource("1")]
 position = Vector2(800, 520)
 script = ExtResource("2")
 player_index = 1
