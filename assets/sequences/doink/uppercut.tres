@@ -20,8 +20,8 @@ anim_frame = 2
 
 [sub_resource type="Resource" id="Resource_2fu67"]
 script = ExtResource("2_3581m")
-offset = Vector3(20, 70, 0)
-size = Vector3(44, 30, 10)
+offset = Vector3(28, 66, 0)
+size = Vector3(60, 36, 10)
 
 [sub_resource type="Resource" id="Resource_yr7mr"]
 script = ExtResource("1_tu0hw")
