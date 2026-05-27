@@ -186,16 +186,16 @@ func receive_hit(attacker: Fighter, move: MoveSequence) -> void:
 	health = Damage.apply_health(health, dmg)
 	_last_damage_time = now
 
-	var side := Hitbox.hit_side(attacker.global_position, global_position)
+	var hit_dir := Hitbox.hit_side(attacker.global_position, global_position)
 	var family := AMode.Family.BLOCK if blocked else AMode.reaction_for(move.attack_mode)
-	var r := Reaction.resolve(family, side, move.causes_dizzy and not blocked)
-	_enter_reaction(r, side)
+	var r := Reaction.resolve(family, hit_dir, move.causes_dizzy and not blocked)
+	_enter_reaction(r, hit_dir)
 
-func _enter_reaction(r: Dictionary, side: int) -> void:
+func _enter_reaction(r: Dictionary, hit_dir: int) -> void:
 	_player.play(null)                       # cancel any move in progress
 	_hit_by_current_move.clear()             # a cancelled move leaves no stale hit-list
 	mode = r.mode
-	global_position.x += side * r.knockback  # push the victim AWAY from the attacker
+	global_position.x += hit_dir * r.knockback  # push the victim AWAY from the attacker
 	_react_recover_mode = Mode.NORMAL
 	_react_timer = ArcadeUnits.ticks_to_seconds(maxi(r.hitstun_ticks, r.getup_ticks))
 	if sprite != null and sprite.sprite_frames != null and sprite.sprite_frames.has_animation(r.anim):
