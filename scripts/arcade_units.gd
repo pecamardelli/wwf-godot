@@ -4,6 +4,10 @@ class_name ArcadeUnits
 
 ## The arcade treats 1 second = 53 ticks (DISPLAY.EQU TSEC). DIRQ is 60 Hz but
 ## effective dispatch averages ~53/s; speeds-per-second use 53.
+## NOTE: we match the arcade's WALL-CLOCK speed (px/second), not its per-frame
+## displacement. Our logic runs at Godot's 60 Hz, so 1 frame != 1 arcade tick.
+## To match tick-denominated durations (knockdown, knockback arcs, combo windows),
+## convert through ticks_to_seconds() — never assume 1 frame = 1 tick.
 const TICKS_PER_SECOND: float = 53.0
 
 ## Arcade velocity, written as a 16.16 hex value in px/tick, converted to px/second.
