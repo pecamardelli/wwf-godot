@@ -46,3 +46,18 @@ func test_faces_target_continuously():
 	enemy.global_position.x = -50               # move target to the left
 	me._physics_process(FRAME)
 	assert_eq(me.facing(), -1.0, "turns to keep facing the target")
+
+class _WalkLeft extends Fighter:
+	func get_input_direction() -> Vector2:
+		return Vector2.LEFT
+
+func test_keeps_facing_target_while_walking_away():
+	var me := _WalkLeft.new()
+	add_child_autofree(me)
+	me.global_position = Vector2(100, 400)
+	me.side = Fighter.Side.PLAYER
+	me.separation_radii = Vector2.ZERO
+	var enemy := _at(300, Fighter.Side.ENEMY)   # target to the RIGHT
+	for _i in range(5):
+		me._physics_process(FRAME)
+	assert_eq(me.facing(), 1.0, "back-pedals: still faces the right-side target while walking left")

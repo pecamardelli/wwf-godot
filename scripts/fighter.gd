@@ -111,7 +111,9 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	_apply_separation()
 	global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
-	_update_facing(dir)
+	# Target-facing is authoritative; fall back to movement-based facing only when untargeted.
+	if target == null or not is_instance_valid(target):
+		_update_facing(dir)
 	_update_animation(dir)
 
 ## Nudge away from any overlapping fighters so bodies touch but never stack.
