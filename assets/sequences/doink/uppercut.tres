@@ -6,16 +6,16 @@
 
 [sub_resource type="Resource" id="Resource_p81op"]
 script = ExtResource("1_tu0hw")
-duration_ticks = 3
+duration_ticks = 2
 
 [sub_resource type="Resource" id="Resource_lhi7g"]
 script = ExtResource("1_tu0hw")
-duration_ticks = 3
+duration_ticks = 2
 anim_frame = 1
 
 [sub_resource type="Resource" id="Resource_jamlq"]
 script = ExtResource("1_tu0hw")
-duration_ticks = 3
+duration_ticks = 2
 anim_frame = 2
 
 [sub_resource type="Resource" id="Resource_2fu67"]
@@ -25,19 +25,19 @@ size = Vector3(60, 36, 10)
 
 [sub_resource type="Resource" id="Resource_yr7mr"]
 script = ExtResource("1_tu0hw")
-duration_ticks = 3
+duration_ticks = 2
 anim_frame = 3
 command = 2
 attack_box = SubResource("Resource_2fu67")
 
 [sub_resource type="Resource" id="Resource_pmlnm"]
 script = ExtResource("1_tu0hw")
-duration_ticks = 3
+duration_ticks = 2
 anim_frame = 4
 
 [sub_resource type="Resource" id="Resource_06jnr"]
 script = ExtResource("1_tu0hw")
-duration_ticks = 3
+duration_ticks = 2
 anim_frame = 5
 command = 3
 
