@@ -83,7 +83,8 @@ sequences now. `check_dizzy` defined elsewhere (referenced `DNK.ASM:111`). (Trig
 
 - **LIFE_MAX = 163** (`LIFEBAR.ASM:135`); everyone starts full. `adjust_health` (1366) adds signed delta,
   clamps `[0,163]`, sets `LAST_DAMAGE=PCNT`.
-- Lethal fudge: a would-be-kill with life-after > −10 and hit ≤20 sets life to 5 (survives) (`:1557-1573`).
+- Lethal fudge: a would-be-kill with life-after > −10 **and hit ≥20** sets life to 5 (survives) (`:1557-1573`).
+  (Verified against source 2026-05-27: `cmpi -20,a0 / jrgt #no_fudge`, `a0` = negative damage ⇒ fudge fires only when dmg ≥ 20. Comment in source: "If it was a 20+ point hit … fudge it." An earlier draft of this note inverted the threshold to ≤20.)
 - Low-health warning when crossing >30 → ≤30. KO at life == 0 → `MODE_DEAD`, death anim.
 - Combo death deferred: killed mid-combo → life restored to 1, `I_WILL_DIE` set, dies at combo end.
 - Pin = state machine on a downed/pinnable opponent (`B_PINABLE/PINNED`, `AUTO_PIN_CNTDOWN`), separate from KO.
