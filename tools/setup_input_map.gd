@@ -14,6 +14,10 @@ func _init() -> void:
 		"p2_down": KEY_DOWN,
 		"p2_left": KEY_LEFT,
 		"p2_right": KEY_RIGHT,
+		"p1_punch": KEY_J,
+		"p1_kick": KEY_K,
+		"p2_punch": KEY_KP_1,
+		"p2_kick": KEY_KP_2,
 	}
 	for action in bindings:
 		var setting := "input/" + str(action)
