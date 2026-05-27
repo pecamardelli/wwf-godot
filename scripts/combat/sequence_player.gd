@@ -51,6 +51,8 @@ func _apply_command(f: SequenceFrame) -> void:
 			attack_live = false
 			active_attack_box = null
 		_:
+			# NONE and STARTATTACK are no-ops here: STARTATTACK is the arcade's
+			# declarative startup marker (ANI_STARTATTACK); the hitbox opens on ATTACK_ON.
 			pass
 
 func _finish() -> void:
