@@ -97,3 +97,21 @@ func test_knockdown_puts_victim_onground():
 		victim._physics_process(FRAME)
 		resolver.resolve_tick()
 	assert_eq(victim.mode, Fighter.Mode.ONGROUND, "knocked down")
+
+func test_starting_a_move_faces_the_nearest_opponent():
+	var attacker := _fighter_at(140)   # attacker to the RIGHT of the victim
+	var victim := _fighter_at(100)
+	attacker.start_move(_punch())
+	assert_eq(attacker.facing(), -1.0, "turns to face the opponent on its left")
+
+func test_punch_auto_faces_then_hits_opponent_on_the_left():
+	var attacker := _fighter_at(140)
+	var victim := _fighter_at(100)
+	var resolver := AttackResolver.new()
+	add_child_autofree(resolver)
+	attacker.start_move(_punch())
+	for _i in range(20):
+		attacker._physics_process(FRAME)
+		victim._physics_process(FRAME)
+		resolver.resolve_tick()
+	assert_lt(victim.health, Damage.LIFE_MAX, "auto-facing makes the box project left and connect")

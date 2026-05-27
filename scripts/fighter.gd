@@ -29,6 +29,7 @@ static func input_allowed(m: int) -> bool:
 
 ## Combat state.
 var health: int = Damage.LIFE_MAX
+var _facing: float = 1.0   # +1 faces right, -1 faces left; the sprite mirrors this
 var _player: SequencePlayer = SequencePlayer.new()
 var _react_timer: float = 0.0          # seconds left in a reaction (hitstun/getup/dizzy)
 var _react_recover_mode: int = Mode.NORMAL
@@ -93,11 +94,35 @@ func _apply_separation() -> void:
 		push += MovementMath.separation_push(global_position, other.global_position, separation_radii)
 	global_position += push
 
-func _update_facing(dir: Vector2) -> void:
-	if sprite == null:
+## Facing as ±1 (right = +1). Logic-side; the sprite flip mirrors it.
+func facing() -> float:
+	return _facing
+
+## Set facing from a signed value; mirror to the sprite if present.
+func _set_facing(f: float) -> void:
+	if f == 0.0:
 		return
+	_facing = signf(f)
+	if sprite != null:
+		sprite.flip_h = _facing < 0.0
+
+func _update_facing(dir: Vector2) -> void:
 	if dir.x != 0.0:
-		sprite.flip_h = dir.x < 0.0
+		_set_facing(dir.x)
+
+## Turn toward the nearest other fighter (called when a move starts).
+func _face_nearest_opponent() -> void:
+	var best := INF
+	var toward := 0.0
+	for f in get_tree().get_nodes_in_group("fighters"):
+		if f == self:
+			continue
+		var dx: float = f.global_position.x - global_position.x
+		if absf(dx) < best:
+			best = absf(dx)
+			toward = dx
+	if toward != 0.0:
+		_set_facing(toward)
 
 func _update_animation(dir: Vector2) -> void:
 	if sprite == null or sprite.sprite_frames == null:
@@ -114,13 +139,10 @@ func start_move(move: MoveSequence) -> void:
 		return
 	if _player.is_playing() and _player.sequence.uninterruptable:
 		return
+	_face_nearest_opponent()
 	_player.play(move)
 	_hit_by_current_move.clear()
 	_play_sequence_anim()
-
-## Facing as ±1 (front/right = +1). Derived from the sprite flip set by _update_facing.
-func facing() -> float:
-	return -1.0 if (sprite != null and sprite.flip_h) else 1.0
 
 ## The live attack box this tick, or null.
 func current_attack_box() -> Box3:
