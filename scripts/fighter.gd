@@ -8,7 +8,7 @@ extends CharacterBody2D
 @export var floor_min_y: float = 360.0
 @export var floor_max_y: float = 660.0
 
-@onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
+@onready var sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 
 ## Subclasses override this to return an 8-way direction (each axis in -1..1).
 func get_input_direction() -> Vector2:
@@ -23,11 +23,13 @@ func _physics_process(_delta: float) -> void:
 	_update_animation(dir)
 
 func _update_facing(dir: Vector2) -> void:
+	if sprite == null:
+		return
 	if dir.x != 0.0:
 		sprite.flip_h = dir.x < 0.0
 
 func _update_animation(dir: Vector2) -> void:
-	if sprite.sprite_frames == null:
+	if sprite == null or sprite.sprite_frames == null:
 		return
 	var anim: String = "walk" if dir != Vector2.ZERO else "idle"
 	if sprite.sprite_frames.has_animation(anim) and sprite.animation != anim:
