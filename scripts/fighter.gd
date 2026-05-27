@@ -27,6 +27,14 @@ static func input_allowed(m: int) -> bool:
 @export var walk_speed_scale: float = 0.8
 @export var walk_acceleration: float = 1100.0  ## px/s^2
 
+## Combat state.
+var health: int = Damage.LIFE_MAX
+var _player: SequencePlayer = SequencePlayer.new()
+var _react_timer: float = 0.0          # seconds left in a reaction (hitstun/getup/dizzy)
+var _react_recover_mode: int = Mode.NORMAL
+var _last_damage_time: float = -999.0  # seconds; for the ⅔ repeat window
+var _hit_by_current_move: Array = []   # victims already hit by the swing in progress
+
 @onready var sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 
 func _ready() -> void:
@@ -36,7 +44,30 @@ func _ready() -> void:
 func get_input_direction() -> Vector2:
 	return Vector2.ZERO
 
+func is_attacking() -> bool:
+	return _player.is_playing()
+
 func _physics_process(delta: float) -> void:
+	# 1) Reaction countdown (hitstun / getup / dizzy): no control, no walk.
+	if _react_timer > 0.0:
+		_react_timer -= delta
+		velocity = Vector2.ZERO
+		move_and_slide()
+		global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
+		if _react_timer <= 0.0:
+			mode = _react_recover_mode
+		return
+
+	# 2) Attacking: advance the sequence, hold position, no walk input.
+	if _player.is_playing():
+		velocity = Vector2.ZERO
+		_player.advance(delta)
+		if not _player.is_playing():
+			_hit_by_current_move.clear()
+		_play_sequence_anim()
+		return
+
+	# 3) Normal movement (Plan 2a feel layer).
 	var dir: Vector2 = Vector2.ZERO
 	if Fighter.input_allowed(mode):
 		dir = get_input_direction()
@@ -73,4 +104,63 @@ func _update_animation(dir: Vector2) -> void:
 	if sprite.sprite_frames.has_animation(anim) and sprite.animation != anim:
 		sprite.play(anim)
 	elif not sprite.is_playing():
+		sprite.play(anim)
+
+## Begin a move sequence (ignored while attacking-uninterruptable or in a reaction).
+func start_move(move: MoveSequence) -> void:
+	if _react_timer > 0.0:
+		return
+	if _player.is_playing() and _player.sequence.uninterruptable:
+		return
+	_player.play(move)
+	_hit_by_current_move.clear()
+	_play_sequence_anim()
+
+## Facing as ±1 (front/right = +1). Derived from the sprite flip set by _update_facing.
+func facing() -> float:
+	return -1.0 if (sprite != null and sprite.flip_h) else 1.0
+
+## The live attack box this tick, or null.
+func current_attack_box() -> Box3:
+	return _player.active_attack_box if _player.attack_live else null
+
+func hurt_box() -> Box3:
+	return Hitbox.hurt_box_for_mode(mode)
+
+func already_hit(victim: Node) -> bool:
+	return _hit_by_current_move.has(victim)
+
+## The move currently playing (used by the resolver to read attack_mode). May be null.
+func current_move() -> MoveSequence:
+	return _player.sequence
+
+## Apply a landed hit from `attacker` using `move`. Called by AttackResolver.
+func receive_hit(attacker: Fighter, move: MoveSequence) -> void:
+	attacker._hit_by_current_move.append(self)
+	var now := Time.get_ticks_msec() / 1000.0
+	var repeat := (now - _last_damage_time) <= ArcadeUnits.ticks_to_seconds(Damage.REPEAT_WINDOW_TICKS)
+	var blocked := mode == Mode.BLOCK
+	var dmg := Damage.resolve(move.attack_mode, repeat, blocked)
+	health = Damage.apply_health(health, dmg)
+	_last_damage_time = now
+
+	var side := Hitbox.hit_side(attacker.global_position, global_position)
+	var family := AMode.Family.BLOCK if blocked else AMode.reaction_for(move.attack_mode)
+	var r := Reaction.resolve(family, side, move.causes_dizzy and not blocked)
+	_enter_reaction(r, side)
+
+func _enter_reaction(r: Dictionary, side: int) -> void:
+	_player.play(null)                       # cancel any move in progress
+	mode = r.mode
+	global_position.x += -side * r.knockback # pushed away from the attacker
+	_react_recover_mode = Mode.NORMAL
+	_react_timer = ArcadeUnits.ticks_to_seconds(maxi(r.hitstun_ticks, r.getup_ticks))
+	if sprite != null and sprite.sprite_frames != null and sprite.sprite_frames.has_animation(r.anim):
+		sprite.play(r.anim)
+
+func _play_sequence_anim() -> void:
+	if sprite == null or _player.sequence == null:
+		return
+	var anim: String = _player.sequence.anim_name
+	if sprite.sprite_frames != null and sprite.sprite_frames.has_animation(anim) and sprite.animation != anim:
 		sprite.play(anim)
