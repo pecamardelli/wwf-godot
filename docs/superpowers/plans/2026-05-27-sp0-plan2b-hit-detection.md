@@ -198,12 +198,16 @@ func test_repeat_uses_two_thirds_column():
 func test_block_is_one_pixel():
 	assert_eq(Damage.resolve(AMode.BIGBOOT, false, true), 1)
 
-func test_apply_clamps_to_zero_and_sets_ko():
-	# 163 max; a 10 hit on 6 life -> would be -4; lethal fudge: after>-10 and hit<=20 -> survives at 5
-	assert_eq(Damage.apply_health(6, 10), 5)
+func test_small_hit_kills_no_fudge():
+	# lethal fudge needs a 20+ hit; a 10 hit on 6 life -> after -4, no fudge -> dead at 0
+	assert_eq(Damage.apply_health(6, 10), 0)
 
-func test_apply_kills_when_below_fudge_window():
-	# big hit (24) on 6 -> after = -18 (<= -10) -> dead at 0
+func test_big_hit_near_miss_survives_at_5():
+	# 22 hit (>=20) on 15 -> after -7 (> -10) -> fudge: survives at 5 (LIFEBAR.ASM:1557-1573)
+	assert_eq(Damage.apply_health(15, 22), 5)
+
+func test_big_hit_far_overkill_still_kills():
+	# 24 hit on 6 -> after -18 (<= -10) -> outside fudge margin -> dead at 0
 	assert_eq(Damage.apply_health(6, 24), 0)
 
 func test_apply_normal_subtract():
@@ -262,10 +266,10 @@ static func resolve(amode: int, repeat: bool, blocked: bool) -> int:
 	return (base_dmg * (256 + OFFENSE_MOD)) / 256   # ×1.348, integer
 
 ## Subtract `dmg` from `life`, clamped [0, LIFE_MAX], with the lethal fudge:
-## a would-be kill survives at 5 when life-after > -10 and the hit was <= 20 (LIFEBAR.ASM:1557-1573).
+## a would-be kill survives at 5 when life-after > -10 and the hit was >= 20 (LIFEBAR.ASM:1557-1573).
 static func apply_health(life: int, dmg: int) -> int:
 	var after := life - dmg
-	if after <= 0 and after > -10 and dmg <= 20:
+	if after <= 0 and after > -10 and dmg >= 20:
 		return 5
 	return clampi(after, 0, LIFE_MAX)
 ```
@@ -406,10 +410,12 @@ extends Resource
 ## `duration_ticks` plays at the frame; `anim_frame` indexes the move's SpriteFrames anim.
 ## Commands fire when the frame BEGINS.
 
+## Hitbox lifecycle command codes (referenced everywhere as SequenceFrame.Command.*).
+enum Command { NONE = 0, STARTATTACK = 1, ATTACK_ON = 2, ATTACK_OFF = 3 }
+
 @export var duration_ticks: int = 4
 @export var anim_frame: int = 0
-## Hitbox lifecycle command on this frame.
-@export_enum("NONE", "STARTATTACK", "ATTACK_ON", "ATTACK_OFF") var command: int = 0
+@export_enum("NONE", "STARTATTACK", "ATTACK_ON", "ATTACK_OFF") var command: int = Command.NONE
 ## Attack box for ATTACK_ON frames (ANI_ATTACK_ON x,y,w,h; Z depth default 10).
 @export var attack_box: Box3 = null
 ```
@@ -583,8 +589,8 @@ func _two_frame_move() -> MoveSequence:
 	var m := MoveSequence.new()
 	m.id = "t"; m.anim_name = "mid_punch_front"; m.attack_mode = AMode.PUNCH
 	var box := Box3.new(); box.size = Vector3(10, 10, 10)
-	var f0 := SequenceFrame.new(); f0.duration_ticks = 2; f0.command = 2; f0.attack_box = box
-	var f1 := SequenceFrame.new(); f1.duration_ticks = 2; f1.command = 3
+	var f0 := SequenceFrame.new(); f0.duration_ticks = 2; f0.command = SequenceFrame.Command.ATTACK_ON; f0.attack_box = box
+	var f1 := SequenceFrame.new(); f1.duration_ticks = 2; f1.command = SequenceFrame.Command.ATTACK_OFF
 	m.frames = [f0, f1]
 	return m
 
@@ -664,10 +670,10 @@ func current_frame() -> SequenceFrame:
 
 func _apply_command(f: SequenceFrame) -> void:
 	match f.command:
-		2: # ATTACK_ON
+		SequenceFrame.Command.ATTACK_ON:
 			attack_live = true
 			active_attack_box = f.attack_box
-		3: # ATTACK_OFF
+		SequenceFrame.Command.ATTACK_OFF:
 			attack_live = false
 			active_attack_box = null
 		_:
@@ -884,7 +890,8 @@ var health: int = Damage.LIFE_MAX
 var _player: SequencePlayer = SequencePlayer.new()
 var _react_timer: float = 0.0     # seconds left in a reaction (hitstun/getup/dizzy)
 var _react_recover_mode: int = Mode.NORMAL
-var _last_damage_time: float = -999.0   # seconds; for the ⅔ repeat window
+var _last_damage_time: float = -999.0   # _sim_time of last hit taken; for the ⅔ repeat window
+var _sim_time: float = 0.0               # accumulated sim-time (deterministic; NOT wall-clock)
 var _hit_by_current_move: Array = []     # victims already hit by the swing in progress
 ```
 
@@ -895,6 +902,8 @@ func is_attacking() -> bool:
 	return _player.is_playing()
 
 func _physics_process(delta: float) -> void:
+	_sim_time += delta   # advance the deterministic clock in every phase
+
 	# 1) Reaction countdown (hitstun / getup / dizzy): no control, no walk.
 	if _react_timer > 0.0:
 		_react_timer -= delta
@@ -959,7 +968,7 @@ func already_hit(victim: Node) -> bool:
 ## Apply a landed hit from `attacker` using `move`. Called by AttackResolver.
 func receive_hit(attacker: Fighter, move: MoveSequence) -> void:
 	attacker._hit_by_current_move.append(self)
-	var now := Time.get_ticks_msec() / 1000.0
+	var now := _sim_time   # per-fighter accumulated sim-time (advanced in _physics_process); NOT wall-clock, for determinism
 	var repeat := (now - _last_damage_time) <= ArcadeUnits.ticks_to_seconds(Damage.REPEAT_WINDOW_TICKS)
 	var blocked := mode == Mode.BLOCK
 	var dmg := Damage.resolve(move.attack_mode, repeat, blocked)
@@ -974,8 +983,9 @@ func receive_hit(attacker: Fighter, move: MoveSequence) -> void:
 func _enter_reaction(r: Dictionary, side: int) -> void:
 	# Cancel any move in progress; play the reaction anim; set timer & recover mode.
 	_player.play(null)
+	_hit_by_current_move.clear()               # a cancelled swing leaves no stale hit-list
 	mode = r.mode
-	global_position.x += -side * r.knockback   # pushed away from the attacker
+	global_position.x += side * r.knockback    # Hitbox.hit_side IS the push direction (away from attacker)
 	_react_recover_mode = Mode.NORMAL
 	_react_timer = ArcadeUnits.ticks_to_seconds(maxi(r.hitstun_ticks, r.getup_ticks))
 	if sprite != null and sprite.sprite_frames != null and sprite.sprite_frames.has_animation(r.anim):

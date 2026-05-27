@@ -1,0 +1,59 @@
+[gd_resource type="Resource" script_class="MoveSequence" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/sequence_frame.gd" id="1_eoll5"]
+[ext_resource type="Script" path="res://scripts/combat/box3.gd" id="2_yf1ku"]
+[ext_resource type="Script" path="res://scripts/combat/move_sequence.gd" id="3_lf0sn"]
+
+[sub_resource type="Resource" id="Resource_d8ssl"]
+script = ExtResource("1_eoll5")
+duration_ticks = 3
+
+[sub_resource type="Resource" id="Resource_w4bbh"]
+script = ExtResource("1_eoll5")
+duration_ticks = 3
+anim_frame = 1
+
+[sub_resource type="Resource" id="Resource_tamcj"]
+script = ExtResource("1_eoll5")
+duration_ticks = 3
+anim_frame = 2
+
+[sub_resource type="Resource" id="Resource_y54it"]
+script = ExtResource("1_eoll5")
+duration_ticks = 3
+anim_frame = 3
+
+[sub_resource type="Resource" id="Resource_x2o3j"]
+script = ExtResource("2_yf1ku")
+offset = Vector3(34, 60, 0)
+size = Vector3(70, 20, 10)
+
+[sub_resource type="Resource" id="Resource_qte5y"]
+script = ExtResource("1_eoll5")
+duration_ticks = 3
+anim_frame = 4
+command = 2
+attack_box = SubResource("Resource_x2o3j")
+
+[sub_resource type="Resource" id="Resource_xchgj"]
+script = ExtResource("1_eoll5")
+duration_ticks = 3
+anim_frame = 5
+
+[sub_resource type="Resource" id="Resource_onwkv"]
+script = ExtResource("1_eoll5")
+duration_ticks = 3
+anim_frame = 6
+command = 3
+
+[sub_resource type="Resource" id="Resource_pvmuf"]
+script = ExtResource("1_eoll5")
+duration_ticks = 3
+anim_frame = 7
+
+[resource]
+script = ExtResource("3_lf0sn")
+id = "big_boot"
+anim_name = "big_boot"
+attack_mode = 5
+frames = Array[ExtResource("1_eoll5")]([SubResource("Resource_d8ssl"), SubResource("Resource_w4bbh"), SubResource("Resource_tamcj"), SubResource("Resource_y54it"), SubResource("Resource_qte5y"), SubResource("Resource_xchgj"), SubResource("Resource_onwkv"), SubResource("Resource_pvmuf")])
