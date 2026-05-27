@@ -65,8 +65,18 @@ func is_attacking() -> bool:
 func is_dead() -> bool:
 	return health <= 0
 
+## Refresh `target` from the "fighters" group. Recompute immediately when we have
+## no live target; otherwise only every 4th tick, staggered per fighter.
+func _update_target() -> void:
+	_target_tick += 1
+	var stale: bool = target == null or not is_instance_valid(target) or target.is_dead()
+	if not stale and (_target_tick % 4) != (get_instance_id() % 4):
+		return
+	target = Targeting.pick(self, get_tree().get_nodes_in_group("fighters"))
+
 func _physics_process(delta: float) -> void:
 	_sim_time += delta
+	_update_target()
 	# 1) Reaction countdown (hitstun / getup / dizzy): no control, no walk.
 	if _react_timer > 0.0:
 		_react_timer -= delta
