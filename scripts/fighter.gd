@@ -8,6 +8,17 @@ extends CharacterBody2D
 enum Mode { NORMAL, RUNNING, INAIR, ONGROUND, BLOCK, DIZZY }
 var mode: int = Mode.NORMAL
 
+## Faction. Targeting only considers opposite-side fighters (arcade PLYR_SIDE).
+enum Side { PLAYER, ENEMY }
+@export var side: int = Side.PLAYER
+
+## The opponent this fighter is currently targeting (drives facing + dispatch range).
+var target: Fighter = null
+## The fighter this one most recently landed a hit on (arcade WHOIHIT; targeting bias).
+var _who_i_hit: Fighter = null
+## Counter to stagger target recomputation across fighters.
+var _target_tick: int = 0
+
 ## Input is only read in NORMAL/RUNNING (arcade: other mode_* handlers are rets).
 static func input_allowed(m: int) -> bool:
 	return m == Mode.NORMAL or m == Mode.RUNNING
@@ -51,6 +62,9 @@ func get_input_direction() -> Vector2:
 func is_attacking() -> bool:
 	return _player.is_playing()
 
+func is_dead() -> bool:
+	return health <= 0
+
 func _physics_process(delta: float) -> void:
 	_sim_time += delta
 	# 1) Reaction countdown (hitstun / getup / dizzy): no control, no walk.
@@ -76,9 +90,9 @@ func _physics_process(delta: float) -> void:
 	var dir: Vector2 = Vector2.ZERO
 	if Fighter.input_allowed(mode):
 		dir = get_input_direction()
-		var target: Vector2 = MovementMath.walk_velocity(dir) * walk_speed_scale
-		target.y *= depth_speed_scale
-		velocity = velocity.move_toward(target, walk_acceleration * delta)
+		var walk_vel: Vector2 = MovementMath.walk_velocity(dir) * walk_speed_scale
+		walk_vel.y *= depth_speed_scale
+		velocity = velocity.move_toward(walk_vel, walk_acceleration * delta)
 	else:
 		# Stun cuts control instantly (arcade): no coasting while helpless.
 		velocity = Vector2.ZERO
