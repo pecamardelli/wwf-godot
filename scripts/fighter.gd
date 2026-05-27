@@ -22,7 +22,7 @@ func get_input_direction() -> Vector2:
 
 func _physics_process(_delta: float) -> void:
 	var dir: Vector2 = get_input_direction()
-	velocity = MovementMath.move_velocity(dir, walk_speed)
+	velocity = MovementMath.walk_velocity(dir)
 	move_and_slide()
 	_apply_separation()
 	global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
