@@ -37,3 +37,12 @@ func test_retargets_when_current_target_dies():
 	near.health = 0                      # current target dies
 	me._physics_process(FRAME)           # must retarget immediately
 	assert_eq(me.target, far)
+
+func test_faces_target_continuously():
+	var me := _at(100, Fighter.Side.PLAYER)
+	var enemy := _at(300, Fighter.Side.ENEMY)   # to the right
+	me._physics_process(FRAME)
+	assert_eq(me.facing(), 1.0, "faces right toward the right-side target")
+	enemy.global_position.x = -50               # move target to the left
+	me._physics_process(FRAME)
+	assert_eq(me.facing(), -1.0, "turns to keep facing the target")

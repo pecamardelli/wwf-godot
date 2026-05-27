@@ -77,6 +77,8 @@ func _update_target() -> void:
 func _physics_process(delta: float) -> void:
 	_sim_time += delta
 	_update_target()
+	if target != null and is_instance_valid(target):
+		_set_facing(target.global_position.x - global_position.x)
 	# 1) Reaction countdown (hitstun / getup / dizzy): no control, no walk.
 	if _react_timer > 0.0:
 		_react_timer -= delta
