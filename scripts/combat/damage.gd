@@ -16,9 +16,9 @@ static func resolve(amode: int, repeat: bool, blocked: bool) -> int:
 	return (base_dmg * (256 + OFFENSE_MOD)) / 256   # ×1.348, integer
 
 ## Subtract `dmg` from `life`, clamped [0, LIFE_MAX], with the lethal fudge:
-## a would-be kill survives at 5 when life-after > -10 and the hit was <= 20 (LIFEBAR.ASM:1557-1573).
+## a would-be kill survives at 5 when life-after > -10 and the hit was >= 20 (LIFEBAR.ASM:1557-1573).
 static func apply_health(life: int, dmg: int) -> int:
 	var after := life - dmg
-	if after <= 0 and after > -10 and dmg <= 20:
+	if after <= 0 and after > -10 and dmg >= 20:
 		return 5
 	return clampi(after, 0, LIFE_MAX)

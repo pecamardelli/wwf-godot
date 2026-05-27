@@ -16,12 +16,16 @@ func test_repeat_uses_two_thirds_column():
 func test_block_is_one_pixel():
 	assert_eq(Damage.resolve(AMode.BIGBOOT, false, true), 1)
 
-func test_apply_clamps_to_zero_and_sets_ko():
-	# 163 max; a 10 hit on 6 life -> would be -4; lethal fudge: after>-10 and hit<=20 -> survives at 5
-	assert_eq(Damage.apply_health(6, 10), 5)
+func test_small_hit_kills_no_fudge():
+	# lethal fudge needs a 20+ hit; a 10 hit on 6 life -> after -4, no fudge -> dead at 0
+	assert_eq(Damage.apply_health(6, 10), 0)
 
-func test_apply_kills_when_below_fudge_window():
-	# big hit (24) on 6 -> after = -18 (<= -10) -> dead at 0
+func test_big_hit_near_miss_survives_at_5():
+	# 22 hit (>=20) on 15 -> after -7 (> -10) -> fudge: survives at 5 (LIFEBAR.ASM:1557-1573)
+	assert_eq(Damage.apply_health(15, 22), 5)
+
+func test_big_hit_far_overkill_still_kills():
+	# 24 hit on 6 -> after -18 (<= -10) -> outside fudge margin -> dead at 0
 	assert_eq(Damage.apply_health(6, 24), 0)
 
 func test_apply_normal_subtract():
