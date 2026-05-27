@@ -5,7 +5,7 @@ extends Resource
 
 @export var id: String = ""
 @export var anim_name: String = ""
-@export var attack_mode: int = AMode.PUNCH
+@export_enum("PUNCH", "HDBUTT", "KICK", "KNEE", "UPRCUT", "BIGBOOT", "STOMP", "LBDROP") var attack_mode: int = AMode.PUNCH
 @export var frames: Array[SequenceFrame] = []
 ## MODE_UNINT: while playing, new input is ignored until the sequence ends.
 @export var uninterruptable: bool = true

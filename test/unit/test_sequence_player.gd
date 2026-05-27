@@ -7,8 +7,8 @@ func test_punch_sequence_loads_and_has_an_attack_window():
 	var has_on := false
 	var has_off := false
 	for f in m.frames:
-		if f.command == 2: has_on = true
-		if f.command == 3: has_off = true
+		if f.command == SequenceFrame.Command.ATTACK_ON: has_on = true
+		if f.command == SequenceFrame.Command.ATTACK_OFF: has_off = true
 	assert_true(has_on and has_off, "has ATTACK_ON and ATTACK_OFF frames")
 
 func test_headbutt_causes_dizzy():
