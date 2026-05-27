@@ -21,6 +21,9 @@ func get_input_direction() -> Vector2:
 	)
 
 func _unhandled_input(_event: InputEvent) -> void:
+	# Same gate as movement: helpless/blocking fighters can't start a move.
+	if not Fighter.input_allowed(mode) or is_attacking():
+		return
 	var p := _action_prefix()
 	if Input.is_action_just_pressed(p + "punch"):
 		# close -> headbutt, else punch (full range/relative-input dispatch is 2c)
