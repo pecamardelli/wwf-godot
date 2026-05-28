@@ -126,3 +126,9 @@ func test_mash_only_works_while_onground():
 	f._react_timer = 1.0
 	f.mash_recover()
 	assert_eq(f._react_timer, 1.0, "mash does nothing unless downed")
+
+func test_landing_a_hit_records_who_i_hit():
+	var attacker := _at(100, Fighter.Side.PLAYER)
+	var victim := _at(140, Fighter.Side.ENEMY)
+	victim.receive_hit(attacker, load("res://assets/sequences/doink/punch.tres"))
+	assert_eq(attacker._who_i_hit, victim, "landing a hit records the victim for targeting stickiness")

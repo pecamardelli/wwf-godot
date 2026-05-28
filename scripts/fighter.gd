@@ -216,7 +216,9 @@ func start_move(move: MoveSequence) -> void:
 		return
 	if _player.is_playing() and _player.sequence.uninterruptable:
 		return
-	_face_nearest_opponent()
+	# Continuous target-facing is authoritative; only snap-face when untargeted.
+	if target == null or not is_instance_valid(target):
+		_face_nearest_opponent()
 	_player.play(move)
 	_hit_by_current_move.clear()
 	_play_sequence_anim()
@@ -246,6 +248,7 @@ func current_move() -> MoveSequence:
 func receive_hit(attacker: Fighter, move: MoveSequence) -> void:
 	# A victim already in a reaction CAN be re-hit by a different swing (juggling) - intentional for 2b.
 	attacker._hit_by_current_move.append(self)
+	attacker._who_i_hit = self   # arcade WHOIHIT: bias attacker's targeting toward who it just hit
 	var now := _sim_time
 	var repeat := (now - _last_damage_time) <= ArcadeUnits.ticks_to_seconds(Damage.REPEAT_WINDOW_TICKS)
 	var blocked := mode == Mode.BLOCK
