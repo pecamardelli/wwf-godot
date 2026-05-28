@@ -12,14 +12,19 @@ static func matches(move: MotionMove, buffer: MotionBuffer, current_tick: int) -
 	# Freshness: a motion only fires the frame its trigger edge was pushed.
 	if buffer.newest_tick() != current_tick:
 		return false
-	# Trigger head-noise check: the newest entry must match step 0 with no extra bits set.
+	# The newest entry must BE the trigger: no extra bits (head-noise check) AND the
+	# exact trigger value. Together these guarantee step 0 is the most-recent input and
+	# nothing newer slipped in (e.g. a different button press cannot fire this move).
 	var head := buffer.code_at(0)
 	if (head & (~move.masks[0] & _INPUT_MASK)) != 0:
 		return false
-	# Scan newest -> oldest, matching each step; tolerate up to SKIP_BUDGET noise per step.
-	var entry_i := 0
-	var last_match_tick := current_tick
-	for step in range(move.step_count()):
+	if (head & move.masks[0]) != move.values[0]:
+		return false
+	# Match the remaining (older) steps newest->oldest. `skips <= SKIP_BUDGET` tolerates
+	# exactly SKIP_BUDGET intervening entries before a step matches (8 skipped, 9th matches).
+	var entry_i := 1
+	var last_match_tick := buffer.tick_at(0)
+	for step in range(1, move.step_count()):
 		var matched := false
 		var skips := 0
 		while entry_i < n and skips <= MotionBuffer.SKIP_BUDGET:
