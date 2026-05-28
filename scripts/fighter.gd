@@ -103,6 +103,7 @@ func _physics_process(delta: float) -> void:
 				var anim := "get_up_back" if _facing < 0.0 else "get_up_front"
 				if sprite.sprite_frames.has_animation(anim):
 					sprite.play(anim)
+					_refresh_flip()
 			mode = _react_recover_mode
 		return
 
@@ -170,6 +171,26 @@ func _apply_separation() -> void:
 		push += MovementMath.separation_push(global_position, other.global_position, separation_radii)
 	global_position += push
 
+## Reaction/defensive anims whose source art is drawn facing LEFT (opposite the
+## action anims). flip_h is inverted for these so they render toward _facing.
+const _LEFT_DRAWN := {
+	"defence": true,
+	"facepunched_front": true, "facepunched_back": true,
+	"shoved": true, "droped": true, "damage_lying": true, "stuned": true,
+	"get_up_front": true, "get_up_back": true,
+}
+
+## Correct flip_h for an animation given facing: left-drawn art is inverted.
+static func flip_h_for(anim: String, facing: float) -> bool:
+	if _LEFT_DRAWN.has(anim):
+		return facing > 0.0
+	return facing < 0.0
+
+## Apply the correct flip for the current animation + facing.
+func _refresh_flip() -> void:
+	if sprite != null:
+		sprite.flip_h = flip_h_for(sprite.animation, _facing)
+
 ## Facing as ±1 (right = +1). Logic-side; the sprite flip mirrors it.
 func facing() -> float:
 	return _facing
@@ -179,8 +200,7 @@ func _set_facing(f: float) -> void:
 	if f == 0.0:
 		return
 	_facing = signf(f)
-	if sprite != null:
-		sprite.flip_h = _facing < 0.0
+	_refresh_flip()
 
 func _update_facing(dir: Vector2) -> void:
 	if dir.x != 0.0:
@@ -214,6 +234,7 @@ func _update_animation(dir: Vector2) -> void:
 		sprite.play(anim)
 	elif not sprite.is_playing():
 		sprite.play(anim)
+	_refresh_flip()
 
 ## Walk-speed multiplier from facing-relative state (arcade walk table modifiers).
 func walk_dir_multiplier(moving_away: bool, target_down: bool) -> float:
@@ -291,13 +312,11 @@ func receive_hit(attacker: Fighter, move: MoveSequence) -> void:
 func _animate_block() -> void:
 	if sprite == null or sprite.sprite_frames == null or not sprite.sprite_frames.has_animation("defence"):
 		return
-	# The `defence` art is drawn facing LEFT (opposite the other anims), so invert flip_h
-	# to render the guard facing the same way as _facing.
-	sprite.flip_h = _facing > 0.0
 	if sprite.animation != "defence":
 		sprite.animation = "defence"
 		sprite.frame = 0
 		sprite.play("defence")   # crouch into the guard, frozen below once it reaches ready
+	_refresh_flip()   # defence art is left-drawn; render toward _facing
 	var last := sprite.sprite_frames.get_frame_count("defence") - 1
 	if _block_bouncing:
 		if sprite.frame >= last:
@@ -327,6 +346,7 @@ func _enter_reaction(r: Dictionary, hit_dir: int) -> void:
 	_react_timer = ArcadeUnits.ticks_to_seconds(maxi(r.hitstun_ticks, r.getup_ticks))
 	if sprite != null and sprite.sprite_frames != null and sprite.sprite_frames.has_animation(r.anim):
 		sprite.play(r.anim)
+		_refresh_flip()
 
 ## Puppet-style playback: the SEQUENCE drives which sprite frame shows, so the
 ## hitbox window and the visible frame share one clock. We pause auto-advance and
@@ -339,6 +359,7 @@ func _play_sequence_anim() -> void:
 		return
 	if sprite.animation != anim:
 		sprite.animation = anim
+	_refresh_flip()
 	if sprite.is_playing():
 		sprite.pause()
 	var f: SequenceFrame = _player.current_frame()

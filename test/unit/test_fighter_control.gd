@@ -225,3 +225,16 @@ func test_run_faces_its_direction_not_target():
 	for _i in range(5):
 		f._physics_process(FRAME)
 	assert_eq(f.facing(), -1.0, "faces the run direction (left), not the right-side target — no moonwalk")
+
+func test_left_drawn_reaction_anims_invert_flip():
+	# left-drawn art faces left, so facing RIGHT must flip_h=true to render facing right
+	assert_true(Fighter.flip_h_for("facepunched_front", 1.0))
+	assert_true(Fighter.flip_h_for("defence", 1.0))
+	assert_true(Fighter.flip_h_for("droped", 1.0))
+	assert_false(Fighter.flip_h_for("shoved", -1.0))
+
+func test_right_drawn_anims_use_normal_flip():
+	assert_false(Fighter.flip_h_for("idle_front", 1.0))
+	assert_true(Fighter.flip_h_for("idle_front", -1.0))
+	assert_false(Fighter.flip_h_for("mid_punch_front", 1.0))
+	assert_false(Fighter.flip_h_for("run", 1.0))
