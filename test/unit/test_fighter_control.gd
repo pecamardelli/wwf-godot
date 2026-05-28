@@ -209,3 +209,19 @@ func test_attacking_stops_run():
 	assert_eq(f.mode, Fighter.Mode.RUNNING)
 	f.start_move(load("res://assets/sequences/doink/big_boot.tres"))
 	assert_eq(f.mode, Fighter.Mode.NORMAL, "starting an attack stops the run")
+
+func test_run_faces_its_direction_not_target():
+	var f := _RunLatch.new()
+	add_child_autofree(f)
+	f.global_position = Vector2(100, 400)
+	f.side = Fighter.Side.PLAYER
+	f.separation_radii = Vector2.ZERO
+	var enemy := _at(500, Fighter.Side.ENEMY)   # target to the RIGHT
+	f._set_facing(1.0)                            # was looking right
+	f.held = Vector2.LEFT                         # run LEFT (away from the target)
+	f.run_now = true
+	f._physics_process(FRAME)                     # latch run left
+	f.run_now = false
+	for _i in range(5):
+		f._physics_process(FRAME)
+	assert_eq(f.facing(), -1.0, "faces the run direction (left), not the right-side target — no moonwalk")

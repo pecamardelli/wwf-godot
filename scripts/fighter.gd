@@ -90,7 +90,7 @@ func _update_target() -> void:
 func _physics_process(delta: float) -> void:
 	_sim_time += delta
 	_update_target()
-	if target != null and is_instance_valid(target) and not _is_guarding():
+	if target != null and is_instance_valid(target) and not _is_guarding() and mode != Mode.RUNNING:
 		_set_facing(target.global_position.x - global_position.x)
 	# 1) Reaction countdown (hitstun / getup / dizzy): no control, no walk.
 	if _react_timer > 0.0:
@@ -140,6 +140,7 @@ func _physics_process(delta: float) -> void:
 			if signf(dir.x) != 0.0 and signf(dir.x) == -signf(_run_dir_x):
 				mode = Mode.NORMAL
 			else:
+				_set_facing(_run_dir_x)   # face the run direction (no moonwalk)
 				var run_vel := Vector2(_run_dir_x * ArcadeUnits.RUN_SPEED, signf(dir.y) * ArcadeUnits.RUN_DEPTH_DRIFT)
 				velocity = velocity.move_toward(run_vel, walk_acceleration * delta)
 		if mode != Mode.RUNNING:
@@ -290,6 +291,9 @@ func receive_hit(attacker: Fighter, move: MoveSequence) -> void:
 func _animate_block() -> void:
 	if sprite == null or sprite.sprite_frames == null or not sprite.sprite_frames.has_animation("defence"):
 		return
+	# The `defence` art is drawn facing LEFT (opposite the other anims), so invert flip_h
+	# to render the guard facing the same way as _facing.
+	sprite.flip_h = _facing > 0.0
 	if sprite.animation != "defence":
 		sprite.animation = "defence"
 		sprite.frame = 0
