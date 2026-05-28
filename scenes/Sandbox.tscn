@@ -37,6 +37,11 @@ player_index = 0
 position = Vector2(800, 520)
 script = ExtResource("2")
 player_index = 1
+side = 1
+
+[node name="Dummy" parent="." instance=ExtResource("1")]
+position = Vector2(680, 470)
+side = 1
 
 [node name="AttackResolver" type="Node" parent="."]
 script = ExtResource("3")
