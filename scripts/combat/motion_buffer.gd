@@ -5,7 +5,7 @@ extends RefCounted
 ## are facing-relative (toward/away), exactly like the arcade's #xflip_table.
 
 const CAPACITY := 16
-## Per match step, intervening unrelated entries tolerated (arcade 8-entry skip budget).
+## Per match step, a scan may skip up to this many intervening entries (arcade 8-entry budget). Read by MotionMatcher.
 const SKIP_BUDGET := 8
 
 # --- Input bit layout (RESEARCH §A.1). Joystick b0-3, buttons b4-8, real L/R b10-11. ---
@@ -55,7 +55,7 @@ func tick_at(i: int) -> int:
 	return _ticks[i]
 
 func newest_tick() -> int:
-	return _ticks[0] if _ticks.size() > 0 else -1
+	return -1 if _ticks.is_empty() else _ticks[0]
 
 func clear() -> void:
 	_codes.clear()

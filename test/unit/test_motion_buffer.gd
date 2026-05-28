@@ -19,6 +19,18 @@ func test_encode_stick_vertical():
 	var up := MotionBuffer.encode_stick(Vector2.UP, 1.0)
 	assert_eq(up & MotionBuffer.J_UP, MotionBuffer.J_UP)
 
+func test_encode_stick_diagonal():
+	# Right+down while facing right: toward, down, and screen-right must be set; away and up must be clear.
+	var diag := MotionBuffer.encode_stick(Vector2(1, 1), 1.0)
+	assert_eq(diag & MotionBuffer.J_TOWARD, MotionBuffer.J_TOWARD, "diagonal right+down facing right = toward set")
+	assert_eq(diag & MotionBuffer.J_DOWN, MotionBuffer.J_DOWN, "down bit set")
+	assert_eq(diag & MotionBuffer.J_RIGHT, MotionBuffer.J_RIGHT, "screen-right bit set")
+	assert_eq(diag & MotionBuffer.J_AWAY, 0, "away must be clear")
+	assert_eq(diag & MotionBuffer.J_UP, 0, "up must be clear")
+
+func test_encode_stick_neutral():
+	assert_eq(MotionBuffer.encode_stick(Vector2.ZERO, 1.0), 0, "neutral stick = 0")
+
 func test_push_keeps_newest_at_front():
 	var b := MotionBuffer.new()
 	b.push(MotionBuffer.B_PUNCH, 10)
