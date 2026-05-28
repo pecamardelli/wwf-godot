@@ -51,3 +51,9 @@ func test_sequence_finishes_after_total_duration():
 			finished = true
 	assert_true(finished, "advance() returns true on the frame it completes")
 	assert_false(sp.is_playing())
+
+func test_move_sequence_is_grapple_defaults_false():
+	var m := MoveSequence.new()
+	assert_false(m.is_grapple, "strikes are not grapples by default")
+	m.is_grapple = true
+	assert_true(m.is_grapple)

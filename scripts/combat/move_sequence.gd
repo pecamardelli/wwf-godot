@@ -11,6 +11,8 @@ extends Resource
 @export var uninterruptable: bool = true
 ## Some moves daze the victim (dizzy family) regardless of the base reaction.
 @export var causes_dizzy: bool = false
+## Grapple moves route their connect to attach (victim channel) rather than damage.
+@export var is_grapple: bool = false
 
 func total_ticks() -> int:
 	var t := 0
