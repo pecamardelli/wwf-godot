@@ -27,10 +27,10 @@ func get_input_direction() -> Vector2:
 	)
 
 func wants_to_run() -> bool:
-	return Input.is_action_just_pressed(_action_prefix() + "run")
+	return _pressed(_action_prefix() + "run")
 
 func wants_to_block() -> bool:
-	return Input.is_action_pressed(_action_prefix() + "block")
+	return _held(_action_prefix() + "block")
 
 func _unhandled_input(_event: InputEvent) -> void:
 	# While downed, any button/direction press mashes toward a faster getup.
