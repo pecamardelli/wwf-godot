@@ -85,3 +85,22 @@ func test_run_uses_run_speed():
 		f._physics_process(FRAME)
 	assert_eq(f.mode, Fighter.Mode.RUNNING)
 	assert_almost_eq(f.velocity.x, ArcadeUnits.RUN_SPEED, 1.0)
+
+class _Blocker extends Fighter:
+	func wants_to_block() -> bool:
+		return true
+
+func test_block_enters_block_mode_and_holds_still():
+	var f := _Blocker.new()
+	add_child_autofree(f)
+	f.mode = Fighter.Mode.NORMAL
+	f._physics_process(FRAME)
+	assert_eq(f.mode, Fighter.Mode.BLOCK)
+	assert_eq(f.velocity, Vector2.ZERO, "no movement while blocking")
+
+func test_block_reduces_damage_to_one():
+	var attacker := _at(100, Fighter.Side.ENEMY)
+	var victim := _at(140, Fighter.Side.PLAYER)
+	victim.mode = Fighter.Mode.BLOCK
+	victim.receive_hit(attacker, load("res://assets/sequences/doink/punch.tres"))
+	assert_eq(victim.health, Damage.LIFE_MAX - 1, "blocked punch deals 1")

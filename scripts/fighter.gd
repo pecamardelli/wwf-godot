@@ -63,6 +63,10 @@ func get_input_direction() -> Vector2:
 func wants_to_run() -> bool:
 	return false
 
+## Subclasses (Player) override to report the block button being held.
+func wants_to_block() -> bool:
+	return false
+
 func is_attacking() -> bool:
 	return _player.is_playing()
 
@@ -101,6 +105,19 @@ func _physics_process(delta: float) -> void:
 			_hit_by_current_move.clear()
 		_play_sequence_anim()
 		return
+
+	# Block: hold to guard (no move, no attack). Front damage -> 1 (handled in receive_hit).
+	if (mode == Mode.NORMAL or mode == Mode.RUNNING or mode == Mode.BLOCK) and wants_to_block():
+		mode = Mode.BLOCK
+		velocity = Vector2.ZERO
+		move_and_slide()
+		global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
+		if sprite != null and sprite.sprite_frames != null \
+				and sprite.sprite_frames.has_animation("defence") and sprite.animation != "defence":
+			sprite.play("defence")
+		return
+	elif mode == Mode.BLOCK:
+		mode = Mode.NORMAL
 
 	# 3) Normal movement (Plan 2a feel layer).
 	var dir: Vector2 = Vector2.ZERO

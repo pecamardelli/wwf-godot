@@ -24,6 +24,9 @@ func get_input_direction() -> Vector2:
 func wants_to_run() -> bool:
 	return Input.is_action_pressed(_action_prefix() + "run")
 
+func wants_to_block() -> bool:
+	return Input.is_action_pressed(_action_prefix() + "block")
+
 func _unhandled_input(_event: InputEvent) -> void:
 	# Same gate as movement: helpless/blocking fighters can't start a move.
 	if not Fighter.input_allowed(mode) or is_attacking():
