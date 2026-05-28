@@ -1,17 +1,17 @@
 extends SceneTree
 ## Author Doink's special-move input patterns -> res://assets/motions/doink/*.tres
 ## Run: godot --headless --path . -s tools/build_doink_motions.gd
-## Patterns from RESEARCH §A.4 (DOINK.ASM:426-583).
+## Patterns from DOINK.ASM:426/504/572 + GAME.EQU:366-428 (arcade {value,mask}).
 
 const OUT := "res://assets/motions/doink"
 
-# Trigger mask = EVERY input bit, so the trigger entry must be a clean button with a
-# neutral stick (no joy or screen-direction noise). Matches the matcher's trigger rule.
-const ALL := MotionBuffer.J_UP | MotionBuffer.J_DOWN | MotionBuffer.J_AWAY | MotionBuffer.J_TOWARD \
-	| MotionBuffer.B_PUNCH | MotionBuffer.B_BLOCK | MotionBuffer.B_SPUNCH | MotionBuffer.B_KICK | MotionBuffer.B_SKICK \
-	| MotionBuffer.J_LEFT | MotionBuffer.J_RIGHT
-# Direction steps ignore real screen L/R (J_LEFT/J_RIGHT), matching only the relative dir.
-const DIR := MotionBuffer.J_AWAY | MotionBuffer.J_TOWARD | MotionBuffer.J_UP | MotionBuffer.J_DOWN
+# Trigger mask = J_ALL (GAME.EQU:380 = all 4 facing-relative dir bits + real screen
+# L/R). As an IGNORE mask it strips every direction bit so the trigger compares the
+# button only -> a held direction does NOT block the grab.
+const J_ALL := MotionBuffer.J_UP | MotionBuffer.J_DOWN | MotionBuffer.J_AWAY \
+	| MotionBuffer.J_TOWARD | MotionBuffer.J_REAL_LR
+# Direction steps ignore real screen L/R (J_REAL_LR); the facing-relative dir is significant.
+const DIR_IGNORE := MotionBuffer.J_REAL_LR
 
 func _init() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT))
@@ -27,7 +27,7 @@ func _motion(id: String, trigger_btn: int, dir2: int, dir3: int, max_ticks: int)
 	var m := MotionMove.new()
 	m.move_id = id
 	m.values = PackedInt32Array([trigger_btn, dir2, dir3])
-	m.masks = PackedInt32Array([ALL, DIR, DIR])
+	m.masks = PackedInt32Array([J_ALL, DIR_IGNORE, DIR_IGNORE])
 	m.max_ticks = max_ticks
 	return m
 

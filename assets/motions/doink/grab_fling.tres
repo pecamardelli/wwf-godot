@@ -6,4 +6,4 @@
 script = ExtResource("1_bq1oj")
 move_id = "grab_fling"
 values = PackedInt32Array(64, 4, 4)
-masks = PackedInt32Array(3583, 15, 15)
+masks = PackedInt32Array(3087, 3072, 3072)
