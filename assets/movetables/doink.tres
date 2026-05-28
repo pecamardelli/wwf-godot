@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="MoveTable" format=3]
+
+[ext_resource type="Resource" path="res://assets/sequences/doink/punch.tres" id="1_d5cjl"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/headbutt.tres" id="2_suyf6"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/uppercut.tres" id="3_thkea"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/kick.tres" id="4_cp5s2"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/big_boot.tres" id="5_i50a5"]
+[ext_resource type="Script" path="res://scripts/combat/move_table.gd" id="6_gkspo"]
+
+[resource]
+script = ExtResource("6_gkspo")
+entries = {
+"0|0|0": ExtResource("1_d5cjl"),
+"0|0|1": ExtResource("3_thkea"),
+"0|0|2": ExtResource("4_cp5s2"),
+"0|0|3": ExtResource("5_i50a5"),
+"1|0|0": ExtResource("2_suyf6"),
+"1|0|1": ExtResource("3_thkea"),
+"1|0|2": ExtResource("4_cp5s2"),
+"1|0|3": ExtResource("5_i50a5"),
+"2|0|3": ExtResource("5_i50a5")
+}
