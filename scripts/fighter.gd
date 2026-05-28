@@ -94,6 +94,10 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
 		if _react_timer <= 0.0:
+			if mode == Mode.ONGROUND and sprite != null and sprite.sprite_frames != null:
+				var anim := "get_up_back" if _facing < 0.0 else "get_up_front"
+				if sprite.sprite_frames.has_animation(anim):
+					sprite.play(anim)
 			mode = _react_recover_mode
 		return
 
@@ -216,6 +220,13 @@ func start_move(move: MoveSequence) -> void:
 	_player.play(move)
 	_hit_by_current_move.clear()
 	_play_sequence_anim()
+
+const _MASH_REDUCE := 0.08   # seconds shaved per mash press (arcade GETUP mash)
+
+## Called when the player presses anything while downed — speeds up getup.
+func mash_recover() -> void:
+	if mode == Mode.ONGROUND and _react_timer > 0.0:
+		_react_timer = maxf(_react_timer - _MASH_REDUCE, 0.0)
 
 ## The live attack box this tick, or null.
 func current_attack_box() -> Box3:

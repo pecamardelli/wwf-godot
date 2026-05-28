@@ -104,3 +104,25 @@ func test_block_reduces_damage_to_one():
 	victim.mode = Fighter.Mode.BLOCK
 	victim.receive_hit(attacker, load("res://assets/sequences/doink/punch.tres"))
 	assert_eq(victim.health, Damage.LIFE_MAX - 1, "blocked punch deals 1")
+
+func test_mash_reduces_remaining_getup_time():
+	var f := _at(0, Fighter.Side.PLAYER)
+	f.mode = Fighter.Mode.ONGROUND
+	f._react_timer = 2.0
+	var before := f._react_timer
+	f.mash_recover()
+	assert_lt(f._react_timer, before, "a mash press shortens the down-time")
+
+func test_mash_cannot_go_below_zero():
+	var f := _at(0, Fighter.Side.PLAYER)
+	f.mode = Fighter.Mode.ONGROUND
+	f._react_timer = 0.05
+	f.mash_recover()
+	assert_gte(f._react_timer, 0.0, "never negative")
+
+func test_mash_only_works_while_onground():
+	var f := _at(0, Fighter.Side.PLAYER)
+	f.mode = Fighter.Mode.NORMAL
+	f._react_timer = 1.0
+	f.mash_recover()
+	assert_eq(f._react_timer, 1.0, "mash does nothing unless downed")

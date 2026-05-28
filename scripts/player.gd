@@ -26,6 +26,13 @@ func wants_to_block() -> bool:
 	return Input.is_action_pressed(_action_prefix() + "block")
 
 func _unhandled_input(_event: InputEvent) -> void:
+	# While downed, any button/direction press mashes toward a faster getup.
+	if mode == Mode.ONGROUND:
+		var p := _action_prefix()
+		if _pressed(p + "punch") or _pressed(p + "kick") or _pressed(p + "high_punch") \
+				or _pressed(p + "high_kick") or _pressed(p + "left") or _pressed(p + "right"):
+			mash_recover()
+		return
 	# Same gate as movement: helpless/blocking fighters can't start a move.
 	if not Fighter.input_allowed(mode) or is_attacking():
 		return
