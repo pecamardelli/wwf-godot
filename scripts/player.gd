@@ -20,7 +20,7 @@ func get_input_direction() -> Vector2:
 	)
 
 func wants_to_run() -> bool:
-	return Input.is_action_pressed(_action_prefix() + "run")
+	return Input.is_action_just_pressed(_action_prefix() + "run")
 
 func wants_to_block() -> bool:
 	return Input.is_action_pressed(_action_prefix() + "block")
@@ -42,6 +42,8 @@ func _unhandled_input(_event: InputEvent) -> void:
 	var seq: MoveSequence = _MOVES.lookup(_current_range(), _current_dir(), btn)
 	if seq != null:
 		start_move(seq)
+	elif mode == Mode.RUNNING:
+		mode = Mode.NORMAL   # an attack press with no running variant still ends the run
 
 ## Which attack button was just pressed, or -1.
 func _pressed_button() -> int:

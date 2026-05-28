@@ -141,3 +141,71 @@ func test_blocked_hit_keeps_guard_no_reaction():
 	assert_eq(victim.mode, Fighter.Mode.BLOCK, "stays guarding after a blocked hit")
 	assert_eq(victim._react_timer, 0.0, "a blocked hit does not enter the reaction-timer state")
 	assert_eq(victim.health, Damage.LIFE_MAX - 1, "blocked punch still deals 1")
+
+class _Guard extends Fighter:
+	func wants_to_block() -> bool:
+		return true
+
+func test_block_preserves_facing_ignores_target():
+	var me := _Guard.new()
+	add_child_autofree(me)
+	me.global_position = Vector2(100, 400)
+	me.side = Fighter.Side.PLAYER
+	me.separation_radii = Vector2.ZERO
+	var enemy := _at(-100, Fighter.Side.ENEMY)   # target to the LEFT
+	me._set_facing(1.0)                           # we were looking RIGHT
+	me._physics_process(FRAME)                    # blocking: must NOT snap to the left-side target
+	assert_eq(me.facing(), 1.0, "block preserves the facing we had, ignoring the target side")
+
+class _RunLatch extends Fighter:
+	var run_now: bool = false
+	var held: Vector2 = Vector2.ZERO
+	func wants_to_run() -> bool:
+		return run_now
+	func get_input_direction() -> Vector2:
+		return held
+
+func test_run_latches_and_persists_without_holding():
+	var f := _RunLatch.new()
+	add_child_autofree(f)
+	f.mode = Fighter.Mode.NORMAL
+	f.velocity = Vector2.ZERO
+	f._set_facing(1.0)
+	f.run_now = true
+	f._physics_process(FRAME)     # press run once
+	f.run_now = false             # release everything
+	for _i in range(120):
+		f._physics_process(FRAME)
+	assert_eq(f.mode, Fighter.Mode.RUNNING, "still running after release (latched)")
+	assert_almost_eq(f.velocity.x, ArcadeUnits.RUN_SPEED, 1.0, "persists at run speed toward facing")
+
+func test_opposite_direction_stops_run():
+	var f := _RunLatch.new()
+	add_child_autofree(f)
+	f.mode = Fighter.Mode.NORMAL
+	f.velocity = Vector2.ZERO
+	f._set_facing(1.0)
+	f.run_now = true
+	f._physics_process(FRAME)
+	f.run_now = false
+	for _i in range(30):
+		f._physics_process(FRAME)
+	assert_eq(f.mode, Fighter.Mode.RUNNING)
+	f.held = Vector2.LEFT          # opposite of the +1 run direction
+	f._physics_process(FRAME)
+	assert_eq(f.mode, Fighter.Mode.NORMAL, "opposite direction stops the run")
+
+func test_attacking_stops_run():
+	var f := _RunLatch.new()
+	add_child_autofree(f)
+	f.mode = Fighter.Mode.NORMAL
+	f.velocity = Vector2.ZERO
+	f._set_facing(1.0)
+	f.run_now = true
+	f._physics_process(FRAME)
+	f.run_now = false
+	for _i in range(30):
+		f._physics_process(FRAME)
+	assert_eq(f.mode, Fighter.Mode.RUNNING)
+	f.start_move(load("res://assets/sequences/doink/big_boot.tres"))
+	assert_eq(f.mode, Fighter.Mode.NORMAL, "starting an attack stops the run")

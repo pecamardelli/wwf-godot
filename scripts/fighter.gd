@@ -43,6 +43,7 @@ static func input_allowed(m: int) -> bool:
 ## Combat state.
 var health: int = Damage.LIFE_MAX
 var _facing: float = 1.0   # +1 faces right, -1 faces left; the sprite mirrors this
+var _run_dir_x: float = 0.0   # latched horizontal run direction (+1/-1) while RUNNING
 var _player: SequencePlayer = SequencePlayer.new()
 var _react_timer: float = 0.0          # seconds left in a reaction (hitstun/getup/dizzy)
 var _react_recover_mode: int = Mode.NORMAL
@@ -67,6 +68,10 @@ func wants_to_run() -> bool:
 func wants_to_block() -> bool:
 	return false
 
+## True while guarding (blocking or about to block this tick). Used to freeze facing.
+func _is_guarding() -> bool:
+	return mode == Mode.BLOCK or ((mode == Mode.NORMAL or mode == Mode.RUNNING) and wants_to_block())
+
 func is_attacking() -> bool:
 	return _player.is_playing()
 
@@ -85,7 +90,7 @@ func _update_target() -> void:
 func _physics_process(delta: float) -> void:
 	_sim_time += delta
 	_update_target()
-	if target != null and is_instance_valid(target):
+	if target != null and is_instance_valid(target) and not _is_guarding():
 		_set_facing(target.global_position.x - global_position.x)
 	# 1) Reaction countdown (hitstun / getup / dizzy): no control, no walk.
 	if _react_timer > 0.0:
@@ -126,15 +131,18 @@ func _physics_process(delta: float) -> void:
 	var dir: Vector2 = Vector2.ZERO
 	if Fighter.input_allowed(mode):
 		dir = get_input_direction()
-		if wants_to_run() and dir != Vector2.ZERO:
+		# Start a run latch on a run-key PRESS (GMS 'trot'); direction = pressed, else facing.
+		if mode != Mode.RUNNING and wants_to_run():
 			mode = Mode.RUNNING
-			# Run in the pressed horizontal direction, defaulting to facing (GMS run.gml).
-			var rx: float = signf(dir.x) if dir.x != 0.0 else signf(_facing)
-			var run_vel := Vector2(rx * ArcadeUnits.RUN_SPEED, signf(dir.y) * ArcadeUnits.RUN_DEPTH_DRIFT)
-			velocity = velocity.move_toward(run_vel, walk_acceleration * delta)
-		else:
-			if mode == Mode.RUNNING:
+			_run_dir_x = signf(dir.x) if dir.x != 0.0 else signf(_facing)
+		if mode == Mode.RUNNING:
+			# Pressing the OPPOSITE direction stops the run (GMS run.gml).
+			if signf(dir.x) != 0.0 and signf(dir.x) == -signf(_run_dir_x):
 				mode = Mode.NORMAL
+			else:
+				var run_vel := Vector2(_run_dir_x * ArcadeUnits.RUN_SPEED, signf(dir.y) * ArcadeUnits.RUN_DEPTH_DRIFT)
+				velocity = velocity.move_toward(run_vel, walk_acceleration * delta)
+		if mode != Mode.RUNNING:
 			var walk_vel: Vector2 = MovementMath.walk_velocity(dir) * walk_speed_scale
 			walk_vel.y *= depth_speed_scale
 			var rel := RelativeInput.resolve(dir, _facing)
@@ -221,6 +229,8 @@ func start_move(move: MoveSequence) -> void:
 		return
 	if _player.is_playing() and _player.sequence.uninterruptable:
 		return
+	if mode == Mode.RUNNING:
+		mode = Mode.NORMAL   # starting an attack ends a run (arcade/GMS)
 	# Continuous target-facing is authoritative; only snap-face when untargeted.
 	if target == null or not is_instance_valid(target):
 		_face_nearest_opponent()
