@@ -5,7 +5,7 @@ extends CharacterBody2D
 
 ## PLYRMODE-style state (arcade PLYR.EQU MODE_*). Helpless modes never read input —
 ## that is exactly how the arcade disables control while stunned/down.
-enum Mode { NORMAL, RUNNING, INAIR, ONGROUND, BLOCK, DIZZY }
+enum Mode { NORMAL, RUNNING, INAIR, ONGROUND, BLOCK, DIZZY, GRABBING, GRABBED, HEADHOLD, HEADHELD }
 var mode: int = Mode.NORMAL
 
 ## Faction. Targeting only considers opposite-side fighters (arcade PLYR_SIDE).
@@ -50,6 +50,8 @@ var _react_recover_mode: int = Mode.NORMAL
 var _last_damage_time: float = -999.0  # seconds; for the ⅔ repeat window
 var _hit_by_current_move: Array = []   # victims already hit by the swing in progress
 var _sim_time: float = 0.0             # accumulated per-fighter sim clock (fixed-tick determinism)
+var _grappling: Fighter = null     # the victim I am driving (puppet)
+var _grappled_by: Fighter = null   # the attacker driving me
 
 @onready var sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 
@@ -305,6 +307,18 @@ func receive_hit(attacker: Fighter, move: MoveSequence) -> void:
 	var family := AMode.reaction_for(move.attack_mode)
 	var r := Reaction.resolve(family, hit_dir, move.causes_dizzy)
 	_enter_reaction(r, hit_dir)
+
+## Bind `attacker` as my captor and become its puppet (arcade attach: MODE_GHOST|KEEPATTACHED
+## with no control/AI/separation). Called by AttackResolver when a grab box connects.
+func receive_grab(attacker: Fighter, _move: MoveSequence) -> void:
+	_player.play(null)                 # cancel anything I was doing
+	_hit_by_current_move.clear()
+	_react_timer = 0.0
+	mode = Mode.GRABBED
+	_grappled_by = attacker
+	attacker._grappling = self
+	attacker.mode = Mode.GRABBING
+	attacker._player.notify_grab_connected()
 
 ## Block stance: crouch into the guard then FREEZE at the ready frame. On a blocked
 ## hit (_block_bouncing) play through to the last frame, then settle back to ready.
