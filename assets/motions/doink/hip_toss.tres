@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="MotionMove" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/motion_move.gd" id="1_mjx4i"]
+
+[resource]
+script = ExtResource("1_mjx4i")
+move_id = "hip_toss"
+values = PackedInt32Array(16, 4, 4)
+masks = PackedInt32Array(3583, 15, 15)

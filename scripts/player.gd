@@ -9,6 +9,13 @@ const _CLOSE_GATE := 50.0   # arcade close-range gate (headbutt vs punch), DOINK
 
 @export var player_index: int = 0
 
+## Motion-input state (arcade wrest_joystat). Filled each frame by feed_input().
+var motion_buffer := MotionBuffer.new()
+var charge := ChargeTracker.new()
+var _input_tick := 0
+var _prev_stick := 0
+var _prev_buttons := 0
+
 func _action_prefix() -> String:
 	return "p1_" if player_index == 0 else "p2_"
 
@@ -68,6 +75,40 @@ func _current_dir() -> int:
 	if rel.toward: return MoveTable.Dir.TOWARD
 	if rel.away: return MoveTable.Dir.AWAY
 	return MoveTable.Dir.NEUTRAL
+
+func _physics_process(delta: float) -> void:
+	feed_input(get_input_direction(), _buttons_held_mask(), facing())
+	super(delta)
+
+## Fill the motion buffer from this frame's input EDGES (arcade update_joystat).
+## stick `dir` is the 8-way direction; `buttons_held` is an OR of MotionBuffer.B_* bits.
+func feed_input(dir: Vector2, buttons_held: int, facing_sign: float) -> void:
+	_input_tick += 1
+	var stick := MotionBuffer.encode_stick(dir, facing_sign)
+	if stick != _prev_stick:
+		motion_buffer.push(stick, _input_tick)        # stick-change edge
+	var downs := buttons_held & ~_prev_buttons
+	for bit in [MotionBuffer.B_PUNCH, MotionBuffer.B_BLOCK, MotionBuffer.B_SPUNCH,
+			MotionBuffer.B_KICK, MotionBuffer.B_SKICK]:
+		if (downs & bit) != 0:
+			motion_buffer.push(bit | stick, _input_tick)   # button-down edge carries stick
+	charge.update(buttons_held)
+	_prev_stick = stick
+	_prev_buttons = buttons_held
+
+## OR of the attack buttons currently held (live input).
+func _buttons_held_mask() -> int:
+	var p := _action_prefix()
+	var m := 0
+	if _held(p + "punch"): m |= MotionBuffer.B_PUNCH
+	if _held(p + "block"): m |= MotionBuffer.B_BLOCK
+	if _held(p + "high_punch"): m |= MotionBuffer.B_SPUNCH
+	if _held(p + "kick"): m |= MotionBuffer.B_KICK
+	if _held(p + "high_kick"): m |= MotionBuffer.B_SKICK
+	return m
+
+func _held(action: String) -> bool:
+	return InputMap.has_action(action) and Input.is_action_pressed(action)
 
 ## True only when the action exists in the map AND was just pressed. The has_action
 ## guard keeps Player 2 (which has no attack actions yet) from erroring on missing ones.

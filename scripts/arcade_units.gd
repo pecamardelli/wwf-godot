@@ -10,6 +10,13 @@ class_name ArcadeUnits
 ## convert through ticks_to_seconds() — never assume 1 frame = 1 tick.
 const TICKS_PER_SECOND: float = 53.0
 
+## Our logic runs at Godot's fixed 60 Hz; the arcade ran at 53 ticks/s.
+const LOGIC_FPS: float = 60.0
+
+## Arcade-tick duration -> whole logic frames (round up so a window never truncates).
+static func ticks_to_frames(ticks: float) -> int:
+	return int(ceil(ticks * (LOGIC_FPS / TICKS_PER_SECOND)))
+
 ## Arcade velocity, written as a 16.16 hex value in px/tick, converted to px/second.
 static func vel_to_px_per_sec(hex_per_tick: int) -> float:
 	return (float(hex_per_tick) / 65536.0) * TICKS_PER_SECOND
