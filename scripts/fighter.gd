@@ -91,8 +91,11 @@ func _update_target() -> void:
 
 func _physics_process(delta: float) -> void:
 	_sim_time += delta
+	# Puppet victim: driven entirely by the captor; skip own simulation.
+	if mode == Mode.GRABBED or mode == Mode.HEADHELD:
+		return
 	_update_target()
-	if target != null and is_instance_valid(target) and not _is_guarding() and mode != Mode.RUNNING:
+	if target != null and is_instance_valid(target) and not _is_guarding() and mode != Mode.RUNNING and not _player.is_playing():
 		_set_facing(target.global_position.x - global_position.x)
 	# 1) Reaction countdown (hitstun / getup / dizzy): no control, no walk.
 	if _react_timer > 0.0:
@@ -113,8 +116,13 @@ func _physics_process(delta: float) -> void:
 	if _player.is_playing():
 		velocity = Vector2.ZERO
 		_player.advance(delta)
+		# Drive the attached victim AFTER advance so current_frame() reflects this tick.
+		if _grappling != null and is_instance_valid(_grappling):
+			_drive_victim(delta)
 		if not _player.is_playing():
 			_hit_by_current_move.clear()
+			if _grappling != null:
+				_detach_victim()   # safety: sequence ended without a DETACH frame
 		_play_sequence_anim()
 		return
 
@@ -256,11 +264,59 @@ func start_move(move: MoveSequence) -> void:
 	if mode == Mode.RUNNING:
 		mode = Mode.NORMAL   # starting an attack ends a run (arcade/GMS)
 	# Continuous target-facing is authoritative; only snap-face when untargeted.
-	if target == null or not is_instance_valid(target):
+	# Grapple sequences skip the snap: the attacker already faces the victim at grab time.
+	if not move.is_grapple and (target == null or not is_instance_valid(target)):
 		_face_nearest_opponent()
 	_player.play(move)
 	_hit_by_current_move.clear()
 	_play_sequence_anim()
+
+## Drive the attached victim from the current SequenceFrame's slave track + intents.
+func _drive_victim(_delta: float) -> void:
+	var vic: Fighter = _grappling
+	var f: SequenceFrame = _player.current_frame()
+	# Position the victim relative to me (x mirrored by facing).
+	if f != null:
+		var off := f.victim_offset
+		vic.global_position = global_position + Vector2(off.x * _facing, -off.y)
+	# GHOST-arc: only clamp the victim to the floor when it is NOT airborne.
+	if _player.consume_set_opp_mode():
+		vic.mode = _player.opp_mode()
+	if _player.consume_clr_opp_mode():
+		vic.mode = Mode.GRABBED
+	if vic.mode != Mode.INAIR:
+		vic.global_position = MovementMath.clamp_to_floor(vic.global_position, vic.floor_min_y, vic.floor_max_y)
+	# Slave animation frame.
+	if vic.sprite != null and vic.sprite.sprite_frames != null and _player.slave_anim != "":
+		if vic.sprite.sprite_frames.has_animation(_player.slave_anim):
+			if vic.sprite.animation != _player.slave_anim:
+				vic.sprite.animation = _player.slave_anim
+			vic.sprite.pause()
+			if f != null:
+				var last: int = vic.sprite.sprite_frames.get_frame_count(_player.slave_anim) - 1
+				vic.sprite.frame = clampi(f.victim_anim_frame, 0, maxi(last, 0))
+	# DAMAGE_OPP: pre-scaled puppet damage, applied once.
+	if _player.consume_damage_opp():
+		var key: String = _player.sequence.id
+		var dmg: int = Damage.GRAPPLE_DAMAGE.get(key, 20)
+		vic.health = Damage.apply_health(vic.health, dmg)
+		vic._last_damage_time = vic._sim_time
+	# DETACH: release the victim into a knockdown, clear both refs.
+	if _player.consume_detach():
+		_detach_victim()
+
+## Release the current victim to ONGROUND (knockdown) and clear both refs.
+func _detach_victim() -> void:
+	var vic: Fighter = _grappling
+	_grappling = null
+	if vic != null and is_instance_valid(vic):
+		vic._grappled_by = null
+		vic.mode = Mode.ONGROUND
+		vic._react_recover_mode = Mode.NORMAL
+		vic._react_timer = ArcadeUnits.ticks_to_seconds(AMode.getup_ticks(AMode.Family.KNOCKDOWN))
+		if vic.sprite != null and vic.sprite.sprite_frames != null and vic.sprite.sprite_frames.has_animation("damage_lying"):
+			vic.sprite.play("damage_lying")
+			vic._refresh_flip()
 
 const _MASH_REDUCE := 0.08   # seconds shaved per mash press (arcade GETUP mash)
 const _BLOCK_READY_FRAME := 2     # "sprite number 3": the held guard pose

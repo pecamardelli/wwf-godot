@@ -8,6 +8,16 @@ const LIFE_MAX := 163            # LIFEBAR.ASM:135
 const REPEAT_WINDOW_TICKS := 50  # REACT1.ASM:457-466
 const BLOCK_DAMAGE := 1          # blocked hits = 1px (REACT1.ASM block_hit)
 
+## Grapple puppet damage finals (DAMAGE.EQU: D_*=base×135/100, already offense-scaled).
+## Applied directly via apply_health (NOT through resolve, which would double-scale).
+const GRAPPLE_DAMAGE := {
+	"hip_toss": 27,     # D_HIPTOSS = 20*135/100
+	"grab_fling": 27,   # fling impact ~= hip toss (no distinct D_GRABFLING in DAMAGE.EQU; tune in playtest)
+	"piledriver": 33,   # D_PILEDRIVER = 25*135/100
+	"head_slam": 29,    # D_NECKSLAM = 22*135/100
+	"joy_buzzer": 25,   # D_BUZZ (NOT pre-scaled in the arcade)
+}
+
 ## Damage a hit deals. `repeat` picks the ⅔ column; `blocked` overrides to 1px.
 static func resolve(amode: int, repeat: bool, blocked: bool) -> int:
 	if blocked:

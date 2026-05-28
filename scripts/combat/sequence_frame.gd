@@ -12,7 +12,7 @@ enum Command {
 	SLAVE_ANIM = 6,     # set the victim's displayed anim (slave_anim) for following frames
 	DAMAGE_OPP = 7,     # apply puppet damage to the victim once
 	DETACH = 8,         # release the victim -> ONGROUND
-	SET_OPP_MODE = 9,   # force the victim into opp_mode (e.g. GHOST during the airborne arc)
+	SET_OPP_MODE = 9,   # force the victim into opp_mode (e.g. INAIR during the airborne arc)
 	CLR_OPP_MODE = 10,  # restore the victim from opp_mode
 }
 
