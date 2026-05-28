@@ -24,9 +24,10 @@ func test_wait_hit_opens_box_and_holds():
 	assert_true(sp.attack_live, "grab box live on WAIT_HIT_OPP")
 	assert_true(sp.is_waiting_for_hit(), "holding for a connect")
 	var idx := sp._index
-	for _i in range(30):  # well past the frame's own duration
+	for _i in range(10):  # fewer frames than the 16-tick (~19 frame) timeout
 		sp.advance(FRAME)
-	assert_eq(sp._index, idx, "does not advance while waiting")
+	assert_eq(sp._index, idx, "does not advance while still within the wait window")
+	assert_true(sp.is_waiting_for_hit(), "still waiting (not yet timed out)")
 
 func test_connect_resumes_and_attaches():
 	var sp := SequencePlayer.new(); sp.play(_grab_seq())
@@ -58,3 +59,16 @@ func test_damage_and_detach_intents_surface_once():
 		sp.advance(FRAME)
 	assert_true(sp.damage_opp_seen, "DAMAGE_OPP fired")
 	assert_true(sp.detach_seen, "DETACH fired")
+
+func test_whiff_resumes_and_finishes_the_sequence():
+	var sp := SequencePlayer.new(); sp.play(_grab_seq())
+	for _i in range(4):
+		sp.advance(FRAME)
+	# Never connect. Advance well past the timeout + remaining frames.
+	var finished := false
+	for _i in range(60):
+		if sp.advance(FRAME):
+			finished = true
+	assert_true(sp.whiffed, "timed out")
+	assert_true(finished, "sequence still completes on a whiff (no terminal stall)")
+	assert_false(sp.is_playing(), "attacker is not soft-locked")

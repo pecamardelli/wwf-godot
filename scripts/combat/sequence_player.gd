@@ -78,14 +78,11 @@ func opp_mode() -> int:
 func advance(delta: float) -> bool:
 	if sequence == null:
 		return false
-	if whiffed:
-		return false   # sequence is stalled on the WAIT_HIT_OPP frame; Fighter must cancel
 	if _waiting_for_hit:
 		_wait_left -= delta
 		if _wait_left <= 0.0:
 			whiffed = true
-			_waiting_for_hit = false   # timeout: hold index in place, let Fighter see whiffed
-			return false
+			_waiting_for_hit = false   # timeout -> resume through the remaining frames
 		else:
 			return false
 	_time_left -= delta
