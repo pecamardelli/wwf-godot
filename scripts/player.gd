@@ -5,7 +5,7 @@ extends Fighter
 
 const _MOVES := preload("res://assets/movetables/doink.tres")
 
-const _CLOSE_GATE := 70.0   # arcade close range (~CLOSEST_XDIST); refine per playtest
+const _CLOSE_GATE := 50.0   # arcade close-range gate (headbutt vs punch), DOINK.ASM:1921; tune in playtest
 
 @export var player_index: int = 0
 

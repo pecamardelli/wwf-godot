@@ -22,6 +22,8 @@ func _init() -> void:
 	# Low kick -> kick (both ranges).
 	t.add(MoveTable.Rng.NORMAL, MoveTable.Dir.NEUTRAL, MoveTable.Btn.LOW_KICK, kick)
 	t.add(MoveTable.Rng.CLOSE,  MoveTable.Dir.NEUTRAL, MoveTable.Btn.LOW_KICK, kick)
+	# Only HIGH_KICK has a RUNNING-range entry: in the arcade the big boot is Doink's
+	# sole running attack, so running LOW_PUNCH/HIGH_PUNCH/LOW_KICK intentionally do nothing.
 	# High kick -> big boot (all ranges; it is also the running attack).
 	for r in [MoveTable.Rng.NORMAL, MoveTable.Rng.CLOSE, MoveTable.Rng.RUNNING]:
 		t.add(r, MoveTable.Dir.NEUTRAL, MoveTable.Btn.HIGH_KICK, big_boot)
