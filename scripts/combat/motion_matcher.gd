@@ -1,6 +1,8 @@
 class_name MotionMatcher
 extends RefCounted
-## Faithful port of check_secret_moves (RESEARCH §A.3). Pure: no scene/Input access.
+## Faithful port of check_secret_moves (WRESTLE.ASM:4851, RESEARCH §A.3). Pure: no
+## scene/Input access. `mask` = bits to IGNORE; an entry matches step k when
+## (entry.code & ~mask[k]) == value[k] (arcade `andn`/`cmp`).
 
 const _INPUT_MASK := 0xFFFF   # entries are 16-bit input fields
 
@@ -12,30 +14,32 @@ static func matches(move: MotionMove, buffer: MotionBuffer, current_tick: int) -
 	# Freshness: a motion only fires the frame its trigger edge was pushed.
 	if buffer.newest_tick() != current_tick:
 		return false
-	# The newest entry must BE the trigger: no extra bits (head-noise check) AND the
-	# exact trigger value. Together these guarantee step 0 is the most-recent input and
-	# nothing newer slipped in (e.g. a different button press cannot fire this move).
-	var head := buffer.code_at(0)
-	if (head & (~move.masks[0] & _INPUT_MASK)) != 0:
+	# Trigger/head check (WRESTLE.ASM:4894-4898): the newest entry must carry at least
+	# one SIGNIFICANT bit for step 0, else there's noise since the trigger -> reject.
+	var sig0 := (~move.masks[0]) & _INPUT_MASK
+	if (buffer.code_at(0) & sig0) == 0:
 		return false
-	if (head & move.masks[0]) != move.values[0]:
-		return false
-	# Match the remaining (older) steps newest->oldest. `skips <= SKIP_BUDGET` tolerates
-	# exactly SKIP_BUDGET intervening entries before a step matches (8 skipped, 9th matches).
-	var entry_i := 1
-	var last_match_tick := buffer.tick_at(0)
-	for step in range(1, move.step_count()):
+	# Match steps newest->oldest from step 0 / entry 0. The skip budget is SHARED
+	# across the whole move (arcade `movk 8,a3` set once) and only entries that mask
+	# to ZERO (true noise) consume it; a significant entry that != value fails the move.
+	var entry_i := 0
+	var skips := 0
+	var last_match_tick := current_tick
+	for step in range(move.step_count()):
+		var sig := (~move.masks[step]) & _INPUT_MASK
 		var matched := false
-		var skips := 0
 		while entry_i < n and skips <= MotionBuffer.SKIP_BUDGET:
 			var code := buffer.code_at(entry_i)
-			if (code & move.masks[step]) == move.values[step]:
+			if (code & sig) == 0:
+				entry_i += 1
+				skips += 1
+				continue
+			if (code & sig) == move.values[step]:
 				last_match_tick = buffer.tick_at(entry_i)
 				entry_i += 1
 				matched = true
 				break
-			entry_i += 1
-			skips += 1
+			return false   # significant bits present but wrong -> whole move fails
 		if not matched:
 			return false
 	# Whole motion must lie within the window (arcade ticks -> logic frames).
