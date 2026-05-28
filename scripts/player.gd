@@ -15,6 +15,8 @@ var charge := ChargeTracker.new()
 var _input_tick := 0
 var _prev_stick := 0
 var _prev_buttons := 0
+## Optional special-move registry (grapples). When null, Player behaves as a striker only.
+@export var motions: MotionTable = null
 
 func _action_prefix() -> String:
 	return "p1_" if player_index == 0 else "p2_"
@@ -78,7 +80,32 @@ func _current_dir() -> int:
 
 func _physics_process(delta: float) -> void:
 	feed_input(get_input_direction(), _buttons_held_mask(), facing())
+	# Specials are checked before normal-move dispatch (arcade check_secret_moves
+	# runs before the action_table). Gate dispatch like _unhandled_input does.
+	if Fighter.input_allowed(mode) and not is_attacking():
+		if scan_specials():
+			super(delta)
+			return
 	super(delta)
+
+## Scan the special-move registry against the current buffer; start the first match's
+## grapple sequence. Returns true if a special fired. Clears the buffer on a fire so the
+## same trigger edge cannot re-fire next frame (arcade clears counts on a grab).
+## Respects the same input gate as _unhandled_input: no dispatch while attacking or in a
+## helpless mode.
+func scan_specials() -> bool:
+	if motions == null:
+		return false
+	if not Fighter.input_allowed(mode) or is_attacking():
+		return false
+	for m in motions.moves():
+		if MotionMatcher.matches(m, motion_buffer, _input_tick):
+			var seq := motions.lookup(m.move_id)
+			if seq != null:
+				start_move(seq)
+				motion_buffer.clear()
+				return true
+	return false
 
 ## Fill the motion buffer from this frame's input EDGES (arcade update_joystat).
 ## stick `dir` is the 8-way direction; `buttons_held` is an OR of MotionBuffer.B_* bits.
