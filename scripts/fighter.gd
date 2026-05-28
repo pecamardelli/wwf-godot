@@ -59,6 +59,10 @@ func _ready() -> void:
 func get_input_direction() -> Vector2:
 	return Vector2.ZERO
 
+## Subclasses (Player) override to report the run button being held.
+func wants_to_run() -> bool:
+	return false
+
 func is_attacking() -> bool:
 	return _player.is_playing()
 
@@ -102,12 +106,21 @@ func _physics_process(delta: float) -> void:
 	var dir: Vector2 = Vector2.ZERO
 	if Fighter.input_allowed(mode):
 		dir = get_input_direction()
-		var walk_vel: Vector2 = MovementMath.walk_velocity(dir) * walk_speed_scale
-		walk_vel.y *= depth_speed_scale
-		var rel := RelativeInput.resolve(dir, _facing)
-		var target_down: bool = target != null and is_instance_valid(target) and target.mode == Mode.ONGROUND
-		walk_vel.x *= walk_dir_multiplier(rel.away, target_down)
-		velocity = velocity.move_toward(walk_vel, walk_acceleration * delta)
+		if wants_to_run() and dir != Vector2.ZERO:
+			mode = Mode.RUNNING
+			# Run in the pressed horizontal direction, defaulting to facing (GMS run.gml).
+			var rx: float = signf(dir.x) if dir.x != 0.0 else signf(_facing)
+			var run_vel := Vector2(rx * ArcadeUnits.RUN_SPEED, signf(dir.y) * ArcadeUnits.RUN_DEPTH_DRIFT)
+			velocity = velocity.move_toward(run_vel, walk_acceleration * delta)
+		else:
+			if mode == Mode.RUNNING:
+				mode = Mode.NORMAL
+			var walk_vel: Vector2 = MovementMath.walk_velocity(dir) * walk_speed_scale
+			walk_vel.y *= depth_speed_scale
+			var rel := RelativeInput.resolve(dir, _facing)
+			var target_down: bool = target != null and is_instance_valid(target) and target.mode == Mode.ONGROUND
+			walk_vel.x *= walk_dir_multiplier(rel.away, target_down)
+			velocity = velocity.move_toward(walk_vel, walk_acceleration * delta)
 	else:
 		# Stun cuts control instantly (arcade): no coasting while helpless.
 		velocity = Vector2.ZERO

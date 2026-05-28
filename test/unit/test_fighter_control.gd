@@ -69,3 +69,19 @@ func test_walk_dir_multiplier_backward_and_opp_down():
 	assert_almost_eq(f.walk_dir_multiplier(true, false), ArcadeUnits.BACKWARD_MULT, 0.001)  # away
 	assert_almost_eq(f.walk_dir_multiplier(false, true), ArcadeUnits.OPP_DOWN_MULT, 0.001)  # target down
 	assert_almost_eq(f.walk_dir_multiplier(true, true), ArcadeUnits.BACKWARD_MULT * ArcadeUnits.OPP_DOWN_MULT, 0.001)
+
+class _RunningRight extends Fighter:
+	func get_input_direction() -> Vector2:
+		return Vector2.RIGHT
+	func wants_to_run() -> bool:
+		return true
+
+func test_run_uses_run_speed():
+	var f := _RunningRight.new()
+	add_child_autofree(f)
+	f.mode = Fighter.Mode.NORMAL
+	f.velocity = Vector2.ZERO
+	for _i in range(120):
+		f._physics_process(FRAME)
+	assert_eq(f.mode, Fighter.Mode.RUNNING)
+	assert_almost_eq(f.velocity.x, ArcadeUnits.RUN_SPEED, 1.0)
