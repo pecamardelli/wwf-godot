@@ -132,3 +132,12 @@ func test_landing_a_hit_records_who_i_hit():
 	var victim := _at(140, Fighter.Side.ENEMY)
 	victim.receive_hit(attacker, load("res://assets/sequences/doink/punch.tres"))
 	assert_eq(attacker._who_i_hit, victim, "landing a hit records the victim for targeting stickiness")
+
+func test_blocked_hit_keeps_guard_no_reaction():
+	var attacker := _at(100, Fighter.Side.ENEMY)
+	var victim := _at(140, Fighter.Side.PLAYER)
+	victim.mode = Fighter.Mode.BLOCK
+	victim.receive_hit(attacker, load("res://assets/sequences/doink/punch.tres"))
+	assert_eq(victim.mode, Fighter.Mode.BLOCK, "stays guarding after a blocked hit")
+	assert_eq(victim._react_timer, 0.0, "a blocked hit does not enter the reaction-timer state")
+	assert_eq(victim.health, Damage.LIFE_MAX - 1, "blocked punch still deals 1")

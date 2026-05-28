@@ -116,12 +116,11 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 		move_and_slide()
 		global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
-		if sprite != null and sprite.sprite_frames != null \
-				and sprite.sprite_frames.has_animation("defence") and sprite.animation != "defence":
-			sprite.play("defence")
+		_animate_block()
 		return
 	elif mode == Mode.BLOCK:
 		mode = Mode.NORMAL
+		_block_bouncing = false
 
 	# 3) Normal movement (Plan 2a feel layer).
 	var dir: Vector2 = Vector2.ZERO
@@ -195,7 +194,13 @@ func _face_nearest_opponent() -> void:
 func _update_animation(dir: Vector2) -> void:
 	if sprite == null or sprite.sprite_frames == null:
 		return
-	var anim: String = "walk_horisontal_front" if dir != Vector2.ZERO else "idle_front"
+	var anim: String
+	if mode == Mode.RUNNING:
+		anim = "run"
+	elif dir != Vector2.ZERO:
+		anim = "walk_horisontal_front"
+	else:
+		anim = "idle_front"
 	if sprite.sprite_frames.has_animation(anim) and sprite.animation != anim:
 		sprite.play(anim)
 	elif not sprite.is_playing():
@@ -224,6 +229,9 @@ func start_move(move: MoveSequence) -> void:
 	_play_sequence_anim()
 
 const _MASH_REDUCE := 0.08   # seconds shaved per mash press (arcade GETUP mash)
+const _BLOCK_READY_FRAME := 2     # "sprite number 3": the held guard pose
+const _BLOCK_KNOCKBACK := 6.0     # small bounce-back when a hit is blocked
+var _block_bouncing: bool = false
 
 ## Called when the player presses anything while downed — speeds up getup.
 func mash_recover() -> void:
@@ -257,9 +265,44 @@ func receive_hit(attacker: Fighter, move: MoveSequence) -> void:
 	_last_damage_time = now
 
 	var hit_dir := Hitbox.hit_side(attacker.global_position, global_position)
-	var family := AMode.Family.BLOCK if blocked else AMode.reaction_for(move.attack_mode)
-	var r := Reaction.resolve(family, hit_dir, move.causes_dizzy and not blocked)
+	if blocked:
+		# Absorbed while guarding: stay in BLOCK, bounce back slightly, play the block-bounce anim.
+		global_position.x += hit_dir * _BLOCK_KNOCKBACK
+		_start_block_bounce()
+		return
+	var family := AMode.reaction_for(move.attack_mode)
+	var r := Reaction.resolve(family, hit_dir, move.causes_dizzy)
 	_enter_reaction(r, hit_dir)
+
+## Block stance: crouch into the guard then FREEZE at the ready frame. On a blocked
+## hit (_block_bouncing) play through to the last frame, then settle back to ready.
+## Mirrors GMS block_sprites (freeze at frame 2, bounce on impact).
+func _animate_block() -> void:
+	if sprite == null or sprite.sprite_frames == null or not sprite.sprite_frames.has_animation("defence"):
+		return
+	if sprite.animation != "defence":
+		sprite.animation = "defence"
+		sprite.frame = 0
+		sprite.play("defence")   # crouch into the guard, frozen below once it reaches ready
+	var last := sprite.sprite_frames.get_frame_count("defence") - 1
+	if _block_bouncing:
+		if sprite.frame >= last:
+			_block_bouncing = false
+			sprite.frame = _BLOCK_READY_FRAME
+			sprite.pause()
+		# else: let the bounce keep playing toward `last`
+	elif sprite.frame >= _BLOCK_READY_FRAME:
+		sprite.frame = _BLOCK_READY_FRAME
+		sprite.pause()           # hold the ready guard pose
+	# else: still crouching in (frame < ready) -> keep playing
+
+## Start the block-bounce from the ready frame (called on a blocked hit).
+func _start_block_bounce() -> void:
+	_block_bouncing = true
+	if sprite != null and sprite.sprite_frames != null and sprite.sprite_frames.has_animation("defence"):
+		sprite.animation = "defence"
+		sprite.frame = _BLOCK_READY_FRAME
+		sprite.play("defence")
 
 func _enter_reaction(r: Dictionary, hit_dir: int) -> void:
 	_player.play(null)                       # cancel any move in progress
