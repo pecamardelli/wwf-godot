@@ -36,7 +36,7 @@ static func input_allowed(m: int) -> bool:
 ## footfall animation reads in sync instead of sliding. Both apply to cardinal
 ## AND diagonal — move_toward eases the whole velocity vector.
 @export var walk_speed_scale: float = 0.8
-@export var walk_acceleration: float = 1100.0  ## px/s^2
+@export var walk_acceleration: float = 2200.0  ## px/s^2 (accel + decel ramp; snappy)
 ## Depth (vertical/Y) walk runs slower than horizontal — belt-scroll convention.
 @export var depth_speed_scale: float = 0.6
 
