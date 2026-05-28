@@ -24,4 +24,4 @@ func test_feed_advances_tick_and_feeds_charge():
 	for i in range(3):
 		p.feed_input(Vector2.ZERO, MotionBuffer.B_PUNCH, 1.0)   # hold PUNCH 3 frames
 	assert_eq(p.charge.held_frames(MotionBuffer.B_PUNCH), 3)
-	assert_gt(p._input_tick, 0, "tick advances each feed")
+	assert_eq(p._input_tick, 3, "tick advances once per feed")

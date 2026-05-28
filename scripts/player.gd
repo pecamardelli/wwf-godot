@@ -82,9 +82,9 @@ func _physics_process(delta: float) -> void:
 
 ## Fill the motion buffer from this frame's input EDGES (arcade update_joystat).
 ## stick `dir` is the 8-way direction; `buttons_held` is an OR of MotionBuffer.B_* bits.
-func feed_input(dir: Vector2, buttons_held: int, facing: float) -> void:
+func feed_input(dir: Vector2, buttons_held: int, facing_sign: float) -> void:
 	_input_tick += 1
-	var stick := MotionBuffer.encode_stick(dir, facing)
+	var stick := MotionBuffer.encode_stick(dir, facing_sign)
 	if stick != _prev_stick:
 		motion_buffer.push(stick, _input_tick)        # stick-change edge
 	var downs := buttons_held & ~_prev_buttons
