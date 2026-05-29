@@ -11,7 +11,6 @@ size = Vector3(70, 90, 40)
 
 [sub_resource type="Resource" id="Resource_kehi6"]
 script = ExtResource("1_a56pk")
-duration_ticks = 3
 command = 4
 attack_box = SubResource("Resource_2s8m6")
 victim_offset = Vector3(34, 0, 0)
@@ -19,7 +18,6 @@ slave_anim = "flinged"
 
 [sub_resource type="Resource" id="Resource_h8ti5"]
 script = ExtResource("1_a56pk")
-duration_ticks = 3
 anim_frame = 1
 command = 5
 victim_offset = Vector3(25.25, 26.033024, 0)
@@ -27,7 +25,6 @@ slave_anim = "flinged"
 
 [sub_resource type="Resource" id="Resource_r6swe"]
 script = ExtResource("1_a56pk")
-duration_ticks = 3
 anim_frame = 2
 command = 6
 victim_anim_frame = 1
@@ -36,7 +33,6 @@ slave_anim = "flinged"
 
 [sub_resource type="Resource" id="Resource_4g8vo"]
 script = ExtResource("1_a56pk")
-duration_ticks = 3
 anim_frame = 3
 command = 6
 victim_anim_frame = 1
@@ -45,7 +41,6 @@ slave_anim = "flinged"
 
 [sub_resource type="Resource" id="Resource_2hklm"]
 script = ExtResource("1_a56pk")
-duration_ticks = 3
 anim_frame = 4
 command = 6
 victim_anim_frame = 2
@@ -54,7 +49,6 @@ slave_anim = "flinged"
 
 [sub_resource type="Resource" id="Resource_kb1no"]
 script = ExtResource("1_a56pk")
-duration_ticks = 3
 anim_frame = 5
 command = 6
 victim_anim_frame = 2
@@ -63,7 +57,6 @@ slave_anim = "flinged"
 
 [sub_resource type="Resource" id="Resource_ibljv"]
 script = ExtResource("1_a56pk")
-duration_ticks = 3
 anim_frame = 6
 command = 6
 victim_anim_frame = 2
@@ -72,7 +65,6 @@ slave_anim = "flinged"
 
 [sub_resource type="Resource" id="Resource_hlqp4"]
 script = ExtResource("1_a56pk")
-duration_ticks = 3
 anim_frame = 7
 command = 7
 victim_anim_frame = 3
@@ -82,7 +74,6 @@ victim_amode = 5
 
 [sub_resource type="Resource" id="Resource_cv7a2"]
 script = ExtResource("1_a56pk")
-duration_ticks = 3
 anim_frame = 8
 command = 8
 victim_anim_frame = 3

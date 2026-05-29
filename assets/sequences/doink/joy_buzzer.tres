@@ -5,14 +5,12 @@
 
 [sub_resource type="Resource" id="Resource_o8w3x"]
 script = ExtResource("1_lu3dm")
-duration_ticks = 3
 command = 5
 victim_offset = Vector3(34, 0, 0)
 slave_anim = "joy_buzzer"
 
 [sub_resource type="Resource" id="Resource_eperw"]
 script = ExtResource("1_lu3dm")
-duration_ticks = 3
 anim_frame = 1
 command = 6
 victim_anim_frame = 1
@@ -21,7 +19,6 @@ slave_anim = "joy_buzzer"
 
 [sub_resource type="Resource" id="Resource_kgj3c"]
 script = ExtResource("1_lu3dm")
-duration_ticks = 3
 anim_frame = 2
 command = 6
 victim_anim_frame = 2
@@ -30,7 +27,6 @@ slave_anim = "joy_buzzer"
 
 [sub_resource type="Resource" id="Resource_a8m7q"]
 script = ExtResource("1_lu3dm")
-duration_ticks = 3
 anim_frame = 3
 command = 6
 victim_anim_frame = 3
@@ -39,7 +35,6 @@ slave_anim = "joy_buzzer"
 
 [sub_resource type="Resource" id="Resource_urfxu"]
 script = ExtResource("1_lu3dm")
-duration_ticks = 3
 anim_frame = 4
 command = 6
 victim_anim_frame = 4
@@ -48,7 +43,6 @@ slave_anim = "joy_buzzer"
 
 [sub_resource type="Resource" id="Resource_5ia3w"]
 script = ExtResource("1_lu3dm")
-duration_ticks = 3
 anim_frame = 5
 command = 7
 victim_anim_frame = 5
@@ -58,7 +52,6 @@ victim_amode = 5
 
 [sub_resource type="Resource" id="Resource_vo455"]
 script = ExtResource("1_lu3dm")
-duration_ticks = 3
 anim_frame = 6
 command = 8
 victim_anim_frame = 6

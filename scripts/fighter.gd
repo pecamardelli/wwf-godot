@@ -123,15 +123,18 @@ func _physics_process(delta: float) -> void:
 	# 2) Attacking: advance the sequence, hold position, no walk input.
 	if _player.is_playing():
 		velocity = Vector2.ZERO
-		# Grapple windup: leap toward the opponent before the grab connects (arcade
-		# LEAPATOPP) — the attacker steps in, closing to ~grab range. Stops once attached.
+		# Grapple windup: a short, ACCELERATED step toward the opponent before the grab
+		# connects (arcade LEAPATOPP) — ramps up like a walk, stops ~40px short, and travels
+		# at most _GRAPPLE_LEAP_MAX total. Not a full-speed run-in.
 		if _player.sequence != null and _player.sequence.is_grapple and _grappling == null \
 				and target != null and is_instance_valid(target):
 			var dx: float = target.global_position.x - global_position.x
-			if absf(dx) > _GRAPPLE_LEAP_GAP:
-				var toward: float = dx - signf(dx) * _GRAPPLE_LEAP_GAP   # stop short by the gap
-				var step: float = ArcadeUnits.RUN_SPEED * delta
-				global_position.x += clampf(toward, -step, step)
+			var want_close: bool = absf(dx) > _GRAPPLE_LEAP_GAP and _leap_remaining > 0.0
+			var goal_vx: float = (signf(dx) * ArcadeUnits.WALK_CARDINAL * walk_speed_scale) if want_close else 0.0
+			_leap_vel = move_toward(_leap_vel, goal_vx, walk_acceleration * delta)
+			var step_x: float = clampf(_leap_vel * delta, -_leap_remaining, _leap_remaining)
+			global_position.x += step_x
+			_leap_remaining -= absf(step_x)
 		_player.advance(delta)
 		# Drive the attached victim AFTER advance so current_frame() reflects this tick.
 		if _grappling != null and is_instance_valid(_grappling):
@@ -310,6 +313,9 @@ func start_move(move: MoveSequence) -> void:
 	# Grapple sequences skip the snap: the attacker already faces the victim at grab time.
 	if not move.is_grapple and (target == null or not is_instance_valid(target)):
 		_face_nearest_opponent()
+	if move.is_grapple:
+		_leap_remaining = _GRAPPLE_LEAP_MAX   # fresh short step-in budget for this grab
+		_leap_vel = 0.0
 	_player.play(move)
 	_hit_by_current_move.clear()
 	_play_sequence_anim()
@@ -355,8 +361,12 @@ func _drive_victim(_delta: float) -> void:
 
 ## Victim offset (in front of the captor) while held in the static headlock.
 const _HEADHOLD_VICTIM_X := 30.0
-## Grab "leap" stops this far from the target (arcade LEAPATOPP Xoff=40, TGT_CHEST).
-const _GRAPPLE_LEAP_GAP := 40.0
+## Grab "leap" (arcade LEAPATOPP): step in toward the target, stopping ~Xoff=40 short,
+## and travel at most MAX_X_DIST=40 total — a short, accelerated step, not a run-in.
+const _GRAPPLE_LEAP_GAP := 40.0   # stop this far from the target (arcade Xoff=40)
+const _GRAPPLE_LEAP_MAX := 40.0   # cap total step distance (arcade MAX_X_DIST=40)
+var _leap_vel: float = 0.0        # accelerated step-in velocity (px/s)
+var _leap_remaining: float = 0.0  # px of step-in budget left this grab
 
 ## During the STATIC head hold, keep the victim attached + facing the captor and LOOP its
 ## struggle (arcade master_keep_attached + the headheld loop). The neck-grab sequence drives

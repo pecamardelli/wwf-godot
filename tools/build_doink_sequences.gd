@@ -119,7 +119,9 @@ func _grapple(id: String, anim: String, slave: String, slam_amode: int, has_grab
 			var throw_i := (i - 1) if has_grab_window else i   # throw-frame ordinal (reach = -1)
 			voff = victim_table[clampi(throw_i, 0, victim_table.size() - 1)]
 		var vimg := int(round(t * float(vframes - 1)))
-		var fr := _gframe(3, i, cmd, slave, voff, vimg)
+		# 4 ticks/frame matches the arcade SUPERSLAVE2 throw cadence (DNKSEQ2.ASM:4266+);
+		# 3 read too fast.
+		var fr := _gframe(4, i, cmd, slave, voff, vimg)
 		if cmd == SequenceFrame.Command.WAIT_HIT_OPP:
 			fr.attack_box = _grab_box(); fr.wait_hit_max_ticks = 16
 		if cmd == SequenceFrame.Command.DAMAGE_OPP:

@@ -11,7 +11,6 @@ size = Vector3(70, 90, 40)
 
 [sub_resource type="Resource" id="Resource_l250o"]
 script = ExtResource("1_x17lb")
-duration_ticks = 3
 command = 4
 attack_box = SubResource("Resource_6cf8j")
 victim_offset = Vector3(69, 8, 0)
@@ -19,7 +18,6 @@ slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_cj6r5"]
 script = ExtResource("1_x17lb")
-duration_ticks = 3
 anim_frame = 1
 command = 5
 victim_anim_frame = 1
@@ -28,7 +26,6 @@ slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_kau56"]
 script = ExtResource("1_x17lb")
-duration_ticks = 3
 anim_frame = 2
 command = 6
 victim_anim_frame = 2
@@ -37,7 +34,6 @@ slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_tjglm"]
 script = ExtResource("1_x17lb")
-duration_ticks = 3
 anim_frame = 3
 command = 6
 victim_anim_frame = 3
@@ -46,7 +42,6 @@ slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_18xbi"]
 script = ExtResource("1_x17lb")
-duration_ticks = 3
 anim_frame = 4
 command = 6
 victim_anim_frame = 5
@@ -55,7 +50,6 @@ slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_0enka"]
 script = ExtResource("1_x17lb")
-duration_ticks = 3
 anim_frame = 5
 command = 6
 victim_anim_frame = 6
@@ -64,7 +58,6 @@ slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_ch6c6"]
 script = ExtResource("1_x17lb")
-duration_ticks = 3
 anim_frame = 6
 command = 6
 victim_anim_frame = 7
@@ -73,7 +66,6 @@ slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_2lw03"]
 script = ExtResource("1_x17lb")
-duration_ticks = 3
 anim_frame = 7
 command = 7
 victim_anim_frame = 8
@@ -83,7 +75,6 @@ victim_amode = 5
 
 [sub_resource type="Resource" id="Resource_m4hyg"]
 script = ExtResource("1_x17lb")
-duration_ticks = 3
 anim_frame = 8
 command = 8
 victim_anim_frame = 9
