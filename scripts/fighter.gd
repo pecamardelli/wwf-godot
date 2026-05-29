@@ -298,6 +298,10 @@ func start_move(move: MoveSequence) -> void:
 func _drive_victim(_delta: float) -> void:
 	var vic: Fighter = _grappling
 	var f: SequenceFrame = _player.current_frame()
+	# Orient the victim to the attacker (arcade ANI_SUPERSLAVE2: victim flip = attacker
+	# facing XOR per-frame table flip; we have no per-frame flip, so mirror facing). Set
+	# unconditionally so the puppet never keeps its pre-grab (opponent-facing) orientation.
+	vic._facing = _facing
 	# Position the victim relative to me (x mirrored by facing).
 	if f != null:
 		var off := f.victim_offset
@@ -318,6 +322,7 @@ func _drive_victim(_delta: float) -> void:
 			if f != null:
 				var last: int = vic.sprite.sprite_frames.get_frame_count(_player.slave_anim) - 1
 				vic.sprite.frame = clampi(f.victim_anim_frame, 0, maxi(last, 0))
+			vic._refresh_flip()   # flip the slave pose to the attacker's facing
 	# DAMAGE_OPP: pre-scaled puppet damage, applied once.
 	if _player.consume_damage_opp():
 		var key: String = _player.sequence.id

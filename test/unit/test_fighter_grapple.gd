@@ -63,6 +63,18 @@ func test_puppet_offset_mirrors_with_facing():
 	atk._physics_process(1.0 / 60.0)
 	assert_almost_eq(vic.global_position.x, 70.0, 0.5, "offset.x mirrored when facing left")
 
+func test_puppet_faces_same_way_as_attacker():
+	var atk := _make(); var vic := _make()
+	atk.global_position = Vector2(100, 400); atk._set_facing(1.0)
+	vic._set_facing(-1.0)   # victim was facing the attacker (opposite) before the grab
+	atk.start_move(_attach_drive_seq())
+	vic.receive_grab(atk, atk.current_move())
+	atk._physics_process(1.0 / 60.0)
+	assert_eq(vic._facing, atk._facing, "grabbed victim is oriented to the attacker, not facing away")
+	atk._set_facing(-1.0)   # attacker turns; the puppet follows
+	atk._physics_process(1.0 / 60.0)
+	assert_eq(vic._facing, -1.0, "victim re-orients with the attacker each tick")
+
 func test_damage_opp_applies_once_and_detach_knocks_down():
 	var atk := _make(); var vic := _make()
 	atk.global_position = Vector2(100, 400)
