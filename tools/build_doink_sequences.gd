@@ -15,6 +15,8 @@ func _init() -> void:
 	# Grapple throws (victim channel). DOINK.ASM:572 (hip toss), :504 (grab & fling).
 	_save(_throw("hip_toss",   "hip_toss", "hip_tossed", AMode.BIGBOOT))
 	_save(_throw("grab_fling", "fling",    "flinged",    AMode.BIGBOOT))
+	# Head grab: connect -> HEADHOLD (no DAMAGE_OPP/DETACH here; head-hold drives follow-ups).
+	_save(_neck_grab())
 	quit()
 
 func _ab(ox: float, oy: float, oz: float, w: float, h: float, d: float) -> Box3:
@@ -71,6 +73,18 @@ func _throw(id: String, anim: String, slave: String, slam_amode: int) -> MoveSeq
 	var detach := _gframe(3, 5, SequenceFrame.Command.DETACH, slave, Vector3(-40, 0, 0), 5)
 	var recover := _frame(6, 6)
 	m.frames = [wait, attach, lift, over, slam, detach, recover]
+	return m
+
+## Neck grab: windup -> WAIT_HIT_OPP -> SET_ATTACH into the head hold. The hold itself
+## (mode transition + follow-up polling) is handled by Fighter, not this sequence.
+func _neck_grab() -> MoveSequence:
+	var m := MoveSequence.new()
+	m.id = "neck_grab"; m.anim_name = "headlocks"; m.attack_mode = AMode.PUNCH
+	m.is_grapple = true; m.uninterruptable = true
+	var wait := _gframe(6, 0, SequenceFrame.Command.WAIT_HIT_OPP, "headlocked", Vector3(34, 0, 0), 0)
+	wait.attack_box = _grab_box(); wait.wait_hit_max_ticks = 16
+	var attach := _gframe(4, 1, SequenceFrame.Command.SET_ATTACH, "headlocked", Vector3(30, 0, 0), 1)
+	m.frames = [wait, attach]
 	return m
 
 func _save(m: MoveSequence) -> void:

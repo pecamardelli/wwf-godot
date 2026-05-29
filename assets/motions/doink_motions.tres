@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="MotionTable" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/motion_move.gd" id="1_g0tcr"]
+[ext_resource type="Resource" path="res://assets/motions/doink/hip_toss.tres" id="2_d2eqs"]
+[ext_resource type="Resource" path="res://assets/motions/doink/grab_fling.tres" id="3_to82j"]
+[ext_resource type="Resource" path="res://assets/motions/doink/neck_grab.tres" id="4_0t2kq"]
+[ext_resource type="Script" path="res://scripts/combat/move_sequence.gd" id="5_ur5wg"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/hip_toss.tres" id="6_qul47"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/grab_fling.tres" id="7_0bsdr"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/neck_grab.tres" id="8_i25i5"]
+[ext_resource type="Script" path="res://scripts/combat/motion_table.gd" id="9_1aox6"]
+
+[resource]
+script = ExtResource("9_1aox6")
+_moves = Array[ExtResource("1_g0tcr")]([ExtResource("2_d2eqs"), ExtResource("3_to82j"), ExtResource("4_0t2kq")])
+_sequences = Array[ExtResource("5_ur5wg")]([ExtResource("6_qul47"), ExtResource("7_0bsdr"), ExtResource("8_i25i5")])

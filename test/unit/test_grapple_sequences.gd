@@ -22,3 +22,15 @@ func test_hip_toss_sequence():
 
 func test_grab_fling_sequence():
 	_assert_grab("res://assets/sequences/doink/grab_fling.tres", "fling")
+
+func test_motiontable_maps_grabs_to_sequences():
+	var t: MotionTable = load("res://assets/motions/doink_motions.tres")
+	assert_not_null(t, "doink_motions.tres loads")
+	assert_eq(t.lookup("hip_toss").id, "hip_toss")
+	assert_eq(t.lookup("grab_fling").id, "grab_fling")
+	assert_eq(t.lookup("neck_grab").id, "neck_grab")
+	# Scan order: throws before head grab (matches doink_secret_moves order).
+	var ids := []
+	for m in t.moves():
+		ids.append(m.move_id)
+	assert_true(ids.find("hip_toss") < ids.find("neck_grab"), "throws scanned before head grab")
