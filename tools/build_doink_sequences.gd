@@ -5,6 +5,15 @@ extends SceneTree
 const OUT := "res://assets/sequences/doink"
 const FRAMES := "res://assets/sprites/doink/doink_frames.tres"
 
+# Arcade Doink-as-victim hip-toss offsets, one per throw frame (DNKSEQ2.ASM:4643 #puppet_tbl
+# #Doink): {x in front(+)/behind(-), y up(+)}. The victim is lifted up-and-over (y to 52)
+# then flung behind and down (x to -137, y to -40). Assumes ~1:1 arcade-pixel scale —
+# if the throw distance reads off in playtest, scale this table uniformly.
+const _HIPTOSS_VICTIM := [
+	Vector3(69, 8, 0), Vector3(37, 7, 0), Vector3(56, 10, 0), Vector3(37, 26, 0),
+	Vector3(23, 41, 0), Vector3(-23, 52, 0), Vector3(-73, -18, 0), Vector3(-137, -40, 0),
+]
+
 # The Doink SpriteFrames, so grapple sequences can walk EVERY frame of an animation
 # (the visible throw must play the whole clip, like the arcade ANI_SUPERSLAVE2 loop).
 var _sf: SpriteFrames = null
@@ -19,7 +28,7 @@ func _init() -> void:
 	_save(_strike("uppercut", "uppercut",        AMode.UPRCUT,  6, 3, _ab(28, 66, 0, 60, 36, 10), false, 2))
 	_save(_strike("big_boot", "big_boot",        AMode.BIGBOOT, 8, 4, _ab(34, 60, 0, 70, 20, 10)))
 	# Grapple throws (victim channel). DOINK.ASM:572 (hip toss), :504 (grab & fling).
-	_save(_throw("hip_toss",   "hip_toss", "hip_tossed", AMode.BIGBOOT))
+	_save(_throw("hip_toss",   "hip_toss", "hip_tossed", AMode.BIGBOOT, _HIPTOSS_VICTIM))
 	_save(_throw("grab_fling", "fling",    "flinged",    AMode.BIGBOOT))
 	# Head grab: connect -> HEADHOLD (no DAMAGE_OPP/DETACH here; head-hold drives follow-ups).
 	_save(_neck_grab())
@@ -81,9 +90,11 @@ func _victim_arc(t: float, t_slam: float) -> Vector3:
 ## Build a grapple that walks the WHOLE attacker clip: one SequenceFrame per sprite image
 ## (anim_frame = i), so the full throw animation plays (arcade SUPERSLAVE2 walks every
 ## puppet frame). `has_grab_window` opens a WAIT_HIT_OPP reach on frame 0 (a fresh throw);
-## follow-ups start already-attached at SET_ATTACH. The victim slave frame is mapped across
-## its own clip; the grab commands land at: reach(0) -> attach(1) -> slam(n-2) -> detach(n-1).
-func _grapple(id: String, anim: String, slave: String, slam_amode: int, has_grab_window: bool) -> MoveSequence:
+## follow-ups start already-attached at SET_ATTACH. The grab commands land at:
+## reach(0) -> attach(1) -> slam(n-2) -> detach(n-1). `victim_table` (arcade #puppet_tbl
+## {x, y(+up)} per throw frame) drives the exact victim offsets when supplied; otherwise a
+## generic over-the-shoulder arc is used.
+func _grapple(id: String, anim: String, slave: String, slam_amode: int, has_grab_window: bool, victim_table: Array = []) -> MoveSequence:
 	var m := MoveSequence.new()
 	m.id = id; m.anim_name = anim; m.attack_mode = slam_amode; m.is_grapple = true; m.uninterruptable = true
 	var n: int = maxi(_sf.get_frame_count(anim), 4)
@@ -101,8 +112,14 @@ func _grapple(id: String, anim: String, slave: String, slam_amode: int, has_grab
 			cmd = SequenceFrame.Command.DAMAGE_OPP
 		elif i == n - 1:
 			cmd = SequenceFrame.Command.DETACH
+		var voff: Vector3
+		if victim_table.is_empty():
+			voff = _victim_arc(t, t_slam)
+		else:
+			var throw_i := (i - 1) if has_grab_window else i   # throw-frame ordinal (reach = -1)
+			voff = victim_table[clampi(throw_i, 0, victim_table.size() - 1)]
 		var vimg := int(round(t * float(vframes - 1)))
-		var fr := _gframe(3, i, cmd, slave, _victim_arc(t, t_slam), vimg)
+		var fr := _gframe(3, i, cmd, slave, voff, vimg)
 		if cmd == SequenceFrame.Command.WAIT_HIT_OPP:
 			fr.attack_box = _grab_box(); fr.wait_hit_max_ticks = 16
 		if cmd == SequenceFrame.Command.DAMAGE_OPP:
@@ -112,8 +129,8 @@ func _grapple(id: String, anim: String, slave: String, slam_amode: int, has_grab
 	return m
 
 ## A throw (fresh grab): opens a WAIT_HIT_OPP reach, then drives the caught victim.
-func _throw(id: String, anim: String, slave: String, slam_amode: int) -> MoveSequence:
-	return _grapple(id, anim, slave, slam_amode, true)
+func _throw(id: String, anim: String, slave: String, slam_amode: int, victim_table: Array = []) -> MoveSequence:
+	return _grapple(id, anim, slave, slam_amode, true, victim_table)
 
 ## A head-hold follow-up: victim is ALREADY attached, so NO grab window — start at SET_ATTACH.
 func _followup(id: String, anim: String, slave: String, slam_amode: int) -> MoveSequence:

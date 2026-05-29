@@ -123,6 +123,15 @@ func _physics_process(delta: float) -> void:
 	# 2) Attacking: advance the sequence, hold position, no walk input.
 	if _player.is_playing():
 		velocity = Vector2.ZERO
+		# Grapple windup: leap toward the opponent before the grab connects (arcade
+		# LEAPATOPP) — the attacker steps in, closing to ~grab range. Stops once attached.
+		if _player.sequence != null and _player.sequence.is_grapple and _grappling == null \
+				and target != null and is_instance_valid(target):
+			var dx: float = target.global_position.x - global_position.x
+			if absf(dx) > _GRAPPLE_LEAP_GAP:
+				var toward: float = dx - signf(dx) * _GRAPPLE_LEAP_GAP   # stop short by the gap
+				var step: float = ArcadeUnits.RUN_SPEED * delta
+				global_position.x += clampf(toward, -step, step)
 		_player.advance(delta)
 		# Drive the attached victim AFTER advance so current_frame() reflects this tick.
 		if _grappling != null and is_instance_valid(_grappling):
@@ -317,13 +326,13 @@ func _drive_victim(_delta: float) -> void:
 	if f != null:
 		var off := f.victim_offset
 		vic.global_position = global_position + Vector2(off.x * _facing, -off.y)
-	# GHOST-arc: only clamp the victim to the floor when it is NOT airborne.
+	# A driven puppet is GHOST for the whole throw (arcade ANI_SETOPPMODE,MODE_GHOST at
+	# grab, cleared at release): its position is FULLY master-controlled, NOT floor-clamped,
+	# so the lift arc isn't pinned to the floor band. It is grounded again on DETACH.
 	if _player.consume_set_opp_mode():
 		vic.mode = _player.opp_mode()
 	if _player.consume_clr_opp_mode():
 		vic.mode = Mode.GRABBED
-	if vic.mode != Mode.INAIR:
-		vic.global_position = MovementMath.clamp_to_floor(vic.global_position, vic.floor_min_y, vic.floor_max_y)
 	# Slave animation frame.
 	if vic.sprite != null and vic.sprite.sprite_frames != null and _player.slave_anim != "":
 		if vic.sprite.sprite_frames.has_animation(_player.slave_anim):
@@ -346,6 +355,8 @@ func _drive_victim(_delta: float) -> void:
 
 ## Victim offset (in front of the captor) while held in the static headlock.
 const _HEADHOLD_VICTIM_X := 30.0
+## Grab "leap" stops this far from the target (arcade LEAPATOPP Xoff=40, TGT_CHEST).
+const _GRAPPLE_LEAP_GAP := 40.0
 
 ## During the STATIC head hold, keep the victim attached + facing the captor and LOOP its
 ## struggle (arcade master_keep_attached + the headheld loop). The neck-grab sequence drives

@@ -14,7 +14,7 @@ script = ExtResource("1_x17lb")
 duration_ticks = 3
 command = 4
 attack_box = SubResource("Resource_6cf8j")
-victim_offset = Vector3(34, 0, 0)
+victim_offset = Vector3(69, 8, 0)
 slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_cj6r5"]
@@ -23,7 +23,7 @@ duration_ticks = 3
 anim_frame = 1
 command = 5
 victim_anim_frame = 1
-victim_offset = Vector3(25.25, 26.033024, 0)
+victim_offset = Vector3(69, 8, 0)
 slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_kau56"]
@@ -32,7 +32,7 @@ duration_ticks = 3
 anim_frame = 2
 command = 6
 victim_anim_frame = 2
-victim_offset = Vector3(16.5, 46.90989, 0)
+victim_offset = Vector3(37, 7, 0)
 slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_tjglm"]
@@ -41,7 +41,7 @@ duration_ticks = 3
 anim_frame = 3
 command = 6
 victim_anim_frame = 3
-victim_offset = Vector3(7.75, 58.495674, 0)
+victim_offset = Vector3(56, 10, 0)
 slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_18xbi"]
@@ -50,7 +50,7 @@ duration_ticks = 3
 anim_frame = 4
 command = 6
 victim_anim_frame = 5
-victim_offset = Vector3(-1, 58.495674, 0)
+victim_offset = Vector3(37, 26, 0)
 slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_0enka"]
@@ -59,7 +59,7 @@ duration_ticks = 3
 anim_frame = 5
 command = 6
 victim_anim_frame = 6
-victim_offset = Vector3(-9.75, 46.90989, 0)
+victim_offset = Vector3(23, 41, 0)
 slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_ch6c6"]
@@ -68,7 +68,7 @@ duration_ticks = 3
 anim_frame = 6
 command = 6
 victim_anim_frame = 7
-victim_offset = Vector3(-18.5, 26.033024, 0)
+victim_offset = Vector3(-23, 52, 0)
 slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_2lw03"]
@@ -77,7 +77,7 @@ duration_ticks = 3
 anim_frame = 7
 command = 7
 victim_anim_frame = 8
-victim_offset = Vector3(-27.25, 0, 0)
+victim_offset = Vector3(-73, -18, 0)
 slave_anim = "hip_tossed"
 victim_amode = 5
 
@@ -87,7 +87,7 @@ duration_ticks = 3
 anim_frame = 8
 command = 8
 victim_anim_frame = 9
-victim_offset = Vector3(-36, 0, 0)
+victim_offset = Vector3(-137, -40, 0)
 slave_anim = "hip_tossed"
 
 [resource]
