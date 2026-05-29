@@ -1,0 +1,35 @@
+extends "res://addons/gut/test.gd"
+## Full path: buffered hip-toss motion -> Player.scan_specials fires the grapple ->
+## AttackResolver connects the grab -> puppet playback -> DAMAGE_OPP -> DETACH knockdown.
+
+var resolver: AttackResolver
+
+func before_each():
+	resolver = AttackResolver.new()
+	add_child_autofree(resolver)
+
+func _player(pos: Vector2, side: int) -> Player:
+	var p := Player.new(); p.side = side
+	p.motions = load("res://assets/motions/doink_motions.tres")
+	add_child_autofree(p); p.global_position = pos
+	return p
+
+func test_hip_toss_full_flow():
+	var atk := _player(Vector2(100, 400), Fighter.Side.PLAYER)
+	atk._set_facing(1.0)
+	var vic := _player(Vector2(150, 400), Fighter.Side.ENEMY)
+	var before := vic.health
+	# Buffer the hip-toss motion: away, away, PUNCH (held away), all "now".
+	atk.motion_buffer.push(MotionBuffer.J_AWAY | MotionBuffer.J_LEFT, 1)
+	atk.motion_buffer.push(MotionBuffer.J_AWAY | MotionBuffer.J_LEFT, 2)
+	atk.motion_buffer.push(MotionBuffer.B_PUNCH | MotionBuffer.J_AWAY | MotionBuffer.J_LEFT, 3)
+	atk._input_tick = 3
+	assert_true(atk.scan_specials(), "hip toss fired")
+	assert_eq(atk.mode, Fighter.Mode.NORMAL, "not yet GRABBING until the box connects")
+	# Drive the sim: attacker advances its sequence, resolver connects the box, puppet plays.
+	for _i in range(40):
+		atk._physics_process(1.0 / 60.0)
+		resolver.resolve_tick()
+		vic._physics_process(1.0 / 60.0)
+	assert_lt(vic.health, before, "victim took puppet damage")
+	assert_eq(vic.mode, Fighter.Mode.ONGROUND, "victim knocked down after detach")
