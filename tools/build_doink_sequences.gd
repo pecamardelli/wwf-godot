@@ -6,11 +6,12 @@ const OUT := "res://assets/sequences/doink"
 const FRAMES := "res://assets/sprites/doink/doink_frames.tres"
 
 # Arcade Doink-as-victim hip-toss offsets, one per throw frame (DNKSEQ2.ASM:4643 #puppet_tbl
-# #Doink): {x in front(+)/behind(-), y up(+)}. The victim is lifted up-and-over then flung
-# behind and down. The arcade applies per-frame sprite-anchor corrections we don't have, so
-# the raw values read too far apart; _GRAB_OFFSET_SCALE shrinks the whole arc so the throw
-# starts at the grab-contact distance (~leap gap) instead of snapping out. Single tuning knob.
-const _GRAB_OFFSET_SCALE := 0.6
+# #Doink): {x in front(+)/behind(-), y up(+)}. The victim is lifted up-and-over (apex y=52)
+# then flung behind and down. The arcade applies per-frame sprite-anchor corrections we don't
+# have, and they pull X and Y differently — horizontally the raws read too far (shrink X),
+# vertically the lift reads too low if shrunk (keep Y near source). Two tuning knobs.
+const _GRAB_OFFSET_SCALE_X := 0.6   # horizontal: keep the body close to the attacker
+const _GRAB_OFFSET_SCALE_Y := 1.0   # vertical: faithful source lift height (raise if too low)
 const _HIPTOSS_VICTIM := [
 	Vector3(69, 8, 0), Vector3(37, 7, 0), Vector3(56, 10, 0), Vector3(37, 26, 0),
 	Vector3(23, 41, 0), Vector3(-23, 52, 0), Vector3(-73, -18, 0), Vector3(-137, -40, 0),
@@ -119,7 +120,8 @@ func _grapple(id: String, anim: String, slave: String, slam_amode: int, has_grab
 			voff = _victim_arc(t, t_slam)
 		else:
 			var throw_i := (i - 1) if has_grab_window else i   # throw-frame ordinal (reach = -1)
-			voff = victim_table[clampi(throw_i, 0, victim_table.size() - 1)] * _GRAB_OFFSET_SCALE
+			var raw: Vector3 = victim_table[clampi(throw_i, 0, victim_table.size() - 1)]
+			voff = Vector3(raw.x * _GRAB_OFFSET_SCALE_X, raw.y * _GRAB_OFFSET_SCALE_Y, 0.0)
 		var vimg := int(round(t * float(vframes - 1)))
 		# 4 ticks/frame matches the arcade SUPERSLAVE2 throw cadence (DNKSEQ2.ASM:4266+);
 		# 3 read too fast.
