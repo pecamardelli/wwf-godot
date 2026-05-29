@@ -39,11 +39,12 @@ motions = ExtResource("4_motions")
 position = Vector2(800, 520)
 script = ExtResource("2")
 player_index = 1
+motions = null
 side = 1
 
-[node name="Dummy" parent="." instance=ExtResource("1")]
+[node name="Dummy" parent="." unique_id=1478545216 instance=ExtResource("1")]
 position = Vector2(680, 470)
 side = 1
 
-[node name="AttackResolver" type="Node" parent="."]
+[node name="AttackResolver" type="Node" parent="." unique_id=1909308380]
 script = ExtResource("3")
