@@ -41,7 +41,7 @@ func test_connect_resumes_and_attaches():
 	assert_false(sp.consume_attach(), "attach intent is one-shot")
 	assert_eq(sp.slave_anim, "hip_tossed")
 
-func test_whiff_after_timeout_resumes_to_recovery():
+func test_whiff_ends_the_move_without_playing_the_throw():
 	var sp := SequencePlayer.new(); sp.play(_grab_seq())
 	for _i in range(4):
 		sp.advance(FRAME)
@@ -49,6 +49,9 @@ func test_whiff_after_timeout_resumes_to_recovery():
 		sp.advance(FRAME)
 	assert_true(sp.whiffed, "timed out without a connect")
 	assert_false(sp.is_waiting_for_hit(), "released the hold on whiff")
+	assert_false(sp.is_playing(), "whiff ends the move (no full toss in empty air)")
+	assert_false(sp.damage_opp_seen, "DAMAGE_OPP never fires on a whiff")
+	assert_false(sp.detach_seen, "DETACH never fires on a whiff")
 
 func test_damage_and_detach_intents_surface_once():
 	var sp := SequencePlayer.new(); sp.play(_grab_seq())
@@ -60,15 +63,16 @@ func test_damage_and_detach_intents_surface_once():
 	assert_true(sp.damage_opp_seen, "DAMAGE_OPP fired")
 	assert_true(sp.detach_seen, "DETACH fired")
 
-func test_whiff_resumes_and_finishes_the_sequence():
+func test_whiff_finishes_the_move_on_timeout():
 	var sp := SequencePlayer.new(); sp.play(_grab_seq())
 	for _i in range(4):
 		sp.advance(FRAME)
-	# Never connect. Advance well past the timeout + remaining frames.
+	# Never connect. The move ends ON the timeout tick (no terminal stall, no throw frames).
 	var finished := false
 	for _i in range(60):
 		if sp.advance(FRAME):
 			finished = true
 	assert_true(sp.whiffed, "timed out")
-	assert_true(finished, "sequence still completes on a whiff (no terminal stall)")
+	assert_true(finished, "advance() returns true the moment the whiff ends the move")
 	assert_false(sp.is_playing(), "attacker is not soft-locked")
+	assert_false(sp.damage_opp_seen, "no phantom DAMAGE_OPP on a whiff")

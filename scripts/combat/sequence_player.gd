@@ -81,10 +81,15 @@ func advance(delta: float) -> bool:
 	if _waiting_for_hit:
 		_wait_left -= delta
 		if _wait_left <= 0.0:
+			# Whiff: the grab never connected. END the move instead of playing the throw
+			# frames (SET_ATTACH/slam/DETACH) with no victim — otherwise the attacker mimes
+			# the full toss in empty air. The reach (WAIT_HIT_OPP frame) was the visible
+			# grab attempt. No connect -> never GRABBING -> no soft-lock.
 			whiffed = true
-			_waiting_for_hit = false   # timeout -> resume through the remaining frames
-		else:
-			return false
+			_waiting_for_hit = false
+			_finish()
+			return true
+		return false
 	_time_left -= delta
 	while _time_left <= 0.0:
 		_index += 1
