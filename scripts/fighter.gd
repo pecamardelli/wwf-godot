@@ -153,6 +153,11 @@ func _physics_process(delta: float) -> void:
 			sprite.pause()
 			sprite.frame = mini(_HEADHOLD_POSE_FRAME, sprite.sprite_frames.get_frame_count("headlocks") - 1)
 			_refresh_flip()
+		# Keep the victim attached and LOOP its struggle (arcade master_keep_attached +
+		# the headheld loop). The neck-grab sequence drove the cinch; during the static
+		# hold the captor's sequence isn't playing, so drive the victim here.
+		if _grappling != null and is_instance_valid(_grappling):
+			_hold_victim()
 		return
 
 	# Block: hold to guard (no move, no attack). Front damage -> 1 (handled in receive_hit).
@@ -338,6 +343,23 @@ func _drive_victim(_delta: float) -> void:
 	# DETACH: release the victim into a knockdown, clear both refs.
 	if _player.consume_detach():
 		_detach_victim()
+
+## Victim offset (in front of the captor) while held in the static headlock.
+const _HEADHOLD_VICTIM_X := 30.0
+
+## During the STATIC head hold, keep the victim attached + facing the captor and LOOP its
+## struggle (arcade master_keep_attached + the headheld loop). The neck-grab sequence drives
+## the cinch; once it ends the captor isn't "playing", so the victim is driven from here.
+func _hold_victim() -> void:
+	var vic: Fighter = _grappling
+	vic._facing = _facing
+	vic.global_position = global_position + Vector2(_HEADHOLD_VICTIM_X * _facing, 0.0)
+	vic.global_position = MovementMath.clamp_to_floor(vic.global_position, vic.floor_min_y, vic.floor_max_y)
+	if vic.sprite != null and vic.sprite.sprite_frames != null and vic.sprite.sprite_frames.has_animation("headlocked"):
+		# headlocked is loop=false in the SpriteFrames, so restart it when it finishes.
+		if vic.sprite.animation != "headlocked" or not vic.sprite.is_playing():
+			vic.sprite.play("headlocked")
+		vic._refresh_flip()
 
 ## Release the current victim to ONGROUND (knockdown) and clear both refs.
 func _detach_victim() -> void:

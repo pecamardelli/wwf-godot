@@ -37,3 +37,14 @@ func test_head_hold_auto_breaks_after_timeout():
 	assert_eq(vic.mode, Fighter.Mode.NORMAL, "victim released")
 	assert_null(atk._grappling)
 	assert_null(vic._grappled_by)
+
+func test_static_hold_keeps_victim_attached_and_facing():
+	var atk := _make(); var vic := _make()
+	atk.global_position = Vector2(200, 400); atk._set_facing(1.0)
+	atk.mode = Fighter.Mode.HEADHOLD; atk._grappling = vic
+	atk._set_headhold_break_ticks(600)   # long window so it doesn't auto-break mid-test
+	vic.mode = Fighter.Mode.HEADHELD; vic._grappled_by = atk
+	vic._set_facing(-1.0); vic.global_position = Vector2(999, 999)   # drifted off
+	atk._physics_process(1.0 / 60.0)
+	assert_almost_eq(vic.global_position.x, 230.0, 0.5, "held victim is pulled to captor.x + offset each tick")
+	assert_eq(vic._facing, atk._facing, "held victim faces with the captor")
