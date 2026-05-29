@@ -118,8 +118,35 @@ func _launch_followup(id: String) -> bool:
 	motion_buffer.clear()
 	return true
 
+## In HEADHELD: a non-immobilized victim may counter with the same follow-up patterns,
+## swapping roles and immobilizing the former captor (arcade emergent reversal, §B.8).
+func scan_headhold_reversal() -> bool:
+	if mode != Fighter.Mode.HEADHELD or _grappled_by == null:
+		return false
+	if is_immobilized() or is_dead():
+		return false
+	for id in ["piledriver", "head_slam"]:
+		if MotionMatcher.matches(_FOLLOWUP_MOTIONS[id], motion_buffer, _input_tick):
+			var captor: Fighter = _grappled_by
+			# Swap roles: I become the holder driving the former captor.
+			captor._grappling = null
+			captor._grappled_by = self
+			captor.mode = Fighter.Mode.GRABBED
+			captor.set_immobilize_ticks(15)
+			_grappled_by = null
+			_grappling = captor
+			mode = Fighter.Mode.GRABBING
+			start_move(_FOLLOWUP_SEQUENCES[id])
+			motion_buffer.clear()
+			return true
+	return false
+
 func _physics_process(delta: float) -> void:
 	feed_input(get_input_direction(), _buttons_held_mask(), facing())
+	if mode == Fighter.Mode.HEADHELD and not is_attacking():
+		if scan_headhold_reversal():
+			super(delta)
+			return
 	if mode == Fighter.Mode.HEADHOLD and not is_attacking():
 		if scan_headhold_followups():
 			super(delta)
