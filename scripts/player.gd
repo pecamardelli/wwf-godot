@@ -121,7 +121,7 @@ func _launch_followup(id: String) -> bool:
 ## In HEADHELD: a non-immobilized victim may counter with the same follow-up patterns,
 ## swapping roles and immobilizing the former captor (arcade emergent reversal, §B.8).
 func scan_headhold_reversal() -> bool:
-	if mode != Fighter.Mode.HEADHELD or _grappled_by == null:
+	if mode != Fighter.Mode.HEADHELD or _grappled_by == null or not is_instance_valid(_grappled_by):
 		return false
 	if is_immobilized() or is_dead():
 		return false
@@ -143,6 +143,8 @@ func scan_headhold_reversal() -> bool:
 
 func _physics_process(delta: float) -> void:
 	feed_input(get_input_direction(), _buttons_held_mask(), facing())
+	# If both fighters buffer a counter on the same frame, the first to _physics_process
+	# (scene-tree order) wins; the loser is already GRABBED and skips its own scan.
 	if mode == Fighter.Mode.HEADHELD and not is_attacking():
 		if scan_headhold_reversal():
 			super(delta)
