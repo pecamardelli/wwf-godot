@@ -127,6 +127,8 @@ func _physics_process(delta: float) -> void:
 			_hit_by_current_move.clear()
 			if _grappling != null and mode != Mode.HEADHOLD:
 				_detach_victim()   # safety: a THROW that ended without a DETACH frame
+			if mode == Mode.GRABBING:
+				mode = Mode.NORMAL   # attacker freed once the throw/follow-up sequence ends
 		_play_sequence_anim()
 		return
 

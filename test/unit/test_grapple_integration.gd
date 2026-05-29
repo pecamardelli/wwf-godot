@@ -33,3 +33,4 @@ func test_hip_toss_full_flow():
 		vic._physics_process(1.0 / 60.0)
 	assert_lt(vic.health, before, "victim took puppet damage")
 	assert_eq(vic.mode, Fighter.Mode.ONGROUND, "victim knocked down after detach")
+	assert_eq(atk.mode, Fighter.Mode.NORMAL, "attacker returns to NORMAL (not stuck in GRABBING)")

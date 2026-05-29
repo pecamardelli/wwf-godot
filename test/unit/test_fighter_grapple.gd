@@ -75,3 +75,5 @@ func test_damage_opp_applies_once_and_detach_knocks_down():
 	assert_eq(vic.mode, Fighter.Mode.ONGROUND, "DETACH knocks the victim down")
 	assert_null(atk._grappling, "attacker ref cleared on detach")
 	assert_null(vic._grappled_by, "victim ref cleared on detach")
+	assert_eq(atk.mode, Fighter.Mode.NORMAL, "attacker freed to NORMAL after the throw completes")
+	assert_false(atk.is_attacking(), "attacker's sequence is done")
