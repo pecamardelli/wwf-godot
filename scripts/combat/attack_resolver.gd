@@ -27,10 +27,13 @@ func resolve_tick() -> void:
 			else:
 				victim.receive_hit(attacker, move)
 
-## Grab eligibility (RESEARCH §A.4/§B.3): refuse dead / downed / already-held victims.
+## Grab eligibility (RESEARCH §A.4/§B.3): refuse dead / downed victims and anyone
+## already inside the grapple FSM (already held, holding, or mid-throw).
 func _can_be_grabbed(victim: Fighter) -> bool:
 	if victim.is_dead():
 		return false
-	if victim.mode == Fighter.Mode.ONGROUND or victim.mode == Fighter.Mode.HEADHELD:
-		return false
+	match victim.mode:
+		Fighter.Mode.ONGROUND, Fighter.Mode.GRABBED, Fighter.Mode.GRABBING, \
+		Fighter.Mode.HEADHOLD, Fighter.Mode.HEADHELD:
+			return false
 	return true

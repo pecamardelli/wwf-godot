@@ -37,3 +37,17 @@ func test_grab_refuses_downed_victim():
 	atk._player.advance(1.0 / 60.0)
 	resolver.resolve_tick()
 	assert_ne(vic.mode, Fighter.Mode.GRABBED, "cannot grab a downed fighter")
+
+func test_grab_refuses_already_grabbed_victim():
+	# Two attackers, one victim: the second grab must NOT re-bind the already-held victim.
+	var a := _fighter(Vector2(100, 400), Fighter.Side.PLAYER)
+	var b := _fighter(Vector2(120, 400), Fighter.Side.PLAYER)
+	var vic := _fighter(Vector2(110, 400), Fighter.Side.ENEMY)
+	a.start_move(_grab_seq()); a._player.advance(1.0 / 60.0)
+	resolver.resolve_tick()                      # A grabs vic
+	assert_eq(vic._grappled_by, a, "A is the captor")
+	# Now B opens a grab box overlapping the same (now GRABBED) victim.
+	b.start_move(_grab_seq()); b._player.advance(1.0 / 60.0)
+	resolver.resolve_tick()
+	assert_eq(vic._grappled_by, a, "second attacker cannot re-bind an already-grabbed victim")
+	assert_ne(b._grappling, vic, "B did not steal the victim")
