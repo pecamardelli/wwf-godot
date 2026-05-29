@@ -82,3 +82,16 @@ func test_grapple_sequences_walk_every_attacker_frame():
 		assert_eq(m.frames.size(), n, "%s plays the full %s clip (%d frames)" % [pair[0], pair[1], n])
 		for i in range(m.frames.size()):
 			assert_eq(m.frames[i].anim_frame, i, "%s step %d shows sprite image %d" % [pair[0], i, i])
+
+func test_neck_grab_walks_standing_headlock_frames():
+	# headlocks sprites 01-07 (frames 0-6) = STANDING grab; 08-16 (7-15) = from-ground
+	# headlock, a separate move. The standing neck grab must walk 0-6 and stop.
+	var m: MoveSequence = load("res://assets/sequences/doink/neck_grab.tres")
+	assert_eq(m.anim_name, "headlocks")
+	assert_eq(m.frames.size(), 7, "standing neck grab plays headlocks frames 0-6 only")
+	for i in range(7):
+		assert_eq(m.frames[i].anim_frame, i, "step %d shows headlocks frame %d" % [i, i])
+	# It's a HOLD entry: no DAMAGE_OPP / DETACH (follow-ups drive those).
+	for f in m.frames:
+		assert_ne(f.command, SequenceFrame.Command.DAMAGE_OPP, "neck grab does not damage on entry")
+		assert_ne(f.command, SequenceFrame.Command.DETACH, "neck grab does not detach on entry")

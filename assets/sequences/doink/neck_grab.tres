@@ -11,17 +11,63 @@ size = Vector3(70, 90, 40)
 
 [sub_resource type="Resource" id="Resource_1sdxm"]
 script = ExtResource("1_t61qu")
-duration_ticks = 6
+duration_ticks = 3
 command = 4
 attack_box = SubResource("Resource_fojor")
-victim_offset = Vector3(34, 0, 0)
+victim_offset = Vector3(30, 0, 0)
 slave_anim = "headlocked"
 
 [sub_resource type="Resource" id="Resource_12jl4"]
 script = ExtResource("1_t61qu")
+duration_ticks = 3
 anim_frame = 1
 command = 5
 victim_anim_frame = 1
+victim_offset = Vector3(30, 0, 0)
+slave_anim = "headlocked"
+
+[sub_resource type="Resource" id="Resource_vja3b"]
+script = ExtResource("1_t61qu")
+duration_ticks = 3
+anim_frame = 2
+command = 6
+victim_anim_frame = 2
+victim_offset = Vector3(30, 0, 0)
+slave_anim = "headlocked"
+
+[sub_resource type="Resource" id="Resource_q300j"]
+script = ExtResource("1_t61qu")
+duration_ticks = 3
+anim_frame = 3
+command = 6
+victim_anim_frame = 4
+victim_offset = Vector3(30, 0, 0)
+slave_anim = "headlocked"
+
+[sub_resource type="Resource" id="Resource_57akj"]
+script = ExtResource("1_t61qu")
+duration_ticks = 3
+anim_frame = 4
+command = 6
+victim_anim_frame = 5
+victim_offset = Vector3(30, 0, 0)
+slave_anim = "headlocked"
+
+[sub_resource type="Resource" id="Resource_w0r16"]
+script = ExtResource("1_t61qu")
+duration_ticks = 3
+anim_frame = 5
+command = 6
+victim_anim_frame = 6
+victim_offset = Vector3(30, 0, 0)
+slave_anim = "headlocked"
+
+[sub_resource type="Resource" id="Resource_lh0y2"]
+script = ExtResource("1_t61qu")
+duration_ticks = 3
+anim_frame = 6
+command = 6
+victim_anim_frame = 7
 victim_offset = Vector3(30, 0, 0)
 slave_anim = "headlocked"
 
@@ -29,5 +75,5 @@ slave_anim = "headlocked"
 script = ExtResource("3_0p6ip")
 id = "neck_grab"
 anim_name = "headlocks"
-frames = Array[ExtResource("1_t61qu")]([SubResource("Resource_1sdxm"), SubResource("Resource_12jl4")])
+frames = Array[ExtResource("1_t61qu")]([SubResource("Resource_1sdxm"), SubResource("Resource_12jl4"), SubResource("Resource_vja3b"), SubResource("Resource_q300j"), SubResource("Resource_57akj"), SubResource("Resource_w0r16"), SubResource("Resource_lh0y2")])
 is_grapple = true

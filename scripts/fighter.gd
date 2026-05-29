@@ -55,6 +55,9 @@ var _grappled_by: Fighter = null   # the attacker driving me
 var _immobilize_time: float = 0.0   # seconds of generic stun (gates buffer specials/reversals)
 var _last_headhold_time: float = -999.0   # _sim_time when last head-grabbed (2s re-grab cooldown)
 var _headhold_break_time: float = 0.0   # seconds until the hold auto-releases
+## The held headlock pose = last STANDING headlocks frame (sprite 07); frames 7-15 are
+## the from-ground headlock, which the static hold must never animate into.
+const _HEADHOLD_POSE_FRAME := 6
 
 @onready var sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 
@@ -143,9 +146,12 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 		move_and_slide()
 		global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
+		# Sustain the final STANDING headlock pose (frame 6); the 16-frame headlocks clip
+		# continues into the from-ground headlock (7-15), so pin the frame, never play it.
 		if sprite != null and sprite.sprite_frames != null and sprite.sprite_frames.has_animation("headlocks"):
-			if sprite.animation != "headlocks":
-				sprite.play("headlocks")
+			sprite.animation = "headlocks"
+			sprite.pause()
+			sprite.frame = mini(_HEADHOLD_POSE_FRAME, sprite.sprite_frames.get_frame_count("headlocks") - 1)
 			_refresh_flip()
 		return
 

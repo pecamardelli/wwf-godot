@@ -119,16 +119,32 @@ func _throw(id: String, anim: String, slave: String, slam_amode: int) -> MoveSeq
 func _followup(id: String, anim: String, slave: String, slam_amode: int) -> MoveSequence:
 	return _grapple(id, anim, slave, slam_amode, false)
 
-## Neck grab: windup -> WAIT_HIT_OPP -> SET_ATTACH into the head hold. The hold itself
-## (mode transition + follow-up polling) is handled by Fighter, not this sequence.
+## Neck grab (STANDING): walk headlocks frames 0-6 only. The 16-frame headlocks clip is
+## two moves — sprites 01-07 (frames 0-6) = standing grab-into-hold; 08-16 (7-15) = the
+## from-ground headlock (a separate move, out of scope). Reach -> attach -> pull the victim
+## into the hold, ending on the held pose (frame 6) which the HEADHOLD state sustains. No
+## DAMAGE_OPP/DETACH here — the hold's follow-ups drive those.
+const NECK_STAND_FRAMES := 7   # headlocks sprites 01-07
+
 func _neck_grab() -> MoveSequence:
 	var m := MoveSequence.new()
 	m.id = "neck_grab"; m.anim_name = "headlocks"; m.attack_mode = AMode.PUNCH
 	m.is_grapple = true; m.uninterruptable = true
-	var wait := _gframe(6, 0, SequenceFrame.Command.WAIT_HIT_OPP, "headlocked", Vector3(34, 0, 0), 0)
-	wait.attack_box = _grab_box(); wait.wait_hit_max_ticks = 16
-	var attach := _gframe(4, 1, SequenceFrame.Command.SET_ATTACH, "headlocked", Vector3(30, 0, 0), 1)
-	m.frames = [wait, attach]
+	var vframes: int = maxi(_sf.get_frame_count("headlocked"), 1)
+	var arr: Array[SequenceFrame] = []
+	for i in range(NECK_STAND_FRAMES):
+		var t := float(i) / float(NECK_STAND_FRAMES - 1)
+		var cmd := SequenceFrame.Command.SLAVE_ANIM
+		if i == 0:
+			cmd = SequenceFrame.Command.WAIT_HIT_OPP
+		elif i == 1:
+			cmd = SequenceFrame.Command.SET_ATTACH
+		var vimg := int(round(t * float(vframes - 1)))
+		var fr := _gframe(3, i, cmd, "headlocked", Vector3(30, 0, 0), vimg)
+		if cmd == SequenceFrame.Command.WAIT_HIT_OPP:
+			fr.attack_box = _grab_box(); fr.wait_hit_max_ticks = 16
+		arr.append(fr)
+	m.frames = arr
 	return m
 
 func _save(m: MoveSequence) -> void:
