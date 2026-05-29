@@ -103,6 +103,18 @@ func _grapple(id: String, anim: String, slave: String, slam_amode: int, has_grab
 	var n: int = maxi(_sf.get_frame_count(anim), 4)
 	var vframes: int = maxi(_sf.get_frame_count(slave), 1)
 	var t_slam := float(n - 2) / float(n - 1)
+	# Lift apex from the source table (max +y) and the slam depth (last entry). The raw early
+	# Y values are low because the arcade adds a per-frame sprite-anchor lift we lack; driving
+	# a smooth ramp to the apex reproduces that continuous hoist instead of a flat-then-jump.
+	var apex_y := 0.0
+	var apex_j := 0
+	var slam_y := 0.0
+	if not victim_table.is_empty():
+		slam_y = victim_table[victim_table.size() - 1].y
+		for k in range(victim_table.size()):
+			if victim_table[k].y > apex_y:
+				apex_y = victim_table[k].y
+				apex_j = k
 	var arr: Array[SequenceFrame] = []
 	for i in range(n):
 		var t := float(i) / float(n - 1)
@@ -119,9 +131,17 @@ func _grapple(id: String, anim: String, slave: String, slam_amode: int, has_grab
 		if victim_table.is_empty():
 			voff = _victim_arc(t, t_slam)
 		else:
-			var throw_i := (i - 1) if has_grab_window else i   # throw-frame ordinal (reach = -1)
-			var raw: Vector3 = victim_table[clampi(throw_i, 0, victim_table.size() - 1)]
-			voff = Vector3(raw.x * _GRAB_OFFSET_SCALE_X, raw.y * _GRAB_OFFSET_SCALE_Y, 0.0)
+			var msz := victim_table.size()
+			var throw_i := clampi((i - 1) if has_grab_window else i, 0, msz - 1)   # reach -> 0
+			# X: faithful source sweep (front -> behind). Y: smooth hoist to the source apex,
+			# then down to the slam — the victim rises continuously from the grab, not stuck.
+			var vx: float = victim_table[throw_i].x * _GRAB_OFFSET_SCALE_X
+			var vy := 0.0
+			if throw_i <= apex_j and apex_j > 0:
+				vy = apex_y * smoothstep(0.0, float(apex_j), float(throw_i))   # ease up to apex
+			elif throw_i > apex_j:
+				vy = lerpf(apex_y, slam_y, float(throw_i - apex_j) / float(maxi(msz - 1 - apex_j, 1)))
+			voff = Vector3(vx, vy * _GRAB_OFFSET_SCALE_Y, 0.0)
 		var vimg := int(round(t * float(vframes - 1)))
 		# 4 ticks/frame matches the arcade SUPERSLAVE2 throw cadence (DNKSEQ2.ASM:4266+);
 		# 3 read too fast.
