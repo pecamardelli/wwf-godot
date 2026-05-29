@@ -242,10 +242,18 @@ static func flip_h_for(anim: String, facing: float) -> bool:
 		return facing > 0.0
 	return facing < 0.0
 
-## Apply the correct flip for the current animation + facing.
+## Per-animation vertical RENDER offset (px, +down) for imported frames whose art sits
+## off the feet origin. `damage_lying` is drawn ~40px above the feet, so nudge it down to
+## the floor line; the body lies ON the mat instead of floating above it.
+const _ANIM_Y_OFFSET := {
+	"damage_lying": 40.0,
+}
+
+## Apply the correct flip + render offset for the current animation + facing.
 func _refresh_flip() -> void:
 	if sprite != null:
 		sprite.flip_h = flip_h_for(sprite.animation, _facing)
+		sprite.offset.y = _ANIM_Y_OFFSET.get(sprite.animation, 0.0)
 
 ## Facing as ±1 (right = +1). Logic-side; the sprite flip mirrors it.
 func facing() -> float:
