@@ -11,7 +11,7 @@ const FRAMES := "res://assets/sprites/doink/doink_frames.tres"
 # have, and they pull X and Y differently — horizontally the raws read too far (shrink X),
 # vertically the lift reads too low if shrunk (keep Y near source). Two tuning knobs.
 const _GRAB_OFFSET_SCALE_X := 0.6   # horizontal: keep the body close to the attacker
-const _GRAB_OFFSET_SCALE_Y := 1.0   # vertical: faithful source lift height (raise if too low)
+const _GRAB_OFFSET_SCALE_Y := 1.8   # vertical lift (source apex 52px x this); raise for a higher toss
 const _HIPTOSS_VICTIM := [
 	Vector3(69, 8, 0), Vector3(37, 7, 0), Vector3(56, 10, 0), Vector3(37, 26, 0),
 	Vector3(23, 41, 0), Vector3(-23, 52, 0), Vector3(-73, -18, 0), Vector3(-137, -40, 0),
