@@ -17,12 +17,10 @@ func _init() -> void:
 	_save(_throw("grab_fling", "fling",    "flinged",    AMode.BIGBOOT))
 	# Head grab: connect -> HEADHOLD (no DAMAGE_OPP/DETACH here; head-hold drives follow-ups).
 	_save(_neck_grab())
-	# Head-hold follow-ups (DOINK.ASM:685-832). Reuse the throw arc; Task 16 dispatch
-	# starts these with the victim already attached, so their WAIT_HIT_OPP connects
-	# immediately against the held victim. Offsets tuned in the playtest.
-	_save(_throw("piledriver", "piledriver", "piledrivered", AMode.BIGBOOT))
-	_save(_throw("head_slam",  "faceslam",   "faceslamed",   AMode.BIGBOOT))
-	_save(_throw("joy_buzzer", "joy_buzzer", "joy_buzzer",   AMode.BIGBOOT))
+	# Head-hold follow-ups (DOINK.ASM:685-832). Victim is already attached (no grab window).
+	_save(_followup("piledriver", "piledriver", "piledrivered", AMode.BIGBOOT))
+	_save(_followup("head_slam",  "faceslam",   "faceslamed",   AMode.BIGBOOT))
+	_save(_followup("joy_buzzer", "joy_buzzer", "joy_buzzer",   AMode.BIGBOOT))
 	quit()
 
 func _ab(ox: float, oy: float, oz: float, w: float, h: float, d: float) -> Box3:
@@ -79,6 +77,21 @@ func _throw(id: String, anim: String, slave: String, slam_amode: int) -> MoveSeq
 	var detach := _gframe(3, 5, SequenceFrame.Command.DETACH, slave, Vector3(-40, 0, 0), 5)
 	var recover := _frame(6, 6)
 	m.frames = [wait, attach, lift, over, slam, detach, recover]
+	return m
+
+## A head-hold follow-up: the victim is ALREADY attached, so there is NO grab window.
+## Start at SET_ATTACH (re-assert the slave anim) and drive straight through the slam to DETACH.
+func _followup(id: String, anim: String, slave: String, slam_amode: int) -> MoveSequence:
+	var m := MoveSequence.new()
+	m.id = id; m.anim_name = anim; m.attack_mode = slam_amode; m.is_grapple = true; m.uninterruptable = true
+	var attach := _gframe(3, 0, SequenceFrame.Command.SET_ATTACH, slave, Vector3(30, 30, 0), 0)
+	var lift   := _gframe(3, 1, SequenceFrame.Command.SLAVE_ANIM, slave, Vector3(20, 60, 0), 1)
+	var over   := _gframe(3, 2, SequenceFrame.Command.SLAVE_ANIM, slave, Vector3(-10, 50, 0), 2)
+	var slam   := _gframe(4, 3, SequenceFrame.Command.DAMAGE_OPP, slave, Vector3(-30, 0, 0), 3)
+	slam.victim_amode = slam_amode
+	var detach := _gframe(3, 4, SequenceFrame.Command.DETACH, slave, Vector3(-36, 0, 0), 4)
+	var recover := _frame(6, 5)
+	m.frames = [attach, lift, over, slam, detach, recover]
 	return m
 
 ## Neck grab: windup -> WAIT_HIT_OPP -> SET_ATTACH into the head hold. The hold itself

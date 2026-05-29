@@ -5,6 +5,17 @@ extends Fighter
 
 const _MOVES := preload("res://assets/movetables/doink.tres")
 
+## Head-hold follow-ups, loaded by path (NOT in the main grab-initiator MotionTable).
+const _FOLLOWUP_MOTIONS := {
+	"piledriver": preload("res://assets/motions/doink/piledriver.tres"),
+	"head_slam": preload("res://assets/motions/doink/head_slam.tres"),
+}
+const _FOLLOWUP_SEQUENCES := {
+	"piledriver": preload("res://assets/sequences/doink/piledriver.tres"),
+	"head_slam": preload("res://assets/sequences/doink/head_slam.tres"),
+	"joy_buzzer": preload("res://assets/sequences/doink/joy_buzzer.tres"),
+}
+
 const _CLOSE_GATE := 50.0   # arcade close-range gate (headbutt vs punch), DOINK.ASM:1921; tune in playtest
 
 @export var player_index: int = 0
@@ -78,8 +89,41 @@ func _current_dir() -> int:
 	if rel.away: return MoveTable.Dir.AWAY
 	return MoveTable.Dir.NEUTRAL
 
+## In HEADHOLD: poll the buffer for follow-up grapples + the joybuzzer charge release.
+## On a match, start the follow-up (victim stays attached) and immobilize the victim.
+func scan_headhold_followups() -> bool:
+	if mode != Fighter.Mode.HEADHOLD or _grappling == null:
+		return false
+	# Joybuzzer: PUNCH held >= 100 ticks then released (arcade #charge_buzz first).
+	if charge.released_after(MotionBuffer.B_PUNCH, 100):
+		return _launch_followup("joy_buzzer")
+	for id in ["piledriver", "head_slam"]:
+		if MotionMatcher.matches(_FOLLOWUP_MOTIONS[id], motion_buffer, _input_tick):
+			return _launch_followup(id)
+	return false
+
+## Start a head-hold follow-up with the victim already attached (no re-grab). Converts
+## the hold (HEADHOLD/HEADHELD) into a driven throw (GRABBING/GRABBED); the follow-up
+## sequence (no WAIT_HIT_OPP) drives the still-attached victim straight through the slam.
+func _launch_followup(id: String) -> bool:
+	if _grappling == null or not is_instance_valid(_grappling):
+		return false
+	var seq: MoveSequence = _FOLLOWUP_SEQUENCES.get(id, null)
+	if seq == null:
+		return false
+	_grappling.set_immobilize_ticks(15)
+	mode = Fighter.Mode.GRABBING
+	_grappling.mode = Fighter.Mode.GRABBED
+	start_move(seq)
+	motion_buffer.clear()
+	return true
+
 func _physics_process(delta: float) -> void:
 	feed_input(get_input_direction(), _buttons_held_mask(), facing())
+	if mode == Fighter.Mode.HEADHOLD and not is_attacking():
+		if scan_headhold_followups():
+			super(delta)
+			return
 	# Specials are checked before normal-move dispatch (arcade check_secret_moves
 	# runs before the action_table). Gate dispatch like _unhandled_input does.
 	if Fighter.input_allowed(mode) and not is_attacking():

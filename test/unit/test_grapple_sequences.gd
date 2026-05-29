@@ -35,13 +35,27 @@ func test_motiontable_maps_grabs_to_sequences():
 		ids.append(m.move_id)
 	assert_true(ids.find("hip_toss") < ids.find("neck_grab"), "throws scanned before head grab")
 
+func _assert_followup(path: String, anim: String):
+	var m: MoveSequence = load(path)
+	assert_not_null(m, path + " loads")
+	assert_true(m.is_grapple, "is a grapple")
+	assert_eq(m.anim_name, anim)
+	var has_wait := false; var has_attach := false; var has_dmg := false; var has_detach := false
+	for f in m.frames:
+		match f.command:
+			SequenceFrame.Command.WAIT_HIT_OPP: has_wait = true
+			SequenceFrame.Command.SET_ATTACH: has_attach = true
+			SequenceFrame.Command.DAMAGE_OPP: has_dmg = true
+			SequenceFrame.Command.DETACH: has_detach = true
+	assert_false(has_wait, "follow-up has NO grab window (victim already held)")
+	assert_true(has_attach, "has SET_ATTACH")
+	assert_true(has_dmg, "has DAMAGE_OPP")
+	assert_true(has_detach, "has DETACH")
+
 func test_followup_sequences_exist():
-	_assert_grab("res://assets/sequences/doink/piledriver.tres", "piledriver")
-	_assert_grab("res://assets/sequences/doink/head_slam.tres", "faceslam")
-	var jb: MoveSequence = load("res://assets/sequences/doink/joy_buzzer.tres")
-	assert_not_null(jb, "joy_buzzer loads")
-	assert_true(jb.is_grapple)
-	assert_eq(jb.anim_name, "joy_buzzer")
+	_assert_followup("res://assets/sequences/doink/piledriver.tres", "piledriver")
+	_assert_followup("res://assets/sequences/doink/head_slam.tres", "faceslam")
+	_assert_followup("res://assets/sequences/doink/joy_buzzer.tres", "joy_buzzer")
 
 func test_followup_motions_exist():
 	var pd: MotionMove = load("res://assets/motions/doink/piledriver.tres")

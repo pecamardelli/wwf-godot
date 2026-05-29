@@ -130,6 +130,18 @@ func _physics_process(delta: float) -> void:
 		_play_sequence_anim()
 		return
 
+	# Head-hold: holder stands and holds the lock pose. Follow-ups are dispatched by
+	# Player before super(); the break timer is handled in a later task.
+	if mode == Mode.HEADHOLD:
+		velocity = Vector2.ZERO
+		move_and_slide()
+		global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
+		if sprite != null and sprite.sprite_frames != null and sprite.sprite_frames.has_animation("headlocks"):
+			if sprite.animation != "headlocks":
+				sprite.play("headlocks")
+			_refresh_flip()
+		return
+
 	# Block: hold to guard (no move, no attack). Front damage -> 1 (handled in receive_hit).
 	if (mode == Mode.NORMAL or mode == Mode.RUNNING or mode == Mode.BLOCK) and wants_to_block():
 		mode = Mode.BLOCK
