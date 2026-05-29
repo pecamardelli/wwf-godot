@@ -15,9 +15,22 @@ func resolve_tick() -> void:
 		for victim in fighters:
 			if victim == attacker or attacker.already_hit(victim):
 				continue
-			# Eligibility filters (dead/teammate/pin/in-ring) arrive with those
-			# systems in later plans; for 2b a live box hits any other fighter once.
 			var hb: Box3 = victim.hurt_box()
-			if Hitbox.boxes_overlap(atk_box, attacker.global_position, attacker.facing(), 0.0,
+			if not Hitbox.boxes_overlap(atk_box, attacker.global_position, attacker.facing(), 0.0,
 					hb, victim.global_position, victim.facing(), 0.0):
-				victim.receive_hit(attacker, attacker.current_move())
+				continue
+			var move: MoveSequence = attacker.current_move()
+			if move != null and move.is_grapple:
+				if _can_be_grabbed(victim):
+					attacker._hit_by_current_move.append(victim)
+					victim.receive_grab(attacker, move)
+			else:
+				victim.receive_hit(attacker, move)
+
+## Grab eligibility (RESEARCH §A.4/§B.3): refuse dead / downed / already-held victims.
+func _can_be_grabbed(victim: Fighter) -> bool:
+	if victim.is_dead():
+		return false
+	if victim.mode == Fighter.Mode.ONGROUND or victim.mode == Fighter.Mode.HEADHELD:
+		return false
+	return true
