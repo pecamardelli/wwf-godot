@@ -52,10 +52,13 @@ func _unhandled_input(_event: InputEvent) -> void:
 		if _pressed(p + "punch") or _pressed(p + "kick") or _pressed(p + "high_punch") \
 				or _pressed(p + "high_kick") or _pressed(p + "left") or _pressed(p + "right"):
 			mash_recover()
-		return
-	# Same gate as movement: helpless/blocking fighters can't start a move.
-	if not Fighter.input_allowed(mode) or is_attacking():
-		return
+	# Normal-move dispatch lives in _physics_process now, AFTER the special scan, so a
+	# grab pre-empts a normal attack (arcade move_doink: check_secret_moves before mode_normal).
+
+## Normal-move dispatch (arcade action_table / mode_normal). Run from _physics_process
+## ONLY after scan_specials returns false, so a buffered grab always wins over a normal
+## attack on the same press (the arcade pre-empts the action table on a secret-move match).
+func _dispatch_normal_move() -> void:
 	var btn := _pressed_button()
 	if btn < 0:
 		return
@@ -153,12 +156,14 @@ func _physics_process(delta: float) -> void:
 		if scan_headhold_followups():
 			super(delta)
 			return
-	# Specials are checked before normal-move dispatch (arcade check_secret_moves
-	# runs before the action_table). Gate dispatch like _unhandled_input does.
+	# Specials are checked before normal-move dispatch (arcade move_doink runs
+	# check_secret_moves before mode_normal, every frame). A fired grab pre-empts the
+	# normal attack on the same press.
 	if Fighter.input_allowed(mode) and not is_attacking():
 		if scan_specials():
 			super(delta)
 			return
+		_dispatch_normal_move()
 	super(delta)
 
 ## Scan the special-move registry against the current buffer; start the first match's
