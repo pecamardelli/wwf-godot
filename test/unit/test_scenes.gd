@@ -22,3 +22,12 @@ func test_fighters_do_not_block_each_other():
 	var f: CharacterBody2D = load("res://scenes/Fighter.tscn").instantiate()
 	add_child_autofree(f)
 	assert_eq(f.collision_mask, 0, "Fighter collides with nothing (no body blocking)")
+
+func test_sandbox_player1_has_motion_registry():
+	var scene: Node = load("res://scenes/Sandbox.tscn").instantiate()
+	add_child_autofree(scene)
+	var p1: Player = scene.get_node("Player1")
+	assert_not_null(p1, "Sandbox has Player1")
+	assert_not_null(p1.motions, "Player1 has a grapple MotionTable assigned")
+	assert_eq(p1.motions.lookup("hip_toss").id, "hip_toss", "registry maps the hip toss")
+	assert_eq(p1.motions.moves().size(), 3, "registry has the 3 grab initiators")
