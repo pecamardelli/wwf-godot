@@ -14,7 +14,7 @@ script = ExtResource("1_7nsib")
 anim_frame = 1
 command = 6
 victim_anim_frame = 1
-victim_offset = Vector3(22.333334, 35.267117, 0)
+victim_offset = Vector3(24, 30, 0)
 slave_anim = "faceslamed"
 
 [sub_resource type="Resource" id="Resource_17gb7"]
@@ -22,35 +22,43 @@ script = ExtResource("1_7nsib")
 anim_frame = 2
 command = 6
 victim_anim_frame = 2
-victim_offset = Vector3(10.666667, 57.063393, 0)
+victim_offset = Vector3(14, 51.961525, 0)
 slave_anim = "faceslamed"
 
 [sub_resource type="Resource" id="Resource_nalyx"]
 script = ExtResource("1_7nsib")
 anim_frame = 3
 command = 6
-victim_anim_frame = 4
-victim_offset = Vector3(-1, 57.063393, 0)
+victim_anim_frame = 3
+victim_offset = Vector3(4, 60, 0)
 slave_anim = "faceslamed"
 
 [sub_resource type="Resource" id="Resource_5d3tn"]
 script = ExtResource("1_7nsib")
-anim_frame = 4
+anim_frame = 3
 command = 6
-victim_anim_frame = 5
-victim_offset = Vector3(-12.666667, 35.267117, 0)
+victim_anim_frame = 4
+victim_offset = Vector3(-6, 51.961525, 0)
 slave_anim = "faceslamed"
 
 [sub_resource type="Resource" id="Resource_1lls2"]
 script = ExtResource("1_7nsib")
+anim_frame = 4
+command = 6
+victim_anim_frame = 5
+victim_offset = Vector3(-16, 30, 0)
+slave_anim = "faceslamed"
+
+[sub_resource type="Resource" id="Resource_5tf43"]
+script = ExtResource("1_7nsib")
 anim_frame = 5
 command = 7
 victim_anim_frame = 6
-victim_offset = Vector3(-24.333334, 0, 0)
+victim_offset = Vector3(-26, 0, 0)
 slave_anim = "faceslamed"
 victim_amode = 5
 
-[sub_resource type="Resource" id="Resource_5tf43"]
+[sub_resource type="Resource" id="Resource_tbpma"]
 script = ExtResource("1_7nsib")
 anim_frame = 6
 command = 8
@@ -63,5 +71,5 @@ script = ExtResource("2_q15ic")
 id = "head_slam"
 anim_name = "faceslam"
 attack_mode = 5
-frames = Array[ExtResource("1_7nsib")]([SubResource("Resource_sms2v"), SubResource("Resource_ovmyl"), SubResource("Resource_17gb7"), SubResource("Resource_nalyx"), SubResource("Resource_5d3tn"), SubResource("Resource_1lls2"), SubResource("Resource_5tf43")])
+frames = Array[ExtResource("1_7nsib")]([SubResource("Resource_sms2v"), SubResource("Resource_ovmyl"), SubResource("Resource_17gb7"), SubResource("Resource_nalyx"), SubResource("Resource_5d3tn"), SubResource("Resource_1lls2"), SubResource("Resource_5tf43"), SubResource("Resource_tbpma")])
 is_grapple = true

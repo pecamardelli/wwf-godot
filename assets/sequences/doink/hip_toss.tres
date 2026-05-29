@@ -44,36 +44,44 @@ slave_anim = "hip_tossed"
 script = ExtResource("1_x17lb")
 anim_frame = 4
 command = 6
-victim_anim_frame = 5
+victim_anim_frame = 4
 victim_offset = Vector3(22.2, 50.544, 0)
 slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_0enka"]
 script = ExtResource("1_x17lb")
-anim_frame = 5
+anim_frame = 4
 command = 6
-victim_anim_frame = 6
+victim_anim_frame = 5
 victim_offset = Vector3(13.8, 69.888, 0)
 slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_ch6c6"]
 script = ExtResource("1_x17lb")
-anim_frame = 6
+anim_frame = 5
 command = 6
-victim_anim_frame = 7
+victim_anim_frame = 6
 victim_offset = Vector3(-13.8, 78, 0)
 slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_2lw03"]
 script = ExtResource("1_x17lb")
+anim_frame = 6
+command = 6
+victim_anim_frame = 7
+victim_offset = Vector3(-43.8, 0, 0)
+slave_anim = "hip_tossed"
+
+[sub_resource type="Resource" id="Resource_m4hyg"]
+script = ExtResource("1_x17lb")
 anim_frame = 7
 command = 7
 victim_anim_frame = 8
-victim_offset = Vector3(-43.8, 0, 0)
+victim_offset = Vector3(-82.2, 0, 0)
 slave_anim = "hip_tossed"
 victim_amode = 5
 
-[sub_resource type="Resource" id="Resource_m4hyg"]
+[sub_resource type="Resource" id="Resource_0b3nh"]
 script = ExtResource("1_x17lb")
 anim_frame = 8
 command = 8
@@ -86,5 +94,5 @@ script = ExtResource("3_6e31e")
 id = "hip_toss"
 anim_name = "hip_toss"
 attack_mode = 5
-frames = Array[ExtResource("1_x17lb")]([SubResource("Resource_l250o"), SubResource("Resource_cj6r5"), SubResource("Resource_kau56"), SubResource("Resource_tjglm"), SubResource("Resource_18xbi"), SubResource("Resource_0enka"), SubResource("Resource_ch6c6"), SubResource("Resource_2lw03"), SubResource("Resource_m4hyg")])
+frames = Array[ExtResource("1_x17lb")]([SubResource("Resource_l250o"), SubResource("Resource_cj6r5"), SubResource("Resource_kau56"), SubResource("Resource_tjglm"), SubResource("Resource_18xbi"), SubResource("Resource_0enka"), SubResource("Resource_ch6c6"), SubResource("Resource_2lw03"), SubResource("Resource_m4hyg"), SubResource("Resource_0b3nh")])
 is_grapple = true

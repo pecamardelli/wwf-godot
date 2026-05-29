@@ -100,8 +100,15 @@ func _victim_arc(t: float, t_slam: float) -> Vector3:
 func _grapple(id: String, anim: String, slave: String, slam_amode: int, has_grab_window: bool, victim_table: Array = []) -> MoveSequence:
 	var m := MoveSequence.new()
 	m.id = id; m.anim_name = anim; m.attack_mode = slam_amode; m.is_grapple = true; m.uninterruptable = true
-	var n: int = maxi(_sf.get_frame_count(anim), 4)
+	var afames: int = maxi(_sf.get_frame_count(anim), 1)
 	var vframes: int = maxi(_sf.get_frame_count(slave), 1)
+	# Step count covers the LONGER of the two clips so NEITHER side drops a frame. The arcade
+	# ANI_SUPERSLAVE2 names the attacker frame AND the victim frame independently per step
+	# (DNKSEQ3.ASM #puppet_tbl). Tying the step count to the attacker clip alone forced the
+	# longer victim clip to be resampled down, SKIPPING frames — the puppet "missed frames"
+	# mid-toss (piledriver dropped 7 of 16). With n >= both, the attacker may repeat a frame
+	# (invisible mid-throw) but the watched victim plays every frame.
+	var n: int = maxi(maxi(afames, vframes), 4)
 	var t_slam := float(n - 2) / float(n - 1)
 	# Lift apex from the source table (max +y). The raw early Y values are low because the
 	# arcade adds a per-frame sprite-anchor lift we lack; we drive a smooth ramp to the apex
@@ -141,10 +148,13 @@ func _grapple(id: String, anim: String, slave: String, slam_amode: int, has_grab
 				vy = apex_y * smoothstep(0.0, float(apex_j), float(throw_i))   # ease up to apex
 			# after the apex: slammed to the floor line (vy stays 0) — lands ON the floor
 			voff = Vector3(vx, vy * _GRAB_OFFSET_SCALE_Y, 0.0)
+		# Resample each clip independently onto the n steps (n >= both => no frame skipped on
+		# either side; the attacker repeats a frame when n > afames, never the watched victim).
+		var aimg := int(round(t * float(afames - 1)))
 		var vimg := int(round(t * float(vframes - 1)))
 		# 4 ticks/frame matches the arcade SUPERSLAVE2 throw cadence (DNKSEQ2.ASM:4266+);
 		# 3 read too fast.
-		var fr := _gframe(4, i, cmd, slave, voff, vimg)
+		var fr := _gframe(4, aimg, cmd, slave, voff, vimg)
 		if cmd == SequenceFrame.Command.WAIT_HIT_OPP:
 			fr.attack_box = _grab_box(); fr.wait_hit_max_ticks = 16
 		if cmd == SequenceFrame.Command.DAMAGE_OPP:

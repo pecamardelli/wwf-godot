@@ -72,16 +72,42 @@ func test_main_table_excludes_followups():
 	assert_eq(t.moves().size(), 3, "main table = 3 grab initiators only")
 
 func test_grapple_sequences_walk_every_attacker_frame():
-	# Bug 2 guard: the throw/follow-up must step through EVERY sprite frame of its
-	# attacker animation, or the visible throw is cut short.
+	# Bug 2 guard: the throw/follow-up must step through EVERY sprite frame of its attacker
+	# animation IN ORDER, or the visible throw is cut short. The step count may EXCEED the
+	# attacker clip (so the longer victim clip isn't forced to drop frames — see the victim
+	# test below); when it does, an attacker frame repeats, but none may be skipped.
 	var sf: SpriteFrames = load("res://assets/sprites/doink/doink_frames.tres")
 	for pair in [["hip_toss", "hip_toss"], ["grab_fling", "fling"],
 			["piledriver", "piledriver"], ["head_slam", "faceslam"], ["joy_buzzer", "joy_buzzer"]]:
 		var m: MoveSequence = load("res://assets/sequences/doink/%s.tres" % pair[0])
 		var n: int = sf.get_frame_count(pair[1])
-		assert_eq(m.frames.size(), n, "%s plays the full %s clip (%d frames)" % [pair[0], pair[1], n])
-		for i in range(m.frames.size()):
-			assert_eq(m.frames[i].anim_frame, i, "%s step %d shows sprite image %d" % [pair[0], i, i])
+		var seen := {}
+		var prev := -1
+		for f in m.frames:
+			assert_true(f.anim_frame >= prev, "%s attacker frames are monotonic (no jump back)" % pair[0])
+			prev = f.anim_frame
+			seen[f.anim_frame] = true
+		for i in range(n):
+			assert_true(seen.has(i), "%s shows attacker frame %d (throw not cut short)" % [pair[0], i])
+
+func test_grapple_victim_plays_every_frame():
+	# Root-cause guard: the victim's slave clip was resampled onto the ATTACKER's step count;
+	# when the victim clip is LONGER it dropped frames (the puppet "missed frames" mid-toss —
+	# piledriver dropped 7 of 16). Every frame of the victim's slave animation must be shown,
+	# in order, exactly because ANI_SUPERSLAVE2 names the victim frame per step independently.
+	var sf: SpriteFrames = load("res://assets/sprites/doink/doink_frames.tres")
+	for pair in [["hip_toss", "hip_tossed"], ["grab_fling", "flinged"],
+			["piledriver", "piledrivered"], ["head_slam", "faceslamed"], ["joy_buzzer", "joy_buzzer"]]:
+		var m: MoveSequence = load("res://assets/sequences/doink/%s.tres" % pair[0])
+		var v: int = sf.get_frame_count(pair[1])
+		var seen := {}
+		var prev := -1
+		for f in m.frames:
+			assert_true(f.victim_anim_frame >= prev, "%s victim frames are monotonic (no jump back)" % pair[0])
+			prev = f.victim_anim_frame
+			seen[f.victim_anim_frame] = true
+		for i in range(v):
+			assert_true(seen.has(i), "%s victim shows slave frame %d (no dropped frame)" % [pair[0], i])
 
 func test_neck_grab_walks_standing_headlock_frames():
 	# headlocks sprites 01-07 (frames 0-6) = STANDING grab; 08-16 (7-15) = from-ground
