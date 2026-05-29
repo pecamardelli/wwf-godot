@@ -24,3 +24,16 @@ func test_immobilize_time_counts_down():
 	for _i in range(20):
 		f._physics_process(1.0 / 60.0)
 	assert_false(f.is_immobilized(), "immobilize wears off")
+
+func test_head_hold_auto_breaks_after_timeout():
+	var atk := _make(); var vic := _make()
+	# Enter the hold directly with a short break window.
+	atk.mode = Fighter.Mode.HEADHOLD; atk._grappling = vic; atk._set_headhold_break_ticks(60)
+	vic.mode = Fighter.Mode.HEADHELD; vic._grappled_by = atk
+	for _i in range(80):
+		atk._physics_process(1.0 / 60.0)
+		vic._physics_process(1.0 / 60.0)
+	assert_eq(atk.mode, Fighter.Mode.NORMAL, "holder released")
+	assert_eq(vic.mode, Fighter.Mode.NORMAL, "victim released")
+	assert_null(atk._grappling)
+	assert_null(vic._grappled_by)

@@ -54,6 +54,7 @@ var _grappling: Fighter = null     # the victim I am driving (puppet)
 var _grappled_by: Fighter = null   # the attacker driving me
 var _immobilize_time: float = 0.0   # seconds of generic stun (gates buffer specials/reversals)
 var _last_headhold_time: float = -999.0   # _sim_time when last head-grabbed (2s re-grab cooldown)
+var _headhold_break_time: float = 0.0   # seconds until the hold auto-releases
 
 @onready var sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 
@@ -133,8 +134,12 @@ func _physics_process(delta: float) -> void:
 		return
 
 	# Head-hold: holder stands and holds the lock pose. Follow-ups are dispatched by
-	# Player before super(); the break timer is handled in a later task.
+	# Player before super(); countdown to auto-break.
 	if mode == Mode.HEADHOLD:
+		_headhold_break_time = maxf(_headhold_break_time - delta, 0.0)
+		if _headhold_break_time <= 0.0:
+			_break_head_hold()
+			return
 		velocity = Vector2.ZERO
 		move_and_slide()
 		global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
@@ -344,6 +349,18 @@ var _block_bouncing: bool = false
 func set_immobilize_ticks(ticks: int) -> void:
 	_immobilize_time = ArcadeUnits.ticks_to_seconds(ticks)
 
+func _set_headhold_break_ticks(ticks: int) -> void:
+	_headhold_break_time = ArcadeUnits.ticks_to_seconds(ticks)
+
+## Release a head hold (both fighters) back to NORMAL.
+func _break_head_hold() -> void:
+	var vic: Fighter = _grappling
+	_grappling = null
+	mode = Mode.NORMAL
+	if vic != null and is_instance_valid(vic):
+		vic._grappled_by = null
+		vic.mode = Mode.NORMAL
+
 func is_immobilized() -> bool:
 	return _immobilize_time > 0.0
 
@@ -401,6 +418,7 @@ func receive_grab(attacker: Fighter, move: MoveSequence) -> void:
 	if move != null and move.id == "neck_grab":
 		mode = Mode.HEADHELD
 		attacker.mode = Mode.HEADHOLD
+		attacker._set_headhold_break_ticks(180)   # ~3.4s hold window (arcade head_held_brk)
 		if self is Player:
 			(self as Player).motion_buffer.clear()   # arcade clear_opp_counts
 		_last_headhold_time = _sim_time              # 2s re-grab cooldown stamp
