@@ -52,6 +52,8 @@ var _hit_by_current_move: Array = []   # victims already hit by the swing in pro
 var _sim_time: float = 0.0             # accumulated per-fighter sim clock (fixed-tick determinism)
 var _grappling: Fighter = null     # the victim I am driving (puppet)
 var _grappled_by: Fighter = null   # the attacker driving me
+var _immobilize_time: float = 0.0   # seconds of generic stun (gates buffer specials/reversals)
+var _last_headhold_time: float = -999.0   # _sim_time when last head-grabbed (2s re-grab cooldown)
 
 @onready var sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 
@@ -91,6 +93,8 @@ func _update_target() -> void:
 
 func _physics_process(delta: float) -> void:
 	_sim_time += delta
+	if _immobilize_time > 0.0:
+		_immobilize_time = maxf(_immobilize_time - delta, 0.0)
 	# Puppet victim: driven entirely by the captor; skip own simulation.
 	if mode == Mode.GRABBED or mode == Mode.HEADHELD:
 		return
@@ -121,8 +125,8 @@ func _physics_process(delta: float) -> void:
 			_drive_victim(delta)
 		if not _player.is_playing():
 			_hit_by_current_move.clear()
-			if _grappling != null:
-				_detach_victim()   # safety: sequence ended without a DETACH frame
+			if _grappling != null and mode != Mode.HEADHOLD:
+				_detach_victim()   # safety: a THROW that ended without a DETACH frame
 		_play_sequence_anim()
 		return
 
@@ -323,6 +327,12 @@ const _BLOCK_READY_FRAME := 2     # "sprite number 3": the held guard pose
 const _BLOCK_KNOCKBACK := 6.0     # small bounce-back when a hit is blocked
 var _block_bouncing: bool = false
 
+func set_immobilize_ticks(ticks: int) -> void:
+	_immobilize_time = ArcadeUnits.ticks_to_seconds(ticks)
+
+func is_immobilized() -> bool:
+	return _immobilize_time > 0.0
+
 ## Called when the player presses anything while downed — speeds up getup.
 func mash_recover() -> void:
 	if mode == Mode.ONGROUND and _react_timer > 0.0:
@@ -364,17 +374,25 @@ func receive_hit(attacker: Fighter, move: MoveSequence) -> void:
 	var r := Reaction.resolve(family, hit_dir, move.causes_dizzy)
 	_enter_reaction(r, hit_dir)
 
-## Bind `attacker` as my captor and become its puppet (arcade attach: MODE_GHOST|KEEPATTACHED
-## with no control/AI/separation). Called by AttackResolver when a grab box connects.
-func receive_grab(attacker: Fighter, _move: MoveSequence) -> void:
+## Bind `attacker` as my captor. A neck grab enters the persistent HEAD HOLD
+## (HEADHOLD/HEADHELD); every other grab is a throw (GRABBING/GRABBED). Called by
+## AttackResolver when a grab box connects.
+func receive_grab(attacker: Fighter, move: MoveSequence) -> void:
 	_player.play(null)                 # cancel anything I was doing
 	_hit_by_current_move.clear()
 	_react_timer = 0.0
-	mode = Mode.GRABBED
 	_grappled_by = attacker
 	attacker._grappling = self
-	attacker.mode = Mode.GRABBING
 	attacker._player.notify_grab_connected()
+	if move != null and move.id == "neck_grab":
+		mode = Mode.HEADHELD
+		attacker.mode = Mode.HEADHOLD
+		if self is Player:
+			(self as Player).motion_buffer.clear()   # arcade clear_opp_counts
+		_last_headhold_time = _sim_time              # 2s re-grab cooldown stamp
+	else:
+		mode = Mode.GRABBED
+		attacker.mode = Mode.GRABBING
 
 ## Block stance: crouch into the guard then FREEZE at the ready frame. On a blocked
 ## hit (_block_bouncing) play through to the last frame, then settle back to ready.
