@@ -95,7 +95,7 @@ func _physics_process(delta: float) -> void:
 	if mode == Mode.GRABBED or mode == Mode.HEADHELD:
 		return
 	_update_target()
-	if target != null and is_instance_valid(target) and not _is_guarding() and mode != Mode.RUNNING and not _player.is_playing():
+	if target != null and is_instance_valid(target) and not _is_guarding() and mode != Mode.RUNNING and (_grappling == null or not _player.is_playing()):
 		_set_facing(target.global_position.x - global_position.x)
 	# 1) Reaction countdown (hitstun / getup / dizzy): no control, no walk.
 	if _react_timer > 0.0:
