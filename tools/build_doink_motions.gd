@@ -21,6 +21,9 @@ func _init() -> void:
 	_save(_motion("grab_fling", MotionBuffer.B_SPUNCH, MotionBuffer.J_AWAY, MotionBuffer.J_AWAY, 32))
 	# Neck/head grab: SPUNCH ; toward ; toward  (32 ticks).  DOINK.ASM:426
 	_save(_motion("neck_grab", MotionBuffer.B_SPUNCH, MotionBuffer.J_TOWARD, MotionBuffer.J_TOWARD, 32))
+	# Head-hold follow-ups (DOINK.ASM:685-832).
+	_save(_motion("piledriver", MotionBuffer.B_SPUNCH, MotionBuffer.J_TOWARD, MotionBuffer.J_TOWARD, 32))
+	_save(_motion("head_slam",  MotionBuffer.B_SKICK,  MotionBuffer.J_DOWN,   MotionBuffer.J_DOWN,   32))
 	quit()
 
 func _motion(id: String, trigger_btn: int, dir2: int, dir3: int, max_ticks: int) -> MotionMove:

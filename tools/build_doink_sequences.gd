@@ -17,6 +17,12 @@ func _init() -> void:
 	_save(_throw("grab_fling", "fling",    "flinged",    AMode.BIGBOOT))
 	# Head grab: connect -> HEADHOLD (no DAMAGE_OPP/DETACH here; head-hold drives follow-ups).
 	_save(_neck_grab())
+	# Head-hold follow-ups (DOINK.ASM:685-832). Reuse the throw arc; Task 16 dispatch
+	# starts these with the victim already attached, so their WAIT_HIT_OPP connects
+	# immediately against the held victim. Offsets tuned in the playtest.
+	_save(_throw("piledriver", "piledriver", "piledrivered", AMode.BIGBOOT))
+	_save(_throw("head_slam",  "faceslam",   "faceslamed",   AMode.BIGBOOT))
+	_save(_throw("joy_buzzer", "joy_buzzer", "joy_buzzer",   AMode.BIGBOOT))
 	quit()
 
 func _ab(ox: float, oy: float, oz: float, w: float, h: float, d: float) -> Box3:

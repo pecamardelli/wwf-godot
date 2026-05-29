@@ -1,0 +1,76 @@
+[gd_resource type="Resource" script_class="MoveSequence" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/sequence_frame.gd" id="1_jaxcw"]
+[ext_resource type="Script" path="res://scripts/combat/box3.gd" id="2_urf46"]
+[ext_resource type="Script" path="res://scripts/combat/move_sequence.gd" id="3_qrjyg"]
+
+[sub_resource type="Resource" id="Resource_suj86"]
+script = ExtResource("2_urf46")
+offset = Vector3(20, 60, 0)
+size = Vector3(70, 90, 40)
+
+[sub_resource type="Resource" id="Resource_c80u4"]
+script = ExtResource("1_jaxcw")
+duration_ticks = 6
+command = 4
+attack_box = SubResource("Resource_suj86")
+victim_offset = Vector3(40, 0, 0)
+slave_anim = "piledrivered"
+
+[sub_resource type="Resource" id="Resource_b3hhv"]
+script = ExtResource("1_jaxcw")
+duration_ticks = 3
+anim_frame = 1
+command = 5
+victim_anim_frame = 1
+victim_offset = Vector3(34, 40, 0)
+slave_anim = "piledrivered"
+
+[sub_resource type="Resource" id="Resource_o4rcs"]
+script = ExtResource("1_jaxcw")
+duration_ticks = 3
+anim_frame = 2
+command = 6
+victim_anim_frame = 2
+victim_offset = Vector3(24, 60, 0)
+slave_anim = "piledrivered"
+
+[sub_resource type="Resource" id="Resource_aqmqq"]
+script = ExtResource("1_jaxcw")
+duration_ticks = 3
+anim_frame = 3
+command = 6
+victim_anim_frame = 3
+victim_offset = Vector3(-10, 50, 0)
+slave_anim = "piledrivered"
+
+[sub_resource type="Resource" id="Resource_kyoyg"]
+script = ExtResource("1_jaxcw")
+anim_frame = 4
+command = 7
+victim_anim_frame = 4
+victim_offset = Vector3(-34, 0, 0)
+slave_anim = "piledrivered"
+victim_amode = 5
+
+[sub_resource type="Resource" id="Resource_t7i2j"]
+script = ExtResource("1_jaxcw")
+duration_ticks = 3
+anim_frame = 5
+command = 8
+victim_anim_frame = 5
+victim_offset = Vector3(-40, 0, 0)
+slave_anim = "piledrivered"
+
+[sub_resource type="Resource" id="Resource_3s6ft"]
+script = ExtResource("1_jaxcw")
+duration_ticks = 6
+anim_frame = 6
+
+[resource]
+script = ExtResource("3_qrjyg")
+id = "piledriver"
+anim_name = "piledriver"
+attack_mode = 5
+frames = Array[ExtResource("1_jaxcw")]([SubResource("Resource_c80u4"), SubResource("Resource_b3hhv"), SubResource("Resource_o4rcs"), SubResource("Resource_aqmqq"), SubResource("Resource_kyoyg"), SubResource("Resource_t7i2j"), SubResource("Resource_3s6ft")])
+is_grapple = true

@@ -34,3 +34,14 @@ func test_motiontable_maps_grabs_to_sequences():
 	for m in t.moves():
 		ids.append(m.move_id)
 	assert_true(ids.find("hip_toss") < ids.find("neck_grab"), "throws scanned before head grab")
+
+func test_followup_sequences_exist():
+	for id in ["piledriver", "head_slam", "joy_buzzer"]:
+		var m: MoveSequence = load("res://assets/sequences/doink/%s.tres" % id)
+		assert_not_null(m, id + " sequence loads")
+		assert_true(m.is_grapple)
+
+func test_followup_motions_exist():
+	for id in ["piledriver", "head_slam"]:
+		var m: MotionMove = load("res://assets/motions/doink/%s.tres" % id)
+		assert_not_null(m, id + " motion loads")

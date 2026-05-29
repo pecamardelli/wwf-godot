@@ -1,16 +1,20 @@
 [gd_resource type="Resource" script_class="MotionTable" format=3]
 
-[ext_resource type="Script" path="res://scripts/combat/motion_move.gd" id="1_g0tcr"]
-[ext_resource type="Resource" path="res://assets/motions/doink/hip_toss.tres" id="2_d2eqs"]
-[ext_resource type="Resource" path="res://assets/motions/doink/grab_fling.tres" id="3_to82j"]
-[ext_resource type="Resource" path="res://assets/motions/doink/neck_grab.tres" id="4_0t2kq"]
-[ext_resource type="Script" path="res://scripts/combat/move_sequence.gd" id="5_ur5wg"]
-[ext_resource type="Resource" path="res://assets/sequences/doink/hip_toss.tres" id="6_qul47"]
-[ext_resource type="Resource" path="res://assets/sequences/doink/grab_fling.tres" id="7_0bsdr"]
-[ext_resource type="Resource" path="res://assets/sequences/doink/neck_grab.tres" id="8_i25i5"]
-[ext_resource type="Script" path="res://scripts/combat/motion_table.gd" id="9_1aox6"]
+[ext_resource type="Script" path="res://scripts/combat/motion_move.gd" id="1_ur5wg"]
+[ext_resource type="Resource" path="res://assets/motions/doink/hip_toss.tres" id="2_qul47"]
+[ext_resource type="Resource" path="res://assets/motions/doink/grab_fling.tres" id="3_0bsdr"]
+[ext_resource type="Resource" path="res://assets/motions/doink/neck_grab.tres" id="4_i25i5"]
+[ext_resource type="Resource" path="res://assets/motions/doink/piledriver.tres" id="5_1aox6"]
+[ext_resource type="Resource" path="res://assets/motions/doink/head_slam.tres" id="6_h21ki"]
+[ext_resource type="Script" path="res://scripts/combat/move_sequence.gd" id="7_wsudf"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/hip_toss.tres" id="8_wo36d"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/grab_fling.tres" id="9_xiibs"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/neck_grab.tres" id="10_les6f"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/piledriver.tres" id="11_nlbmj"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/head_slam.tres" id="12_dax4i"]
+[ext_resource type="Script" path="res://scripts/combat/motion_table.gd" id="13_b8k2j"]
 
 [resource]
-script = ExtResource("9_1aox6")
-_moves = Array[ExtResource("1_g0tcr")]([ExtResource("2_d2eqs"), ExtResource("3_to82j"), ExtResource("4_0t2kq")])
-_sequences = Array[ExtResource("5_ur5wg")]([ExtResource("6_qul47"), ExtResource("7_0bsdr"), ExtResource("8_i25i5")])
+script = ExtResource("13_b8k2j")
+_moves = Array[ExtResource("1_ur5wg")]([ExtResource("2_qul47"), ExtResource("3_0bsdr"), ExtResource("4_i25i5"), ExtResource("5_1aox6"), ExtResource("6_h21ki")])
+_sequences = Array[ExtResource("7_wsudf")]([ExtResource("8_wo36d"), ExtResource("9_xiibs"), ExtResource("10_les6f"), ExtResource("11_nlbmj"), ExtResource("12_dax4i")])
