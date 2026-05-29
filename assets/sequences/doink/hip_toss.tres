@@ -11,10 +11,10 @@ size = Vector3(70, 90, 40)
 
 [sub_resource type="Resource" id="Resource_l250o"]
 script = ExtResource("1_x17lb")
-duration_ticks = 6
+duration_ticks = 3
 command = 4
 attack_box = SubResource("Resource_6cf8j")
-victim_offset = Vector3(40, 0, 0)
+victim_offset = Vector3(34, 0, 0)
 slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_cj6r5"]
@@ -23,7 +23,7 @@ duration_ticks = 3
 anim_frame = 1
 command = 5
 victim_anim_frame = 1
-victim_offset = Vector3(34, 40, 0)
+victim_offset = Vector3(25.25, 26.033024, 0)
 slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_kau56"]
@@ -32,7 +32,7 @@ duration_ticks = 3
 anim_frame = 2
 command = 6
 victim_anim_frame = 2
-victim_offset = Vector3(24, 60, 0)
+victim_offset = Vector3(16.5, 46.90989, 0)
 slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_tjglm"]
@@ -41,36 +41,59 @@ duration_ticks = 3
 anim_frame = 3
 command = 6
 victim_anim_frame = 3
-victim_offset = Vector3(-10, 50, 0)
+victim_offset = Vector3(7.75, 58.495674, 0)
 slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_18xbi"]
 script = ExtResource("1_x17lb")
+duration_ticks = 3
 anim_frame = 4
-command = 7
-victim_anim_frame = 4
-victim_offset = Vector3(-34, 0, 0)
+command = 6
+victim_anim_frame = 5
+victim_offset = Vector3(-1, 58.495674, 0)
 slave_anim = "hip_tossed"
-victim_amode = 5
 
 [sub_resource type="Resource" id="Resource_0enka"]
 script = ExtResource("1_x17lb")
 duration_ticks = 3
 anim_frame = 5
-command = 8
-victim_anim_frame = 5
-victim_offset = Vector3(-40, 0, 0)
+command = 6
+victim_anim_frame = 6
+victim_offset = Vector3(-9.75, 46.90989, 0)
 slave_anim = "hip_tossed"
 
 [sub_resource type="Resource" id="Resource_ch6c6"]
 script = ExtResource("1_x17lb")
-duration_ticks = 6
+duration_ticks = 3
 anim_frame = 6
+command = 6
+victim_anim_frame = 7
+victim_offset = Vector3(-18.5, 26.033024, 0)
+slave_anim = "hip_tossed"
+
+[sub_resource type="Resource" id="Resource_2lw03"]
+script = ExtResource("1_x17lb")
+duration_ticks = 3
+anim_frame = 7
+command = 7
+victim_anim_frame = 8
+victim_offset = Vector3(-27.25, 0, 0)
+slave_anim = "hip_tossed"
+victim_amode = 5
+
+[sub_resource type="Resource" id="Resource_m4hyg"]
+script = ExtResource("1_x17lb")
+duration_ticks = 3
+anim_frame = 8
+command = 8
+victim_anim_frame = 9
+victim_offset = Vector3(-36, 0, 0)
+slave_anim = "hip_tossed"
 
 [resource]
 script = ExtResource("3_6e31e")
 id = "hip_toss"
 anim_name = "hip_toss"
 attack_mode = 5
-frames = Array[ExtResource("1_x17lb")]([SubResource("Resource_l250o"), SubResource("Resource_cj6r5"), SubResource("Resource_kau56"), SubResource("Resource_tjglm"), SubResource("Resource_18xbi"), SubResource("Resource_0enka"), SubResource("Resource_ch6c6")])
+frames = Array[ExtResource("1_x17lb")]([SubResource("Resource_l250o"), SubResource("Resource_cj6r5"), SubResource("Resource_kau56"), SubResource("Resource_tjglm"), SubResource("Resource_18xbi"), SubResource("Resource_0enka"), SubResource("Resource_ch6c6"), SubResource("Resource_2lw03"), SubResource("Resource_m4hyg")])
 is_grapple = true

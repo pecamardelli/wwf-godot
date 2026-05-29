@@ -7,7 +7,7 @@
 script = ExtResource("1_lu3dm")
 duration_ticks = 3
 command = 5
-victim_offset = Vector3(30, 30, 0)
+victim_offset = Vector3(34, 0, 0)
 slave_anim = "joy_buzzer"
 
 [sub_resource type="Resource" id="Resource_eperw"]
@@ -16,7 +16,7 @@ duration_ticks = 3
 anim_frame = 1
 command = 6
 victim_anim_frame = 1
-victim_offset = Vector3(20, 60, 0)
+victim_offset = Vector3(22.333334, 35.267117, 0)
 slave_anim = "joy_buzzer"
 
 [sub_resource type="Resource" id="Resource_kgj3c"]
@@ -25,36 +25,50 @@ duration_ticks = 3
 anim_frame = 2
 command = 6
 victim_anim_frame = 2
-victim_offset = Vector3(-10, 50, 0)
+victim_offset = Vector3(10.666667, 57.063393, 0)
 slave_anim = "joy_buzzer"
 
 [sub_resource type="Resource" id="Resource_a8m7q"]
 script = ExtResource("1_lu3dm")
+duration_ticks = 3
 anim_frame = 3
-command = 7
+command = 6
 victim_anim_frame = 3
-victim_offset = Vector3(-30, 0, 0)
+victim_offset = Vector3(-1, 57.063393, 0)
 slave_anim = "joy_buzzer"
-victim_amode = 5
 
 [sub_resource type="Resource" id="Resource_urfxu"]
 script = ExtResource("1_lu3dm")
 duration_ticks = 3
 anim_frame = 4
-command = 8
+command = 6
 victim_anim_frame = 4
-victim_offset = Vector3(-36, 0, 0)
+victim_offset = Vector3(-12.666667, 35.267117, 0)
 slave_anim = "joy_buzzer"
 
 [sub_resource type="Resource" id="Resource_5ia3w"]
 script = ExtResource("1_lu3dm")
-duration_ticks = 6
+duration_ticks = 3
 anim_frame = 5
+command = 7
+victim_anim_frame = 5
+victim_offset = Vector3(-24.333334, 0, 0)
+slave_anim = "joy_buzzer"
+victim_amode = 5
+
+[sub_resource type="Resource" id="Resource_vo455"]
+script = ExtResource("1_lu3dm")
+duration_ticks = 3
+anim_frame = 6
+command = 8
+victim_anim_frame = 6
+victim_offset = Vector3(-36, 0, 0)
+slave_anim = "joy_buzzer"
 
 [resource]
 script = ExtResource("2_mw875")
 id = "joy_buzzer"
 anim_name = "joy_buzzer"
 attack_mode = 5
-frames = Array[ExtResource("1_lu3dm")]([SubResource("Resource_o8w3x"), SubResource("Resource_eperw"), SubResource("Resource_kgj3c"), SubResource("Resource_a8m7q"), SubResource("Resource_urfxu"), SubResource("Resource_5ia3w")])
+frames = Array[ExtResource("1_lu3dm")]([SubResource("Resource_o8w3x"), SubResource("Resource_eperw"), SubResource("Resource_kgj3c"), SubResource("Resource_a8m7q"), SubResource("Resource_urfxu"), SubResource("Resource_5ia3w"), SubResource("Resource_vo455")])
 is_grapple = true

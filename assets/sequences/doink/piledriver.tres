@@ -7,7 +7,7 @@
 script = ExtResource("1_vxqbm")
 duration_ticks = 3
 command = 5
-victim_offset = Vector3(30, 30, 0)
+victim_offset = Vector3(34, 0, 0)
 slave_anim = "piledrivered"
 
 [sub_resource type="Resource" id="Resource_qrjyg"]
@@ -15,8 +15,8 @@ script = ExtResource("1_vxqbm")
 duration_ticks = 3
 anim_frame = 1
 command = 6
-victim_anim_frame = 1
-victim_offset = Vector3(20, 60, 0)
+victim_anim_frame = 2
+victim_offset = Vector3(25.25, 26.033024, 0)
 slave_anim = "piledrivered"
 
 [sub_resource type="Resource" id="Resource_suj86"]
@@ -24,37 +24,69 @@ script = ExtResource("1_vxqbm")
 duration_ticks = 3
 anim_frame = 2
 command = 6
-victim_anim_frame = 2
-victim_offset = Vector3(-10, 50, 0)
+victim_anim_frame = 4
+victim_offset = Vector3(16.5, 46.90989, 0)
 slave_anim = "piledrivered"
 
 [sub_resource type="Resource" id="Resource_c80u4"]
 script = ExtResource("1_vxqbm")
+duration_ticks = 3
 anim_frame = 3
-command = 7
-victim_anim_frame = 3
-victim_offset = Vector3(-30, 0, 0)
+command = 6
+victim_anim_frame = 6
+victim_offset = Vector3(7.75, 58.495674, 0)
 slave_anim = "piledrivered"
-victim_amode = 5
 
 [sub_resource type="Resource" id="Resource_b3hhv"]
 script = ExtResource("1_vxqbm")
 duration_ticks = 3
 anim_frame = 4
-command = 8
-victim_anim_frame = 4
-victim_offset = Vector3(-36, 0, 0)
+command = 6
+victim_anim_frame = 8
+victim_offset = Vector3(-1, 58.495674, 0)
 slave_anim = "piledrivered"
 
 [sub_resource type="Resource" id="Resource_o4rcs"]
 script = ExtResource("1_vxqbm")
-duration_ticks = 6
+duration_ticks = 3
 anim_frame = 5
+command = 6
+victim_anim_frame = 9
+victim_offset = Vector3(-9.75, 46.90989, 0)
+slave_anim = "piledrivered"
+
+[sub_resource type="Resource" id="Resource_aqmqq"]
+script = ExtResource("1_vxqbm")
+duration_ticks = 3
+anim_frame = 6
+command = 6
+victim_anim_frame = 11
+victim_offset = Vector3(-18.5, 26.033024, 0)
+slave_anim = "piledrivered"
+
+[sub_resource type="Resource" id="Resource_kyoyg"]
+script = ExtResource("1_vxqbm")
+duration_ticks = 3
+anim_frame = 7
+command = 7
+victim_anim_frame = 13
+victim_offset = Vector3(-27.25, 0, 0)
+slave_anim = "piledrivered"
+victim_amode = 5
+
+[sub_resource type="Resource" id="Resource_t7i2j"]
+script = ExtResource("1_vxqbm")
+duration_ticks = 3
+anim_frame = 8
+command = 8
+victim_anim_frame = 15
+victim_offset = Vector3(-36, 0, 0)
+slave_anim = "piledrivered"
 
 [resource]
 script = ExtResource("2_jaxcw")
 id = "piledriver"
 anim_name = "piledriver"
 attack_mode = 5
-frames = Array[ExtResource("1_vxqbm")]([SubResource("Resource_urf46"), SubResource("Resource_qrjyg"), SubResource("Resource_suj86"), SubResource("Resource_c80u4"), SubResource("Resource_b3hhv"), SubResource("Resource_o4rcs")])
+frames = Array[ExtResource("1_vxqbm")]([SubResource("Resource_urf46"), SubResource("Resource_qrjyg"), SubResource("Resource_suj86"), SubResource("Resource_c80u4"), SubResource("Resource_b3hhv"), SubResource("Resource_o4rcs"), SubResource("Resource_aqmqq"), SubResource("Resource_kyoyg"), SubResource("Resource_t7i2j")])
 is_grapple = true

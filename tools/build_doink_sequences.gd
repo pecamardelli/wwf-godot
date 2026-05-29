@@ -3,9 +3,15 @@ extends SceneTree
 ## Run: godot --headless --path . -s tools/build_doink_sequences.gd
 
 const OUT := "res://assets/sequences/doink"
+const FRAMES := "res://assets/sprites/doink/doink_frames.tres"
+
+# The Doink SpriteFrames, so grapple sequences can walk EVERY frame of an animation
+# (the visible throw must play the whole clip, like the arcade ANI_SUPERSLAVE2 loop).
+var _sf: SpriteFrames = null
 
 func _init() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT))
+	_sf = load(FRAMES)
 	# Punch-family strikes run at 2 ticks/frame (snappier); kicks stay at the default 3.
 	_save(_strike("punch",    "mid_punch_front", AMode.PUNCH,   8, 4, _ab(22, 86, 0, 55, 9, 10), false, 2))
 	_save(_strike("headbutt", "headbutt_front",  AMode.HDBUTT,  6, 3, _ab(18, 92, 0, 40, 12, 10), true, 2))
@@ -62,37 +68,56 @@ func _gframe(dur: int, img: int, cmd: int, slave: String, voff: Vector3, vimg: i
 	f.slave_anim = slave; f.victim_offset = voff; f.victim_anim_frame = vimg
 	return f
 
-## A throw: windup -> WAIT_HIT_OPP (grab box, hold for connect) -> attach -> lift ->
-## slam (DAMAGE_OPP) -> DETACH. Victim offsets are arc keyframes, tuned in playtest.
-func _throw(id: String, anim: String, slave: String, slam_amode: int) -> MoveSequence:
+## Over-the-shoulder victim arc as a function of throw progress t in [0,1]: sweep from
+## in-front to behind, rise to a peak then back to the mat by the slam frame (t_slam).
+## +y = up. Starting offsets; the expert tunes exact positioning in playtest.
+func _victim_arc(t: float, t_slam: float) -> Vector3:
+	var vx := lerpf(34.0, -36.0, t)
+	var vy := 0.0
+	if t < t_slam:
+		vy = 60.0 * sin(PI * t / t_slam)   # up-and-over, back to the mat at the slam
+	return Vector3(vx, vy, 0.0)
+
+## Build a grapple that walks the WHOLE attacker clip: one SequenceFrame per sprite image
+## (anim_frame = i), so the full throw animation plays (arcade SUPERSLAVE2 walks every
+## puppet frame). `has_grab_window` opens a WAIT_HIT_OPP reach on frame 0 (a fresh throw);
+## follow-ups start already-attached at SET_ATTACH. The victim slave frame is mapped across
+## its own clip; the grab commands land at: reach(0) -> attach(1) -> slam(n-2) -> detach(n-1).
+func _grapple(id: String, anim: String, slave: String, slam_amode: int, has_grab_window: bool) -> MoveSequence:
 	var m := MoveSequence.new()
 	m.id = id; m.anim_name = anim; m.attack_mode = slam_amode; m.is_grapple = true; m.uninterruptable = true
-	var wait := _gframe(6, 0, SequenceFrame.Command.WAIT_HIT_OPP, slave, Vector3(40, 0, 0), 0)
-	wait.attack_box = _grab_box(); wait.wait_hit_max_ticks = 16
-	var attach := _gframe(3, 1, SequenceFrame.Command.SET_ATTACH, slave, Vector3(34, 40, 0), 1)
-	var lift   := _gframe(3, 2, SequenceFrame.Command.SLAVE_ANIM, slave, Vector3(24, 60, 0), 2)
-	var over   := _gframe(3, 3, SequenceFrame.Command.SLAVE_ANIM, slave, Vector3(-10, 50, 0), 3)
-	var slam   := _gframe(4, 4, SequenceFrame.Command.DAMAGE_OPP, slave, Vector3(-34, 0, 0), 4)
-	slam.victim_amode = slam_amode
-	var detach := _gframe(3, 5, SequenceFrame.Command.DETACH, slave, Vector3(-40, 0, 0), 5)
-	var recover := _frame(6, 6)
-	m.frames = [wait, attach, lift, over, slam, detach, recover]
+	var n: int = maxi(_sf.get_frame_count(anim), 4)
+	var vframes: int = maxi(_sf.get_frame_count(slave), 1)
+	var t_slam := float(n - 2) / float(n - 1)
+	var arr: Array[SequenceFrame] = []
+	for i in range(n):
+		var t := float(i) / float(n - 1)
+		var cmd := SequenceFrame.Command.SLAVE_ANIM
+		if i == 0:
+			cmd = SequenceFrame.Command.WAIT_HIT_OPP if has_grab_window else SequenceFrame.Command.SET_ATTACH
+		elif i == 1 and has_grab_window:
+			cmd = SequenceFrame.Command.SET_ATTACH
+		elif i == n - 2:
+			cmd = SequenceFrame.Command.DAMAGE_OPP
+		elif i == n - 1:
+			cmd = SequenceFrame.Command.DETACH
+		var vimg := int(round(t * float(vframes - 1)))
+		var fr := _gframe(3, i, cmd, slave, _victim_arc(t, t_slam), vimg)
+		if cmd == SequenceFrame.Command.WAIT_HIT_OPP:
+			fr.attack_box = _grab_box(); fr.wait_hit_max_ticks = 16
+		if cmd == SequenceFrame.Command.DAMAGE_OPP:
+			fr.victim_amode = slam_amode
+		arr.append(fr)
+	m.frames = arr
 	return m
 
-## A head-hold follow-up: the victim is ALREADY attached, so there is NO grab window.
-## Start at SET_ATTACH (re-assert the slave anim) and drive straight through the slam to DETACH.
+## A throw (fresh grab): opens a WAIT_HIT_OPP reach, then drives the caught victim.
+func _throw(id: String, anim: String, slave: String, slam_amode: int) -> MoveSequence:
+	return _grapple(id, anim, slave, slam_amode, true)
+
+## A head-hold follow-up: victim is ALREADY attached, so NO grab window — start at SET_ATTACH.
 func _followup(id: String, anim: String, slave: String, slam_amode: int) -> MoveSequence:
-	var m := MoveSequence.new()
-	m.id = id; m.anim_name = anim; m.attack_mode = slam_amode; m.is_grapple = true; m.uninterruptable = true
-	var attach := _gframe(3, 0, SequenceFrame.Command.SET_ATTACH, slave, Vector3(30, 30, 0), 0)
-	var lift   := _gframe(3, 1, SequenceFrame.Command.SLAVE_ANIM, slave, Vector3(20, 60, 0), 1)
-	var over   := _gframe(3, 2, SequenceFrame.Command.SLAVE_ANIM, slave, Vector3(-10, 50, 0), 2)
-	var slam   := _gframe(4, 3, SequenceFrame.Command.DAMAGE_OPP, slave, Vector3(-30, 0, 0), 3)
-	slam.victim_amode = slam_amode
-	var detach := _gframe(3, 4, SequenceFrame.Command.DETACH, slave, Vector3(-36, 0, 0), 4)
-	var recover := _frame(6, 5)
-	m.frames = [attach, lift, over, slam, detach, recover]
-	return m
+	return _grapple(id, anim, slave, slam_amode, false)
 
 ## Neck grab: windup -> WAIT_HIT_OPP -> SET_ATTACH into the head hold. The hold itself
 ## (mode transition + follow-up polling) is handled by Fighter, not this sequence.

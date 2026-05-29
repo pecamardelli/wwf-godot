@@ -11,10 +11,10 @@ size = Vector3(70, 90, 40)
 
 [sub_resource type="Resource" id="Resource_kehi6"]
 script = ExtResource("1_a56pk")
-duration_ticks = 6
+duration_ticks = 3
 command = 4
 attack_box = SubResource("Resource_2s8m6")
-victim_offset = Vector3(40, 0, 0)
+victim_offset = Vector3(34, 0, 0)
 slave_anim = "flinged"
 
 [sub_resource type="Resource" id="Resource_h8ti5"]
@@ -22,8 +22,7 @@ script = ExtResource("1_a56pk")
 duration_ticks = 3
 anim_frame = 1
 command = 5
-victim_anim_frame = 1
-victim_offset = Vector3(34, 40, 0)
+victim_offset = Vector3(25.25, 26.033024, 0)
 slave_anim = "flinged"
 
 [sub_resource type="Resource" id="Resource_r6swe"]
@@ -31,8 +30,8 @@ script = ExtResource("1_a56pk")
 duration_ticks = 3
 anim_frame = 2
 command = 6
-victim_anim_frame = 2
-victim_offset = Vector3(24, 60, 0)
+victim_anim_frame = 1
+victim_offset = Vector3(16.5, 46.90989, 0)
 slave_anim = "flinged"
 
 [sub_resource type="Resource" id="Resource_4g8vo"]
@@ -40,37 +39,60 @@ script = ExtResource("1_a56pk")
 duration_ticks = 3
 anim_frame = 3
 command = 6
-victim_anim_frame = 3
-victim_offset = Vector3(-10, 50, 0)
+victim_anim_frame = 1
+victim_offset = Vector3(7.75, 58.495674, 0)
 slave_anim = "flinged"
 
 [sub_resource type="Resource" id="Resource_2hklm"]
 script = ExtResource("1_a56pk")
+duration_ticks = 3
 anim_frame = 4
-command = 7
-victim_anim_frame = 4
-victim_offset = Vector3(-34, 0, 0)
+command = 6
+victim_anim_frame = 2
+victim_offset = Vector3(-1, 58.495674, 0)
 slave_anim = "flinged"
-victim_amode = 5
 
 [sub_resource type="Resource" id="Resource_kb1no"]
 script = ExtResource("1_a56pk")
 duration_ticks = 3
 anim_frame = 5
-command = 8
-victim_anim_frame = 5
-victim_offset = Vector3(-40, 0, 0)
+command = 6
+victim_anim_frame = 2
+victim_offset = Vector3(-9.75, 46.90989, 0)
 slave_anim = "flinged"
 
 [sub_resource type="Resource" id="Resource_ibljv"]
 script = ExtResource("1_a56pk")
-duration_ticks = 6
+duration_ticks = 3
 anim_frame = 6
+command = 6
+victim_anim_frame = 2
+victim_offset = Vector3(-18.5, 26.033024, 0)
+slave_anim = "flinged"
+
+[sub_resource type="Resource" id="Resource_hlqp4"]
+script = ExtResource("1_a56pk")
+duration_ticks = 3
+anim_frame = 7
+command = 7
+victim_anim_frame = 3
+victim_offset = Vector3(-27.25, 0, 0)
+slave_anim = "flinged"
+victim_amode = 5
+
+[sub_resource type="Resource" id="Resource_cv7a2"]
+script = ExtResource("1_a56pk")
+duration_ticks = 3
+anim_frame = 8
+command = 8
+victim_anim_frame = 3
+victim_offset = Vector3(-36, 0, 0)
+slave_anim = "flinged"
 
 [resource]
 script = ExtResource("3_03n8h")
 id = "grab_fling"
 anim_name = "fling"
 attack_mode = 5
-frames = Array[ExtResource("1_a56pk")]([SubResource("Resource_kehi6"), SubResource("Resource_h8ti5"), SubResource("Resource_r6swe"), SubResource("Resource_4g8vo"), SubResource("Resource_2hklm"), SubResource("Resource_kb1no"), SubResource("Resource_ibljv")])
+frames = Array[ExtResource("1_a56pk")]([SubResource("Resource_kehi6"), SubResource("Resource_h8ti5"), SubResource("Resource_r6swe"), SubResource("Resource_4g8vo"), SubResource("Resource_2hklm"), SubResource("Resource_kb1no"), SubResource("Resource_ibljv"), SubResource("Resource_hlqp4"), SubResource("Resource_cv7a2")])
 is_grapple = true

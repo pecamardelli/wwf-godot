@@ -70,3 +70,15 @@ func test_main_table_excludes_followups():
 	assert_null(t.lookup("piledriver"), "follow-ups are NOT in the main grab-initiator table")
 	assert_null(t.lookup("head_slam"))
 	assert_eq(t.moves().size(), 3, "main table = 3 grab initiators only")
+
+func test_grapple_sequences_walk_every_attacker_frame():
+	# Bug 2 guard: the throw/follow-up must step through EVERY sprite frame of its
+	# attacker animation, or the visible throw is cut short.
+	var sf: SpriteFrames = load("res://assets/sprites/doink/doink_frames.tres")
+	for pair in [["hip_toss", "hip_toss"], ["grab_fling", "fling"],
+			["piledriver", "piledriver"], ["head_slam", "faceslam"], ["joy_buzzer", "joy_buzzer"]]:
+		var m: MoveSequence = load("res://assets/sequences/doink/%s.tres" % pair[0])
+		var n: int = sf.get_frame_count(pair[1])
+		assert_eq(m.frames.size(), n, "%s plays the full %s clip (%d frames)" % [pair[0], pair[1], n])
+		for i in range(m.frames.size()):
+			assert_eq(m.frames[i].anim_frame, i, "%s step %d shows sprite image %d" % [pair[0], i, i])
