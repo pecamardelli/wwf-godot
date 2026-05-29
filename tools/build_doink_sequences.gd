@@ -103,14 +103,14 @@ func _grapple(id: String, anim: String, slave: String, slam_amode: int, has_grab
 	var n: int = maxi(_sf.get_frame_count(anim), 4)
 	var vframes: int = maxi(_sf.get_frame_count(slave), 1)
 	var t_slam := float(n - 2) / float(n - 1)
-	# Lift apex from the source table (max +y) and the slam depth (last entry). The raw early
-	# Y values are low because the arcade adds a per-frame sprite-anchor lift we lack; driving
-	# a smooth ramp to the apex reproduces that continuous hoist instead of a flat-then-jump.
+	# Lift apex from the source table (max +y). The raw early Y values are low because the
+	# arcade adds a per-frame sprite-anchor lift we lack; we drive a smooth ramp to the apex
+	# (continuous hoist) and then SLAM down to the floor line (y=0) — never below it. The
+	# source's negative slam Y is relative to the elevated grab point; our origin is the feet
+	# (the floor), so the victim must land ON the floor, not under the player's line.
 	var apex_y := 0.0
 	var apex_j := 0
-	var slam_y := 0.0
 	if not victim_table.is_empty():
-		slam_y = victim_table[victim_table.size() - 1].y
 		for k in range(victim_table.size()):
 			if victim_table[k].y > apex_y:
 				apex_y = victim_table[k].y
@@ -139,8 +139,7 @@ func _grapple(id: String, anim: String, slave: String, slam_amode: int, has_grab
 			var vy := 0.0
 			if throw_i <= apex_j and apex_j > 0:
 				vy = apex_y * smoothstep(0.0, float(apex_j), float(throw_i))   # ease up to apex
-			elif throw_i > apex_j:
-				vy = lerpf(apex_y, slam_y, float(throw_i - apex_j) / float(maxi(msz - 1 - apex_j, 1)))
+			# after the apex: slammed to the floor line (vy stays 0) — lands ON the floor
 			voff = Vector3(vx, vy * _GRAB_OFFSET_SCALE_Y, 0.0)
 		var vimg := int(round(t * float(vframes - 1)))
 		# 4 ticks/frame matches the arcade SUPERSLAVE2 throw cadence (DNKSEQ2.ASM:4266+);

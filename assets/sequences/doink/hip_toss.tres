@@ -69,7 +69,7 @@ script = ExtResource("1_x17lb")
 anim_frame = 7
 command = 7
 victim_anim_frame = 8
-victim_offset = Vector3(-43.8, 9, 0)
+victim_offset = Vector3(-43.8, 0, 0)
 slave_anim = "hip_tossed"
 victim_amode = 5
 
@@ -78,7 +78,7 @@ script = ExtResource("1_x17lb")
 anim_frame = 8
 command = 8
 victim_anim_frame = 9
-victim_offset = Vector3(-82.2, -60, 0)
+victim_offset = Vector3(-82.2, 0, 0)
 slave_anim = "hip_tossed"
 
 [resource]
