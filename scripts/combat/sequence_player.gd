@@ -26,6 +26,11 @@ var _index: int = -1
 var _time_left: float = 0.0
 var _waiting_for_hit: bool = false
 var _wait_left: float = 0.0   # seconds remaining on the WAIT_HIT_OPP timeout
+var _freeze_left: float = 0.0   # seconds of contact hitstop (hold the reach frame on a grab connect)
+
+## Contact freeze: on a grab connect, hold the reach frame this many arcade ticks before
+## the throw plays (arcade `WL 4,D3HT3Q+FR1` after ANI_WAITHITOPP, DNKSEQ2.ASM:4248).
+const CONTACT_FREEZE_TICKS := 4
 
 func play(seq: MoveSequence) -> void:
 	sequence = seq
@@ -44,6 +49,7 @@ func play(seq: MoveSequence) -> void:
 	_pending_clr_opp_mode = false
 	_waiting_for_hit = false
 	_wait_left = 0.0
+	_freeze_left = 0.0
 
 func is_playing() -> bool:
 	return sequence != null
@@ -51,10 +57,12 @@ func is_playing() -> bool:
 func is_waiting_for_hit() -> bool:
 	return _waiting_for_hit
 
-## Grab box connected: clear the hold so the sequence resumes into the attach frames.
+## Grab box connected: clear the WAIT_HIT_OPP hold but freeze on the reach frame for a
+## brief contact hitstop before the throw plays (arcade DNKSEQ2.ASM:4248).
 func notify_grab_connected() -> void:
 	if _waiting_for_hit:
 		_waiting_for_hit = false
+		_freeze_left = ArcadeUnits.ticks_to_seconds(CONTACT_FREEZE_TICKS)
 
 ## One-shot intent readers (read-and-clear) — Fighter calls these each tick.
 func consume_attach() -> bool:
@@ -90,6 +98,10 @@ func advance(delta: float) -> bool:
 			_finish()
 			return true
 		return false
+	if _freeze_left > 0.0:
+		_freeze_left -= delta   # contact hitstop: hold the reach frame, then the throw plays
+		if _freeze_left > 0.0:
+			return false
 	_time_left -= delta
 	while _time_left <= 0.0:
 		_index += 1

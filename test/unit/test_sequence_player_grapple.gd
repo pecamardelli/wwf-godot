@@ -35,7 +35,7 @@ func test_connect_resumes_and_attaches():
 		sp.advance(FRAME)
 	sp.notify_grab_connected()
 	assert_false(sp.is_waiting_for_hit())
-	for _i in range(4):
+	for _i in range(10):   # clear the contact freeze (~4 ticks) then reach SET_ATTACH
 		sp.advance(FRAME)
 	assert_true(sp.consume_attach(), "attach intent surfaced once")
 	assert_false(sp.consume_attach(), "attach intent is one-shot")
@@ -76,3 +76,13 @@ func test_whiff_finishes_the_move_on_timeout():
 	assert_true(finished, "advance() returns true the moment the whiff ends the move")
 	assert_false(sp.is_playing(), "attacker is not soft-locked")
 	assert_false(sp.damage_opp_seen, "no phantom DAMAGE_OPP on a whiff")
+
+func test_contact_freeze_holds_the_reach_before_the_throw():
+	var sp := SequencePlayer.new(); sp.play(_grab_seq())
+	for _i in range(4):
+		sp.advance(FRAME)
+	var idx := sp._index
+	sp.notify_grab_connected()
+	sp.advance(FRAME)   # first frame after contact: still in the hitstop
+	assert_eq(sp._index, idx, "holds the reach frame during the contact freeze")
+	assert_false(sp.consume_attach(), "the throw (SET_ATTACH) hasn't begun yet")

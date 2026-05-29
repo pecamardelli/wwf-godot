@@ -26,8 +26,8 @@ func test_hip_toss_full_flow():
 	atk._input_tick = 3
 	assert_true(atk.scan_specials(), "hip toss fired")
 	assert_eq(atk.mode, Fighter.Mode.NORMAL, "not yet GRABBING until the box connects")
-	# Drive the sim: attacker advances its sequence, resolver connects the box, puppet plays.
-	for _i in range(40):
+	# Drive the sim through the full throw (~36-tick throw + contact freeze at 4 ticks/frame).
+	for _i in range(70):
 		atk._physics_process(1.0 / 60.0)
 		resolver.resolve_tick()
 		vic._physics_process(1.0 / 60.0)

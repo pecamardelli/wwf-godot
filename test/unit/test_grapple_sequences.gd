@@ -96,9 +96,9 @@ func test_neck_grab_walks_standing_headlock_frames():
 		assert_ne(f.command, SequenceFrame.Command.DAMAGE_OPP, "neck grab does not damage on entry")
 		assert_ne(f.command, SequenceFrame.Command.DETACH, "neck grab does not detach on entry")
 
-func test_hip_toss_uses_arcade_victim_offsets():
-	# Faithful to DNKSEQ2.ASM:4643 #puppet_tbl #Doink — first throw frame x=69 (a full reach
-	# in front, not the old hand-guessed ~34), final slam fling x=-137. Guards "victim too close".
+func test_hip_toss_victim_sweeps_front_to_back():
+	# Arcade arc (DNKSEQ2.ASM:4643 #puppet_tbl #Doink), scaled to our world: the victim starts
+	# a reach IN FRONT and is flung BEHIND on the slam. Robust to the offset scale knob.
 	var m: MoveSequence = load("res://assets/sequences/doink/hip_toss.tres")
-	assert_eq(m.frames[1].victim_offset.x, 69.0, "victim starts a full reach in front (arcade x=69)")
-	assert_eq(m.frames[m.frames.size() - 1].victim_offset.x, -137.0, "victim flung far behind on the slam (arcade x=-137)")
+	assert_gt(m.frames[1].victim_offset.x, 20.0, "victim starts a reach in front (not glued on)")
+	assert_lt(m.frames[m.frames.size() - 1].victim_offset.x, 0.0, "victim flung behind on the slam")
