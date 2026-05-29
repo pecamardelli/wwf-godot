@@ -25,7 +25,7 @@ var command: int = Command.NONE
 @export var attack_box: Box3 = null
 ## --- Victim ("slave") track, applied each tick while this fighter drives a victim. ---
 @export var victim_anim_frame: int = 0            # frame index into the victim's slave_anim
-@export var victim_offset: Vector3 = Vector3.ZERO # victim pos relative to attacker; x mirrored by facing
+@export var victim_offset: Vector3 = Vector3.ZERO # victim pos rel. to attacker; x mirrored by facing, +y = UP (negated on apply)
 @export var slave_anim: String = ""               # SLAVE_ANIM payload: victim anim name
 @export var opp_mode: int = 0                      # SET/CLR_OPP_MODE payload (Fighter.Mode)
 @export var victim_amode: int = 0                  # DAMAGE_OPP payload: attack mode for the reaction

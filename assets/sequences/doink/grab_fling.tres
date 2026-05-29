@@ -1,0 +1,76 @@
+[gd_resource type="Resource" script_class="MoveSequence" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/sequence_frame.gd" id="1_a56pk"]
+[ext_resource type="Script" path="res://scripts/combat/box3.gd" id="2_kooua"]
+[ext_resource type="Script" path="res://scripts/combat/move_sequence.gd" id="3_03n8h"]
+
+[sub_resource type="Resource" id="Resource_2s8m6"]
+script = ExtResource("2_kooua")
+offset = Vector3(20, 60, 0)
+size = Vector3(70, 90, 40)
+
+[sub_resource type="Resource" id="Resource_kehi6"]
+script = ExtResource("1_a56pk")
+duration_ticks = 6
+command = 4
+attack_box = SubResource("Resource_2s8m6")
+victim_offset = Vector3(40, 0, 0)
+slave_anim = "flinged"
+
+[sub_resource type="Resource" id="Resource_h8ti5"]
+script = ExtResource("1_a56pk")
+duration_ticks = 3
+anim_frame = 1
+command = 5
+victim_anim_frame = 1
+victim_offset = Vector3(34, 40, 0)
+slave_anim = "flinged"
+
+[sub_resource type="Resource" id="Resource_r6swe"]
+script = ExtResource("1_a56pk")
+duration_ticks = 3
+anim_frame = 2
+command = 6
+victim_anim_frame = 2
+victim_offset = Vector3(24, 60, 0)
+slave_anim = "flinged"
+
+[sub_resource type="Resource" id="Resource_4g8vo"]
+script = ExtResource("1_a56pk")
+duration_ticks = 3
+anim_frame = 3
+command = 6
+victim_anim_frame = 3
+victim_offset = Vector3(-10, 50, 0)
+slave_anim = "flinged"
+
+[sub_resource type="Resource" id="Resource_2hklm"]
+script = ExtResource("1_a56pk")
+anim_frame = 4
+command = 7
+victim_anim_frame = 4
+victim_offset = Vector3(-34, 0, 0)
+slave_anim = "flinged"
+victim_amode = 5
+
+[sub_resource type="Resource" id="Resource_kb1no"]
+script = ExtResource("1_a56pk")
+duration_ticks = 3
+anim_frame = 5
+command = 8
+victim_anim_frame = 5
+victim_offset = Vector3(-40, 0, 0)
+slave_anim = "flinged"
+
+[sub_resource type="Resource" id="Resource_ibljv"]
+script = ExtResource("1_a56pk")
+duration_ticks = 6
+anim_frame = 6
+
+[resource]
+script = ExtResource("3_03n8h")
+id = "grab_fling"
+anim_name = "fling"
+attack_mode = 5
+frames = Array[ExtResource("1_a56pk")]([SubResource("Resource_kehi6"), SubResource("Resource_h8ti5"), SubResource("Resource_r6swe"), SubResource("Resource_4g8vo"), SubResource("Resource_2hklm"), SubResource("Resource_kb1no"), SubResource("Resource_ibljv")])
+is_grapple = true
