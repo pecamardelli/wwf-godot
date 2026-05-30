@@ -5,6 +5,9 @@ class_name AnimSelector
 ## Fighter.flip_h_for (idle/walk art is right-drawn). The `rotate` and `run` clips are
 ## handled by the fighter directly, not here.
 
+## `depth` is Facing.FRONT or Facing.BACK; anything other than FRONT maps to _back.
+## NOTE: "walk_horisontal" keeps the clip's legacy misspelling — it is the real animation
+## key in doink_frames.tres; do NOT "correct" it to "horizontal" or the lookup breaks.
 static func walk_anim(move_dir: Vector2, depth: int) -> String:
 	var suffix := "_front" if depth == Facing.FRONT else "_back"
 	var ix := signf(move_dir.x)
