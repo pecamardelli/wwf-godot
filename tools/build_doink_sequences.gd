@@ -183,11 +183,11 @@ const NECK_HOLD_FRAME := 6   # headlocks sprite 07: locked pose
 ## values (DNKSEQ3.ASM:1549): the head is drawn in from ~60px to the locked 51px. (Y omitted:
 ## the bend is baked into our art and the held victim is floor-clamped.) The final entry (51)
 ## is the held/locked offset and MUST match Fighter._HEADHOLD_VICTIM_X (the hold continuation).
-## Arcade head-hold #puppet_tbl #Doink raw X (60,59,64,51) + the ~+40 anchor-space correction
+## Arcade head-hold #puppet_tbl #Doink raw X (60,59,64,51) + the +20 anchor-space correction
 ## (our sprites are anchored differently than the arcade's; measured in playtest). Drawn in to
-## the locked 91. The final entry MUST match Fighter._HEADHOLD_VICTIM_X (the hold continuation).
-const NECK_PUPPET_X := [100.0, 99.0, 104.0, 91.0]
-const NECK_HOLD_VICTIM_X := 91.0   # = NECK_PUPPET_X.back(): the locked/held offset
+## the locked 71. The final entry MUST match Fighter._HEADHOLD_VICTIM_X (the hold continuation).
+const NECK_PUPPET_X := [80.0, 79.0, 84.0, 71.0]
+const NECK_HOLD_VICTIM_X := 71.0   # = NECK_PUPPET_X.back(): the locked/held offset
 
 func _neck_grab() -> MoveSequence:
 	var m := MoveSequence.new()

@@ -383,9 +383,9 @@ func _drive_victim(_delta: float) -> void:
 
 ## Victim offset (in front of the captor) while held in the static headlock. The arcade head-hold
 ## #puppet_tbl #Doink raw X=51 (DNKSEQ3.ASM:1549) is in the arcade's sprite-anchor space; our
-## sprites are anchored differently, so we add the ~+40 anchor-space correction (the arcade's
+## sprites are anchored differently, so we add the +20 anchor-space correction (the arcade's
 ## per-frame victimXoff-attackerXoff term) measured in playtest. Grips the bent-over head.
-const _HEADHOLD_VICTIM_X := 91.0
+const _HEADHOLD_VICTIM_X := 71.0
 ## Grab "leap" (arcade LEAPATOPP): step in toward the target, stopping ~Xoff=40 short,
 ## and travel at most MAX_X_DIST=40 total — a short, accelerated step, not a run-in.
 const _GRAPPLE_LEAP_GAP := 40.0   # stop this far from the target (arcade Xoff=40)
