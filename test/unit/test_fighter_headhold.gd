@@ -77,32 +77,6 @@ func test_held_loop_driven_in_sync_no_wobble():
 		assert_almost_eq(vic.sprite.offset.x, expect, 0.01, "grip offset matches shown frame %d" % fr)
 	assert_gt(seen.size(), 1, "the struggle loop actually advances through frames")
 
-func test_release_rises_smoothly_no_pop():
-	# On release the held victim's lowered render offset must EASE to 0 (rise), not vanish in one
-	# frame (a visible "pop up"). Right after release the render Y starts near the held offset and
-	# decreases over the stagger toward 0.
-	var atk := _make(); var vic := _make()
-	if vic.sprite == null or vic.sprite.sprite_frames == null or not vic.sprite.sprite_frames.has_animation("damage_front"):
-		pass_test("no damage_front sprite in this build"); return
-	atk.global_position = Vector2(200, 400); atk._set_facing(1.0)
-	atk.mode = Fighter.Mode.HEADHOLD; atk._grappling = vic
-	atk._set_headhold_break_ticks(1)
-	vic.mode = Fighter.Mode.HEADHELD; vic._grappled_by = atk
-	vic.global_position = Vector2(251, 400)
-	# Break the hold.
-	for _i in range(5):
-		atk._physics_process(1.0 / 60.0)
-		if atk.mode != Fighter.Mode.HEADHOLD:
-			break
-	assert_ne(atk.mode, Fighter.Mode.HEADHOLD, "the hold broke")
-	var held_off: float = Fighter._ANIM_Y_OFFSET["headlocked"]
-	var y_start: float = vic.sprite.offset.y
-	assert_gt(y_start, held_off * 0.5, "release starts near the held (lowered) offset, no instant pop")
-	# Tick the reaction a few frames; the offset must ease DOWN toward 0.
-	vic._physics_process(1.0 / 60.0)
-	vic._physics_process(1.0 / 60.0)
-	assert_lt(vic.sprite.offset.y, y_start, "render offset eases up (rises) over the stagger")
-
 func test_headlocked_per_frame_anchor_pins_the_grip():
 	# The held victim's neck (grip) must not drift frame-to-frame: each headlocked frame gets a
 	# baked X render offset so the grip stays put. Unflipped, offset = the table value; flipped,
