@@ -142,3 +142,25 @@ func test_no_movement_plays_idle_clip():
 	f._depth_facing = Facing.BACK
 	f._update_animation(Vector2.ZERO)
 	assert_eq(f.sprite.animation, "idle_back")
+
+func test_getup_rise_gates_recovery_then_returns_to_normal():
+	var f := _spawn()
+	f.mode = Fighter.Mode.ONGROUND
+	f._fall_orientation = Fighter.Fall.FACE_UP
+	f._react_timer = 1.0 / 60.0           # one tick of down-time left
+	f._physics_process(1.0 / 60.0)        # DOWN expires -> RISE begins
+	assert_true(f._getup_rising, "enters the RISE phase after down-time")
+	assert_eq(f.mode, Fighter.Mode.ONGROUND, "still no control during the rise")
+	for _i in range(60):                  # get_up_front is 0.75s; 1s loop finishes it
+		f._physics_process(1.0 / 60.0)
+	assert_false(f._getup_rising, "rise finished")
+	assert_eq(f.mode, Fighter.Mode.NORMAL, "control returns only after the getup clip ends")
+
+func test_getup_clip_chosen_by_fall_orientation():
+	var f := _spawn()
+	f._fall_orientation = Fighter.Fall.FACE_DOWN_ROLL
+	assert_eq(f._getup_anim(), "get_up_back_2")
+	f._fall_orientation = Fighter.Fall.FACE_DOWN
+	assert_eq(f._getup_anim(), "get_up_back")
+	f._fall_orientation = Fighter.Fall.FACE_UP
+	assert_eq(f._getup_anim(), "get_up_front")

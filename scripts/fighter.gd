@@ -56,6 +56,9 @@ var _turn_frames: Array = []
 var _turn_idx: int = 0
 var _turn_dest: int = Facing.State.FR
 var _turn_accum: float = 0.0
+var _fall_orientation: int = Fall.FACE_UP   # set at knockdown; selects the getup clip
+var _getup_rising: bool = false             # RISE phase: getup clip is playing
+var _getup_rise_time: float = 0.0           # seconds left in the RISE clip
 var _run_dir_x: float = 0.0   # latched horizontal run direction (+1/-1) while RUNNING
 var _player: SequencePlayer = SequencePlayer.new()
 var _react_timer: float = 0.0          # seconds left in a reaction (hitstun/getup/dizzy)
@@ -128,19 +131,25 @@ func _physics_process(delta: float) -> void:
 			and (_grappling == null or not _player.is_playing()):
 		_set_facing(target.global_position.x - global_position.x)
 		_depth_facing = Facing.desired_depth(global_position.y, target.global_position.y)
-	# 1) Reaction countdown (hitstun / getup / dizzy): no control, no walk.
+	# 1) Reaction / down-time countdown: no control, no walk. A knockdown (ONGROUND) hands
+	# off to the RISE phase when it expires; other reactions recover straight to NORMAL.
 	if _react_timer > 0.0:
 		_react_timer -= delta
-		velocity = Vector2.ZERO
-		move_and_slide()
-		global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
+		_hold_in_place()
 		if _react_timer <= 0.0:
-			if mode == Mode.ONGROUND and sprite != null and sprite.sprite_frames != null:
-				var anim := "get_up_back" if _facing < 0.0 else "get_up_front"
-				if sprite.sprite_frames.has_animation(anim):
-					sprite.play(anim)
-					_refresh_flip()
-			mode = _react_recover_mode
+			if mode == Mode.ONGROUND:
+				_begin_getup_rise()
+			else:
+				mode = _react_recover_mode
+		return
+	# RISE phase: play the getup clip; control returns only when it finishes (arcade
+	# ANI_GETUP_WAIT -> rise frames -> MODE_NORMAL).
+	if _getup_rising:
+		_getup_rise_time -= delta
+		_hold_in_place()
+		if _getup_rise_time <= 0.0:
+			_getup_rising = false
+			mode = Mode.NORMAL
 		return
 
 	# 2) Attacking: advance the sequence, hold position, no walk input.
@@ -270,7 +279,7 @@ const _LEFT_DRAWN := {
 	"defence": true,
 	"facepunched_front": true, "facepunched_back": true,
 	"shoved": true, "droped": true, "damage_lying": true, "stuned": true,
-	"get_up_front": true, "get_up_back": true,
+	"get_up_front": true, "get_up_back": true, "get_up_back_2": true,
 }
 
 ## Correct flip_h for an animation given facing: left-drawn art is inverted.
@@ -538,6 +547,37 @@ func _hold_victim() -> void:
 		vic.sprite.frame = int(vic._sim_time / per) % n
 		vic._refresh_flip()   # grip offset for THIS frame, same tick
 
+## Start the getup RISE: play the clip chosen by how we fell, hold control until it ends.
+func _begin_getup_rise() -> void:
+	var anim: String = _getup_anim()
+	if sprite != null and sprite.sprite_frames != null and sprite.sprite_frames.has_animation(anim):
+		sprite.play(anim)
+		_refresh_flip()
+		_getup_rising = true
+		_getup_rise_time = _anim_length_seconds(anim)
+	else:
+		mode = _react_recover_mode   # no clip available: recover immediately
+
+## Getup clip name from the recorded fall orientation.
+func _getup_anim() -> String:
+	match _fall_orientation:
+		Fall.FACE_DOWN:
+			return "get_up_back"
+		Fall.FACE_DOWN_ROLL:
+			return "get_up_back_2"
+		_:
+			return "get_up_front"
+
+## Length of an animation in seconds (frames / fps), from the SpriteFrames.
+func _anim_length_seconds(anim: String) -> float:
+	if sprite == null or sprite.sprite_frames == null:
+		return 0.0
+	var n: int = sprite.sprite_frames.get_frame_count(anim)
+	var fps: float = sprite.sprite_frames.get_animation_speed(anim)
+	if fps <= 0.0:
+		return 0.0
+	return float(n) / fps
+
 ## Release the current victim to ONGROUND (knockdown) and clear both refs.
 func _detach_victim() -> void:
 	var vic: Fighter = _grappling
@@ -546,6 +586,8 @@ func _detach_victim() -> void:
 		vic._grappled_by = null
 		vic.mode = Mode.ONGROUND
 		vic._react_recover_mode = Mode.NORMAL
+		var mv_id: String = _player.sequence.id if _player.sequence != null else ""
+		vic._fall_orientation = Reaction.fall_orientation(AMode.Family.KNOCKDOWN, mv_id)
 		vic._react_timer = ArcadeUnits.ticks_to_seconds(AMode.getup_ticks(AMode.Family.KNOCKDOWN))
 		if vic.sprite != null and vic.sprite.sprite_frames != null and vic.sprite.sprite_frames.has_animation("damage_lying"):
 			vic.sprite.play("damage_lying")
@@ -628,6 +670,7 @@ func receive_hit(attacker: Fighter, move: MoveSequence) -> void:
 		_start_block_bounce()
 		return
 	var family := AMode.reaction_for(move.attack_mode)
+	_fall_orientation = Reaction.fall_orientation(family, move.id)
 	var r := Reaction.resolve(family, hit_dir, move.causes_dizzy)
 	_enter_reaction(r, hit_dir)
 
