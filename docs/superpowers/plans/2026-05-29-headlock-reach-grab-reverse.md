@@ -45,14 +45,17 @@ godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir=res://test/unit
 Add to `test/unit/test_grapple_sequences.gd`:
 
 ```gdscript
-func test_neck_grab_reverses_reach_on_whiff_flag():
-	# Only the neck grab retracts the reach on a whiff/block; throws end immediately.
-	var neck: MoveSequence = load("res://assets/sequences/doink/neck_grab.tres")
-	assert_true(neck.reverse_reach_on_whiff, "neck grab reverses its reach on a whiff/block")
+func test_reverse_reach_flag_defaults_false_and_throws_dont_reverse():
+	# The flag is opt-in: defaults false, and no throw/follow-up reverses. (neck_grab is
+	# asserted true in Task 6, once its .tres is regenerated with the flag set.)
+	var fresh := MoveSequence.new()
+	assert_false(fresh.reverse_reach_on_whiff, "flag defaults to false")
 	for id in ["hip_toss", "grab_fling", "piledriver", "head_slam", "joy_buzzer"]:
 		var m: MoveSequence = load("res://assets/sequences/doink/%s.tres" % id)
 		assert_false(m.reverse_reach_on_whiff, "%s does NOT reverse (throws/follow-ups end on whiff)" % id)
 ```
+
+(Loading an old `.tres` that predates the property yields the default `false`, so these pass without regeneration.)
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -71,10 +74,10 @@ In `scripts/combat/move_sequence.gd`, after the `is_grapple` export (around line
 @export var reverse_reach_on_whiff: bool = false
 ```
 
-- [ ] **Step 4: Run test to verify it (still) fails on the data, not the property**
+- [ ] **Step 4: Run test to verify it passes**
 
 Run the same command.
-Expected: the `reverse_reach_on_whiff` accesses no longer error, but the test FAILS on `assert_true(neck.reverse_reach_on_whiff)` because the regenerated `.tres` (Task 6) hasn't set it yet. This is expected — leave it failing; Task 6 regenerates the data and turns it green. (The `assert_false` lines for throws already pass.)
+Expected: PASS — the flag defaults to `false` and the throw `.tres` files report `false`.
 
 - [ ] **Step 5: Commit**
 
@@ -500,7 +503,7 @@ func test_neck_grab_reaches_then_grabs_mid_clip():
 	# (headlocks frame 4 = sprite 05), then puppet into the hold pose (frame 6 = sprite 07).
 	var m: MoveSequence = load("res://assets/sequences/doink/neck_grab.tres")
 	assert_eq(m.anim_name, "headlocks")
-	assert_true(m.reverse_reach_on_whiff, "neck grab retracts on a whiff/block")
+	assert_true(m.reverse_reach_on_whiff, "neck grab retracts on a whiff/block (flag set in the .tres)")
 	# Lead-in frames 0-3 are plain reach (no grab command).
 	for i in range(4):
 		assert_eq(m.frames[i].anim_frame, i, "reach lead-in shows headlocks frame %d" % i)

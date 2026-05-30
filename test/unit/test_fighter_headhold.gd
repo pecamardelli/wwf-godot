@@ -9,7 +9,9 @@ func _neck_seq() -> MoveSequence:
 func test_neck_grab_enters_head_hold():
 	var atk := _make(); var vic := _make()
 	atk.start_move(_neck_seq())
-	atk._player.advance(1.0 / 60.0)         # WAIT_HIT_OPP
+	atk._player.advance(1.0 / 60.0)         # into the reach lead-in
+	# Force the connect directly (the timing path — reach -> grab window at frame 4 -> connect
+	# -> head hold — is covered end-to-end by test_grapple_integration.gd).
 	vic.receive_grab(atk, atk.current_move())
 	atk._player.notify_grab_connected()
 	for _i in range(6):                      # advance into SET_ATTACH then finish

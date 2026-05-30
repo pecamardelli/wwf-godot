@@ -209,7 +209,9 @@ func _begin_reverse() -> bool:
 		return false
 	_reversing = true
 	_reverse_index = _grab_window_index   # start at the grab frame itself so the retraction begins at the apex
-	attack_live = false           # the reach is retracting, not attacking
+	# current_frame() re-shows that WAIT_HIT_OPP frame during the retraction, but the grab box
+	# is cleared here so it is NOT live while reversing (the reach is retracting, not attacking).
+	attack_live = false
 	active_attack_box = null
 	_time_left = ArcadeUnits.ticks_to_seconds(sequence.frames[_reverse_index].duration_ticks)
 	return true
