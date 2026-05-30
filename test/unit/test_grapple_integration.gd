@@ -66,6 +66,7 @@ func test_connected_neck_grab_enters_head_hold():
 	var guard := 0
 	while not atk._player.is_waiting_for_hit() and guard < 120:
 		atk._physics_process(1.0 / 60.0)
+		vic._physics_process(1.0 / 60.0)
 		guard += 1
 	assert_true(atk._player.is_waiting_for_hit(), "reached the grab window")
 	# Connect: resolve_tick() with the victim in grab range and not guarding.
