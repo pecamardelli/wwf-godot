@@ -26,3 +26,11 @@ func test_block_plays_defence():
 	var r := Reaction.resolve(AMode.Family.BLOCK, 1, false)
 	assert_eq(r.anim, "defence")
 	assert_eq(r.mode, Fighter.Mode.BLOCK)
+
+func test_fall_orientation_defaults_face_up():
+	assert_eq(Reaction.fall_orientation(AMode.Family.KNOCKDOWN, "big_boot"), Fighter.Fall.FACE_UP)
+	assert_eq(Reaction.fall_orientation(AMode.Family.FALL_BACK, "uppercut"), Fighter.Fall.FACE_UP)
+
+func test_fall_orientation_roll_moves_are_face_down_roll():
+	assert_eq(Reaction.fall_orientation(AMode.Family.KNOCKDOWN, "faceslam"), Fighter.Fall.FACE_DOWN_ROLL)
+	assert_eq(Reaction.fall_orientation(AMode.Family.KNOCKDOWN, "flying_clothesline"), Fighter.Fall.FACE_DOWN_ROLL)

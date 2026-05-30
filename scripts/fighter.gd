@@ -8,6 +8,11 @@ extends CharacterBody2D
 enum Mode { NORMAL, RUNNING, INAIR, ONGROUND, BLOCK, DIZZY, GRABBING, GRABBED, HEADHOLD, HEADHELD }
 var mode: int = Mode.NORMAL
 
+## How a wrestler landed when knocked down — selects the getup clip.
+## FACE_UP = on its back (get_up_front); FACE_DOWN = face/back-turned (get_up_back);
+## FACE_DOWN_ROLL = slammed/rolled face-first (get_up_back_2).
+enum Fall { FACE_UP, FACE_DOWN, FACE_DOWN_ROLL }
+
 ## Faction. Targeting only considers opposite-side fighters (arcade PLYR_SIDE).
 enum Side { PLAYER, ENEMY }
 @export var side: int = Side.PLAYER

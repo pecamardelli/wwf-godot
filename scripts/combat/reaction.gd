@@ -38,3 +38,15 @@ static func _r(anim: String, mode: int, hitstun: int, knockback: float, getup: i
 		"anim": anim, "mode": mode, "hitstun_ticks": hitstun,
 		"knockback": knockback, "getup_ticks": getup,
 	}
+
+## Moves that drop the victim face-first (slam / roll) -> get_up_back_2. Everything else is
+## a face-up knockdown (lands on the back) -> get_up_front. Arcade parallel: #getup_tbl
+## defaults to *_faceup_getup_anim, with *_facedown_getup_anim for face-down falls
+## (REACT1.ASM, ADMSEQ2.ASM #choose_dir). Seed list is forward-looking — add slam/roll
+## finishers here as they get wired; verify against the art in playtest.
+const _ROLL_FALL_MOVES := {"flying_clothesline": true, "faceslam": true}
+
+static func fall_orientation(_family: int, move_id: String) -> int:
+	if _ROLL_FALL_MOVES.has(move_id):
+		return Fighter.Fall.FACE_DOWN_ROLL
+	return Fighter.Fall.FACE_UP
