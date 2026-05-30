@@ -255,6 +255,10 @@ static func flip_h_for(anim: String, facing: float) -> bool:
 ## the floor line; the body lies ON the mat instead of floating above it.
 const _ANIM_Y_OFFSET := {
 	"damage_lying": 40.0,
+	# Held headlock victim is drawn off its feet origin (bent-over pose sits high in the frame);
+	# nudge it down so the head sits at the captor's arm instead of floating up. The arcade gets
+	# this from the per-frame Y attach term (ANI_SUPERSLAVE2 ATTACH_YOFF) we can't read directly.
+	"headlocked": 30.0,
 }
 
 ## Apply the correct flip + render offset for the current animation + facing.
@@ -377,10 +381,11 @@ func _drive_victim(_delta: float) -> void:
 	if _player.consume_detach():
 		_detach_victim()
 
-## Victim offset (in front of the captor) while held in the static headlock. Arcade head-hold
-## #puppet_tbl #Doink locks the victim at raw X=51 (DNKSEQ3.ASM:1549), the frame the held loop
-## continues on, so the captor's hands grip the bent-over head, not the body center.
-const _HEADHOLD_VICTIM_X := 51.0
+## Victim offset (in front of the captor) while held in the static headlock. The arcade head-hold
+## #puppet_tbl #Doink raw X=51 (DNKSEQ3.ASM:1549) is in the arcade's sprite-anchor space; our
+## sprites are anchored differently, so we add the ~+40 anchor-space correction (the arcade's
+## per-frame victimXoff-attackerXoff term) measured in playtest. Grips the bent-over head.
+const _HEADHOLD_VICTIM_X := 91.0
 ## Grab "leap" (arcade LEAPATOPP): step in toward the target, stopping ~Xoff=40 short,
 ## and travel at most MAX_X_DIST=40 total — a short, accelerated step, not a run-in.
 const _GRAPPLE_LEAP_GAP := 40.0   # stop this far from the target (arcade Xoff=40)
