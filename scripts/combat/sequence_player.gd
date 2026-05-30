@@ -27,6 +27,9 @@ var _time_left: float = 0.0
 var _waiting_for_hit: bool = false
 var _wait_left: float = 0.0   # seconds remaining on the WAIT_HIT_OPP timeout
 var _freeze_left: float = 0.0   # seconds of contact hitstop (hold the reach frame on a grab connect)
+var _grab_window_index: int = -1   # frame index of the WAIT_HIT_OPP reach apex
+var _reversing: bool = false       # retracting the reach after a whiff/block
+var _reverse_index: int = -1       # frame shown during the reverse phase
 
 ## Contact freeze: on a grab connect, hold the reach frame this many arcade ticks before
 ## the throw plays (arcade `WL 4,D3HT3Q+FR1` after ANI_WAITHITOPP, DNKSEQ2.ASM:4248).
@@ -50,6 +53,9 @@ func play(seq: MoveSequence) -> void:
 	_waiting_for_hit = false
 	_wait_left = 0.0
 	_freeze_left = 0.0
+	_grab_window_index = -1
+	_reversing = false
+	_reverse_index = -1
 
 func is_playing() -> bool:
 	return sequence != null
@@ -86,6 +92,15 @@ func opp_mode() -> int:
 func advance(delta: float) -> bool:
 	if sequence == null:
 		return false
+	if _reversing:
+		_time_left -= delta
+		while _time_left <= 0.0:
+			_reverse_index -= 1
+			if _reverse_index < 0:
+				_finish()
+				return true
+			_time_left += ArcadeUnits.ticks_to_seconds(sequence.frames[_reverse_index].duration_ticks)
+		return false
 	if _waiting_for_hit:
 		_wait_left -= delta
 		if _wait_left <= 0.0:
@@ -95,6 +110,8 @@ func advance(delta: float) -> bool:
 			# grab attempt. No connect -> never GRABBING -> no soft-lock.
 			whiffed = true
 			_waiting_for_hit = false
+			if _begin_reverse():
+				return false
 			_finish()
 			return true
 		return false
@@ -116,9 +133,12 @@ func advance(delta: float) -> bool:
 	return false
 
 func current_frame() -> SequenceFrame:
-	if sequence == null or _index < 0 or _index >= sequence.frames.size():
+	if sequence == null:
 		return null
-	return sequence.frames[_index]
+	var idx: int = _reverse_index if _reversing else _index
+	if idx < 0 or idx >= sequence.frames.size():
+		return null
+	return sequence.frames[idx]
 
 func _apply_command(f: SequenceFrame) -> void:
 	match f.command:
@@ -133,6 +153,7 @@ func _apply_command(f: SequenceFrame) -> void:
 			active_attack_box = f.attack_box
 			_waiting_for_hit = true
 			_wait_left = ArcadeUnits.ticks_to_seconds(f.wait_hit_max_ticks)
+			_grab_window_index = _index
 		SequenceFrame.Command.SET_ATTACH:
 			attack_live = false
 			active_attack_box = null
@@ -164,3 +185,17 @@ func _finish() -> void:
 	active_attack_box = null
 	_index = -1
 	_waiting_for_hit = false
+	_reversing = false
+
+## Begin retracting the reach (whiff/block): play the reach frames from the grab window
+## back to frame 0, then finish. Only when the move opts in and there IS a reach lead-in.
+## Returns true if the reverse phase started (caller should NOT finish yet).
+func _begin_reverse() -> bool:
+	if sequence == null or not sequence.reverse_reach_on_whiff or _grab_window_index <= 0:
+		return false
+	_reversing = true
+	_reverse_index = _grab_window_index
+	attack_live = false           # the reach is retracting, not attacking
+	active_attack_box = null
+	_time_left = ArcadeUnits.ticks_to_seconds(sequence.frames[_reverse_index].duration_ticks)
+	return true

@@ -86,3 +86,36 @@ func test_contact_freeze_holds_the_reach_before_the_throw():
 	sp.advance(FRAME)   # first frame after contact: still in the hitstop
 	assert_eq(sp._index, idx, "holds the reach frame during the contact freeze")
 	assert_false(sp.consume_attach(), "the throw (SET_ATTACH) hasn't begun yet")
+
+func _reach_grab_seq() -> MoveSequence:
+	# reach(0,1) -> WAIT_HIT_OPP(2) -> connected SET_ATTACH(3) -> SLAVE_ANIM(4)
+	var m := MoveSequence.new(); m.id = "neck_grab"; m.anim_name = "headlocks"
+	m.is_grapple = true; m.reverse_reach_on_whiff = true
+	var r0 := _f(3, SequenceFrame.Command.NONE); r0.anim_frame = 0
+	var r1 := _f(3, SequenceFrame.Command.NONE); r1.anim_frame = 1
+	var wait := _f(3, SequenceFrame.Command.WAIT_HIT_OPP); wait.anim_frame = 2
+	wait.attack_box = Box3.new(); wait.attack_box.size = Vector3(40, 60, 10); wait.wait_hit_max_ticks = 16
+	var attach := _f(4, SequenceFrame.Command.SET_ATTACH); attach.anim_frame = 3; attach.slave_anim = "headlocked"
+	var pull := _f(4, SequenceFrame.Command.SLAVE_ANIM); pull.anim_frame = 4; pull.slave_anim = "headlocked"
+	m.frames = [r0, r1, wait, attach, pull]
+	return m
+
+func test_whiff_reverses_the_reach_to_the_start():
+	var sp := SequencePlayer.new(); sp.play(_reach_grab_seq())
+	for _i in range(8):   # advance through reach 0,1 into the WAIT_HIT_OPP at index 2
+		sp.advance(FRAME)
+	assert_true(sp.is_waiting_for_hit(), "reached the grab window")
+	# Never connect. Collect the attacker frames shown after the whiff begins.
+	var seen_after_whiff := []
+	for _i in range(60):
+		sp.advance(FRAME)
+		var f: SequenceFrame = sp.current_frame()
+		if sp.whiffed and f != null:
+			seen_after_whiff.append(f.anim_frame)
+	assert_true(sp.whiffed, "timed out without a connect")
+	assert_false(sp.attack_live, "grab box dropped while the reach retracts")
+	assert_false(sp.is_playing(), "the move ends after the reach has retracted")
+	# The reach retracted: frames stepped DOWN from the grab window (2) toward 0.
+	assert_true(seen_after_whiff.has(1), "reverse shows reach frame 1")
+	assert_true(seen_after_whiff.has(0), "reverse shows reach frame 0")
+	assert_true(seen_after_whiff.find(1) < seen_after_whiff.find(0), "frames descend (2->1->0)")
