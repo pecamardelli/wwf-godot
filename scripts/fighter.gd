@@ -43,7 +43,9 @@ static func input_allowed(m: int) -> bool:
 @export var walk_speed_scale: float = 0.8
 @export var walk_acceleration: float = 2200.0  ## px/s^2 (accel + decel ramp; snappy)
 ## Depth (vertical/Y) walk runs slower than horizontal — belt-scroll convention.
-@export var depth_speed_scale: float = 0.3
+@export var depth_speed_scale: float = 0.4
+## Depth (vertical/Y) drift while RUNNING, scaled down off the arcade RUN_DEPTH_DRIFT (feel layer).
+@export var run_depth_speed_scale: float = 0.5
 
 ## Combat state.
 var health: int = Damage.LIFE_MAX
@@ -239,7 +241,7 @@ func _physics_process(delta: float) -> void:
 				_set_facing(_run_dir_x)   # face the run direction (no moonwalk)
 				if signf(dir.y) != 0.0:
 					_depth_facing = Facing.FRONT if dir.y > 0.0 else Facing.BACK
-				var run_vel := Vector2(_run_dir_x * ArcadeUnits.RUN_SPEED, signf(dir.y) * ArcadeUnits.RUN_DEPTH_DRIFT)
+				var run_vel := Vector2(_run_dir_x * ArcadeUnits.RUN_SPEED, signf(dir.y) * ArcadeUnits.RUN_DEPTH_DRIFT * run_depth_speed_scale)
 				velocity = velocity.move_toward(run_vel, walk_acceleration * delta)
 		if mode != Mode.RUNNING:
 			# Turn-around pivot (idle + walking): drives the rotate overlay; locomotion below
