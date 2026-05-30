@@ -123,6 +123,14 @@ func _physics_process(delta: float) -> void:
 	# 2) Attacking: advance the sequence, hold position, no walk input.
 	if _player.is_playing():
 		velocity = Vector2.ZERO
+		# Block recoil: a blocked grab nudges the attacker back once, away from the victim.
+		if _player.blocked and not _block_recoiled:
+			_block_recoiled = true
+			_recoil_remaining = _BLOCK_RECOIL_DIST
+		if _recoil_remaining > 0.0:
+			var rstep: float = minf(_BLOCK_RECOIL_SPEED * delta, _recoil_remaining)
+			global_position.x -= _facing * rstep    # _facing points at the victim; recoil away
+			_recoil_remaining -= rstep
 		# Grapple windup: a short, ACCELERATED step toward the opponent before the grab
 		# connects (arcade LEAPATOPP) — ramps up like a walk, stops ~40px short, and travels
 		# at most _GRAPPLE_LEAP_MAX total. Not a full-speed run-in.
@@ -324,6 +332,8 @@ func start_move(move: MoveSequence) -> void:
 	if move.is_grapple:
 		_leap_remaining = _GRAPPLE_LEAP_MAX   # fresh short step-in budget for this grab
 		_leap_vel = 0.0
+		_recoil_remaining = 0.0
+		_block_recoiled = false
 	_player.play(move)
 	_hit_by_current_move.clear()
 	_play_sequence_anim()
@@ -375,6 +385,12 @@ const _GRAPPLE_LEAP_GAP := 40.0   # stop this far from the target (arcade Xoff=4
 const _GRAPPLE_LEAP_MAX := 40.0   # cap total step distance (arcade MAX_X_DIST=40)
 var _leap_vel: float = 0.0        # accelerated step-in velocity (px/s)
 var _leap_remaining: float = 0.0  # px of step-in budget left this grab
+## Block recoil (arcade #missedb ANI_SET_YVEL): our fighters are floor-clamped with no
+## jump, so a blocked grab nudges the attacker straight back instead of hopping up.
+const _BLOCK_RECOIL_DIST := 12.0   # px of backward recoil (tuned in playtest)
+const _BLOCK_RECOIL_SPEED := 140.0 # px/s of recoil travel
+var _recoil_remaining: float = 0.0
+var _block_recoiled: bool = false  # latch so the recoil fires once per blocked grab
 
 ## During the STATIC head hold, keep the victim attached + facing the captor and LOOP its
 ## struggle (arcade master_keep_attached + the headheld loop). The neck-grab sequence drives
