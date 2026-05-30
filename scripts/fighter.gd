@@ -43,7 +43,7 @@ static func input_allowed(m: int) -> bool:
 @export var walk_speed_scale: float = 0.8
 @export var walk_acceleration: float = 2200.0  ## px/s^2 (accel + decel ramp; snappy)
 ## Depth (vertical/Y) walk runs slower than horizontal — belt-scroll convention.
-@export var depth_speed_scale: float = 0.6
+@export var depth_speed_scale: float = 0.3
 
 ## Combat state.
 var health: int = Damage.LIFE_MAX
