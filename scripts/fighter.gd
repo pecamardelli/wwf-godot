@@ -119,16 +119,13 @@ func _physics_process(delta: float) -> void:
 	if mode == Mode.GRABBED or mode == Mode.HEADHELD:
 		return
 	_update_target()
-	# Orientation. Free NORMAL idle/walk is animated by the turn-around pivot (later task);
-	# every other state snaps BOTH axes toward the target so control returns already facing
-	# correctly (no spurious pivot). Running sets its own facing below; guarding freezes it.
-	var controlling: bool = Fighter.input_allowed(mode) and not _player.is_playing() \
-			and _react_timer <= 0.0 and not _is_guarding()
-	# This snap runs every tick BEFORE the block branch, so the explicit `not _is_guarding()`
-	# is required (not redundant): without it, guarding — which makes `controlling` false —
-	# would still snap and rotate the guard toward the target. Keep both clauses.
-	if not controlling and not _is_guarding() and target != null and is_instance_valid(target) \
-			and (_grappling == null or not _player.is_playing()):
+	# Orientation snap: face the target ONLY while actively striking. The arcade sets facing at
+	# move start and holds it; helpless/down states (onground, dizzy, in-air, mid-reaction) never
+	# re-face — their move_xxx handlers are rets, so a downed wrestler does NOT track the mover.
+	# Idle/walk facing is animated by the turn-around pivot below; a grapple drives facing from
+	# its own sequence, so skip the snap while a victim is attached.
+	if _player.is_playing() and _grappling == null and not _is_guarding() \
+			and target != null and is_instance_valid(target):
 		_set_facing(target.global_position.x - global_position.x)
 		# Same hysteresis as the pivot path: keep current depth when roughly level (no jitter).
 		_depth_facing = Facing.desired_depth(global_position.y, target.global_position.y, _depth_facing, _DEPTH_DEADZONE)
@@ -294,6 +291,12 @@ static func flip_h_for(anim: String, facing: float) -> bool:
 ## the floor line; the body lies ON the mat instead of floating above it.
 const _ANIM_Y_OFFSET := {
 	"damage_lying": 40.0,
+	# Getup clips draw the figure's feet ~8-20px high in the 180px frame vs idle (feet row 148),
+	# so the wrestler ends up floating above the floor line. Push each down by (148 - mean feet
+	# row) to plant the feet. Measured from the art; tune in playtest if needed.
+	"get_up_front": 20.0,
+	"get_up_back": 14.0,
+	"get_up_back_2": 8.0,
 	# Held headlock victim is drawn off its feet origin (bent-over pose sits high in the frame);
 	# nudge it down so the head sits at the captor's arm instead of floating up. The arcade gets
 	# this from the per-frame Y attach term (ANI_SUPERSLAVE2 ATTACH_YOFF) we can't read directly.

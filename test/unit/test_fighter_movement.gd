@@ -165,6 +165,19 @@ func test_getup_clip_chosen_by_fall_orientation():
 	f._fall_orientation = Fighter.Fall.FACE_UP
 	assert_eq(f._getup_anim(), "get_up_front")
 
+func test_downed_victim_does_not_reface_when_attacker_crosses():
+	# Arcade: helpless/down states never re-face (mode_onground is a ret). A downed wrestler
+	# keeps the facing it fell with even if the attacker walks to the other side.
+	var me := _at_xy(100, 400, Fighter.Side.PLAYER)
+	var enemy := _at_xy(300, 400, Fighter.Side.ENEMY)
+	me._set_facing(1.0)                  # fell facing right
+	me.mode = Fighter.Mode.ONGROUND
+	me._react_timer = 2.0                # lying down
+	enemy.global_position.x = -100       # attacker crosses to the left
+	for _i in range(10):
+		me._physics_process(1.0 / 60.0)
+	assert_eq(me.facing(), 1.0, "a downed fighter does not track the attacker")
+
 func test_fresh_hit_cancels_in_progress_getup_rise():
 	# Re-hit while rising must cancel the RISE so it can't linger as a phantom hold.
 	var f := _spawn()
