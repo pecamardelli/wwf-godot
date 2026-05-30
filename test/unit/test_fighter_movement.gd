@@ -106,3 +106,30 @@ func test_no_pivot_when_already_facing_target():
 	me._set_facing(1.0)
 	me._physics_process(1.0 / 60.0)
 	assert_false(me._turning, "no pivot needed: already facing the target corner")
+
+const FIGHTER_SCENE := preload("res://scenes/Fighter.tscn")
+
+func _spawn() -> Fighter:
+	var f: Fighter = FIGHTER_SCENE.instantiate()
+	add_child_autofree(f)                       # triggers _ready -> resolves `sprite`
+	f.global_position = Vector2(100, 400)
+	f.separation_radii = Vector2.ZERO
+	return f
+
+func test_vertical_walk_plays_vertical_clip():
+	var f := _spawn()
+	f._depth_facing = Facing.FRONT
+	f._update_animation(Vector2.UP)
+	assert_eq(f.sprite.animation, "walk_vertical_front")
+
+func test_diagonal_walk_plays_diagonal_clip():
+	var f := _spawn()
+	f._depth_facing = Facing.FRONT
+	f._update_animation(Vector2(1, 1))
+	assert_eq(f.sprite.animation, "walk_diagonal_front")
+
+func test_back_depth_plays_back_variant():
+	var f := _spawn()
+	f._depth_facing = Facing.BACK
+	f._update_animation(Vector2.RIGHT)
+	assert_eq(f.sprite.animation, "walk_horisontal_back")

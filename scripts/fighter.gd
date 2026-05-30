@@ -417,11 +417,11 @@ func _update_animation(dir: Vector2) -> void:
 	var anim: String
 	if mode == Mode.RUNNING:
 		anim = "run"
-	elif dir != Vector2.ZERO:
-		anim = "walk_horisontal_front"
 	else:
-		anim = "idle_front"
-	if sprite.sprite_frames.has_animation(anim) and sprite.animation != anim:
+		anim = AnimSelector.walk_anim(dir, _depth_facing)
+	if not sprite.sprite_frames.has_animation(anim):
+		return
+	if sprite.animation != anim:
 		sprite.play(anim)
 	elif not sprite.is_playing():
 		sprite.play(anim)
