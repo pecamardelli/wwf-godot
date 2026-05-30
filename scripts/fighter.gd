@@ -46,6 +46,10 @@ static func input_allowed(m: int) -> bool:
 @export var depth_speed_scale: float = 0.4
 ## Depth (vertical/Y) drift while RUNNING, scaled down off the arcade RUN_DEPTH_DRIFT (feel layer).
 @export var run_depth_speed_scale: float = 0.5
+## Global playback multiplier for auto-played clips (walk/idle/run/getup). The imported frames
+## are authored at 12 fps which reads as low-fps; scale up here (feel layer). Sequence-timed
+## attacks set frames manually and are unaffected.
+@export var anim_speed_scale: float = 1.5
 
 ## Combat state.
 var health: int = Damage.LIFE_MAX
@@ -82,6 +86,8 @@ const _HEADHOLD_POSE_FRAME := 6
 
 func _ready() -> void:
 	add_to_group("fighters")
+	if sprite != null:
+		sprite.speed_scale = anim_speed_scale
 
 ## Subclasses override this to return an 8-way direction (each axis in -1..1).
 func get_input_direction() -> Vector2:
@@ -582,7 +588,8 @@ func _getup_anim() -> String:
 		_:
 			return "get_up_front"
 
-## Length of an animation in seconds (frames / fps), from the SpriteFrames.
+## Length of an animation in seconds (frames / fps), honoring the sprite's speed_scale so the
+## getup RISE timer matches the sped-up playback.
 func _anim_length_seconds(anim: String) -> float:
 	if sprite == null or sprite.sprite_frames == null:
 		return 0.0
@@ -590,7 +597,8 @@ func _anim_length_seconds(anim: String) -> float:
 	var fps: float = sprite.sprite_frames.get_animation_speed(anim)
 	if fps <= 0.0:
 		return 0.0
-	return float(n) / fps
+	var scale: float = sprite.speed_scale if sprite.speed_scale > 0.0 else 1.0
+	return float(n) / (fps * scale)
 
 ## Release the current victim to ONGROUND (knockdown) and clear both refs.
 func _detach_victim() -> void:
