@@ -125,7 +125,10 @@ func test_vertical_walk_plays_vertical_clip():
 func test_diagonal_walk_plays_diagonal_clip():
 	var f := _spawn()
 	f._depth_facing = Facing.FRONT
-	f._update_animation(Vector2(1, 1))
+	f._set_facing(1.0)
+	# up-right is the diagonal sprite's axis when facing right/front (GMS); down-right would
+	# fall back to the horizontal clip.
+	f._update_animation(Vector2(1, -1))
 	assert_eq(f.sprite.animation, "walk_diagonal_front")
 
 func test_back_depth_plays_back_variant():

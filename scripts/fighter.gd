@@ -429,15 +429,17 @@ func _update_animation(dir: Vector2) -> void:
 		_show_rotate_frame(_turn_frames[_turn_idx])
 		return
 	var anim: String
+	var reverse: bool = false
 	if mode == Mode.RUNNING:
 		anim = "run"
 	else:
-		anim = AnimSelector.walk_anim(dir, _depth_facing)
+		# Walk/idle clip + play direction, ported from GMS update_sprites (diagonal-axis fallback
+		# to the horizontal clip; reverse = image_speed < 0 for backpedal/strafe/away-in-depth).
+		var sel := AnimSelector.select(dir, _facing, _depth_facing)
+		anim = sel.anim
+		reverse = sel.reverse
 	if not sprite.sprite_frames.has_animation(anim):
 		return
-	# Reverse the walk cycle when moving AGAINST the way the body faces (backpedal / strafe /
-	# moving away in depth) — arcade legs follow MOVE_DIR while the torso holds FACING_DIR.
-	var reverse: bool = mode != Mode.RUNNING and AnimSelector.is_reverse(dir, _facing, _depth_facing)
 	if sprite.animation != anim or not sprite.is_playing() or reverse != _anim_reversed:
 		_anim_reversed = reverse
 		if reverse:
