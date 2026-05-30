@@ -128,3 +128,12 @@ func test_hip_toss_victim_sweeps_front_to_back():
 	var m: MoveSequence = load("res://assets/sequences/doink/hip_toss.tres")
 	assert_gt(m.frames[1].victim_offset.x, 20.0, "victim starts a reach in front (not glued on)")
 	assert_lt(m.frames[m.frames.size() - 1].victim_offset.x, 0.0, "victim flung behind on the slam")
+
+func test_reverse_reach_flag_defaults_false_and_throws_dont_reverse():
+	# The flag is opt-in: defaults false, and no throw/follow-up reverses. (neck_grab is
+	# asserted true in a later task, once its .tres is regenerated with the flag set.)
+	var fresh := MoveSequence.new()
+	assert_false(fresh.reverse_reach_on_whiff, "flag defaults to false")
+	for id in ["hip_toss", "grab_fling", "piledriver", "head_slam", "joy_buzzer"]:
+		var m: MoveSequence = load("res://assets/sequences/doink/%s.tres" % id)
+		assert_false(m.reverse_reach_on_whiff, "%s does NOT reverse (throws/follow-ups end on whiff)" % id)

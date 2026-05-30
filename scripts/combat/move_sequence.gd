@@ -13,6 +13,9 @@ extends Resource
 @export var causes_dizzy: bool = false
 ## Grapple moves route their connect to attach (victim channel) rather than damage.
 @export var is_grapple: bool = false
+## A whiffed/blocked grab retracts the reach (plays the reach frames in reverse) instead of
+## ending instantly. True only for the standing neck grab (arcade #missed/#missedb).
+@export var reverse_reach_on_whiff: bool = false
 
 func total_ticks() -> int:
 	var t := 0
