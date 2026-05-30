@@ -448,12 +448,17 @@ func _update_animation(dir: Vector2) -> void:
 		reverse = sel.reverse
 	if not sprite.sprite_frames.has_animation(anim):
 		return
+	# Idle is the exception to the global anim_speed_scale: a per-play custom_speed (which
+	# multiplies with the node's speed_scale) cancels it so idle reads at the authored 1.0x.
+	var custom_speed := 1.0
+	if anim.begins_with("idle") and anim_speed_scale > 0.0:
+		custom_speed = 1.0 / anim_speed_scale
 	if sprite.animation != anim or not sprite.is_playing() or reverse != _anim_reversed:
 		_anim_reversed = reverse
 		if reverse:
 			sprite.play_backwards(anim)
 		else:
-			sprite.play(anim)
+			sprite.play(anim, custom_speed)
 	_refresh_flip()
 
 ## Walk-speed multiplier from facing-relative state (arcade walk table modifiers).
