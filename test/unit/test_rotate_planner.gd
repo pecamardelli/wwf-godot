@@ -8,6 +8,12 @@ func test_one_segment_forward():
 	assert_eq(RotatePlanner.plan(Facing.State.FR, Facing.State.BR), [2, 3, 4])
 	# FL -> FR is the wrap segment
 	assert_eq(RotatePlanner.plan(Facing.State.FL, Facing.State.FR), [11, 0, 1])
+	# forward from a non-zero origin (guards the (from+k)%4 index)
+	assert_eq(RotatePlanner.plan(Facing.State.BR, Facing.State.BL), [5, 6, 7])
+
+func test_one_segment_backward_from_non_zero_origin():
+	# FL -> BL is one step backward (reverse the BL->FL segment), guards (s-1+4)%4
+	assert_eq(RotatePlanner.plan(Facing.State.FL, Facing.State.BL), [10, 9, 8])
 
 func test_one_segment_backward_is_reversed():
 	# FR -> FL is shorter going backward (reverse the FL->FR segment)

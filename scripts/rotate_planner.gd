@@ -18,6 +18,8 @@ static func plan(from_state: int, to_state: int) -> Array:
 			frames.append_array(_SEG[(from_state + k) % 4])
 	else:
 		for k in range(bwd):
+			# s = corner we depart on this backward step; _SEG[i] is the segment LEAVING
+			# corner i, so the edge we cross backward is the one before s: _SEG[s-1], reversed.
 			var s := (from_state - k + 4) % 4
 			var seg: Array = _SEG[(s - 1 + 4) % 4].duplicate()
 			seg.reverse()
