@@ -48,6 +48,7 @@ static func input_allowed(m: int) -> bool:
 ## Combat state.
 var health: int = Damage.LIFE_MAX
 var _facing: float = 1.0   # +1 faces right, -1 faces left; the sprite mirrors this
+var _depth_facing: int = Facing.FRONT   # FRONT = toward camera, BACK = away (Y-depth facing)
 var _run_dir_x: float = 0.0   # latched horizontal run direction (+1/-1) while RUNNING
 var _player: SequencePlayer = SequencePlayer.new()
 var _react_timer: float = 0.0          # seconds left in a reaction (hitstun/getup/dizzy)
@@ -108,8 +109,15 @@ func _physics_process(delta: float) -> void:
 	if mode == Mode.GRABBED or mode == Mode.HEADHELD:
 		return
 	_update_target()
-	if target != null and is_instance_valid(target) and not _is_guarding() and mode != Mode.RUNNING and (_grappling == null or not _player.is_playing()):
+	# Orientation. Free NORMAL idle/walk is animated by the turn-around pivot (later task);
+	# every other state snaps BOTH axes toward the target so control returns already facing
+	# correctly (no spurious pivot). Running sets its own facing below; guarding freezes it.
+	var controlling: bool = Fighter.input_allowed(mode) and not _player.is_playing() \
+			and _react_timer <= 0.0 and not _is_guarding()
+	if not controlling and not _is_guarding() and target != null and is_instance_valid(target) \
+			and (_grappling == null or not _player.is_playing()):
 		_set_facing(target.global_position.x - global_position.x)
+		_depth_facing = Facing.desired_depth(global_position.y, target.global_position.y)
 	# 1) Reaction countdown (hitstun / getup / dizzy): no control, no walk.
 	if _react_timer > 0.0:
 		_react_timer -= delta
@@ -211,6 +219,8 @@ func _physics_process(delta: float) -> void:
 				mode = Mode.NORMAL
 			else:
 				_set_facing(_run_dir_x)   # face the run direction (no moonwalk)
+				if signf(dir.y) != 0.0:
+					_depth_facing = Facing.FRONT if dir.y > 0.0 else Facing.BACK
 				var run_vel := Vector2(_run_dir_x * ArcadeUnits.RUN_SPEED, signf(dir.y) * ArcadeUnits.RUN_DEPTH_DRIFT)
 				velocity = velocity.move_toward(run_vel, walk_acceleration * delta)
 		if mode != Mode.RUNNING:
