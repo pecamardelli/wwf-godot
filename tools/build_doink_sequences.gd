@@ -11,7 +11,7 @@ const FRAMES := "res://assets/sprites/doink/doink_frames.tres"
 # have, and they pull X and Y differently — horizontally the raws read too far (shrink X),
 # vertically the lift reads too low if shrunk (keep Y near source). Two tuning knobs.
 const _GRAB_OFFSET_SCALE_X := 0.6   # horizontal: keep the body close to the attacker
-const _GRAB_OFFSET_SCALE_Y := 1.5   # vertical lift (source apex 52px x this); raise for a higher toss
+const _GRAB_OFFSET_SCALE_Y := 1.5   # verdwtical lift (source apex 52px x this); raise for a higher toss
 const _HIPTOSS_VICTIM := [
 	Vector3(69, 8, 0), Vector3(37, 7, 0), Vector3(56, 10, 0), Vector3(37, 26, 0),
 	Vector3(23, 41, 0), Vector3(-23, 52, 0), Vector3(-73, -18, 0), Vector3(-137, -40, 0),
@@ -186,8 +186,8 @@ const NECK_HOLD_FRAME := 6   # headlocks sprite 07: locked pose
 ## Arcade head-hold #puppet_tbl #Doink raw X (60,59,64,51) + the +20 anchor-space correction
 ## (our sprites are anchored differently than the arcade's; measured in playtest). Drawn in to
 ## the locked 71. The final entry MUST match Fighter._HEADHOLD_VICTIM_X (the hold continuation).
-const NECK_PUPPET_X := [80.0, 79.0, 84.0, 71.0]
-const NECK_HOLD_VICTIM_X := 71.0   # = NECK_PUPPET_X.back(): the locked/held offset
+const NECK_PUPPET_X := [90.0, 89.0, 94.0, 81.0]
+const NECK_HOLD_VICTIM_X := 81.0   # = NECK_PUPPET_X.back(): the locked/held offset
 
 func _neck_grab() -> MoveSequence:
 	var m := MoveSequence.new()

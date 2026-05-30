@@ -34,13 +34,13 @@ duration_ticks = 3
 anim_frame = 4
 command = 4
 attack_box = SubResource("Resource_q300j")
-victim_offset = Vector3(80, 0, 0)
+victim_offset = Vector3(90, 0, 0)
 
 [sub_resource type="Resource" id="Resource_w0r16"]
 script = ExtResource("1_t61qu")
 anim_frame = 5
 command = 5
-victim_offset = Vector3(80, 0, 0)
+victim_offset = Vector3(90, 0, 0)
 slave_anim = "headlocked"
 
 [sub_resource type="Resource" id="Resource_lh0y2"]
@@ -48,7 +48,7 @@ script = ExtResource("1_t61qu")
 anim_frame = 5
 command = 6
 victim_anim_frame = 1
-victim_offset = Vector3(80, 0, 0)
+victim_offset = Vector3(90, 0, 0)
 slave_anim = "headlocked"
 
 [sub_resource type="Resource" id="Resource_o5r85"]
@@ -56,7 +56,7 @@ script = ExtResource("1_t61qu")
 anim_frame = 5
 command = 6
 victim_anim_frame = 2
-victim_offset = Vector3(79, 0, 0)
+victim_offset = Vector3(89, 0, 0)
 slave_anim = "headlocked"
 
 [sub_resource type="Resource" id="Resource_w204p"]
@@ -64,7 +64,7 @@ script = ExtResource("1_t61qu")
 anim_frame = 5
 command = 6
 victim_anim_frame = 3
-victim_offset = Vector3(79, 0, 0)
+victim_offset = Vector3(89, 0, 0)
 slave_anim = "headlocked"
 
 [sub_resource type="Resource" id="Resource_ax8g1"]
@@ -72,7 +72,7 @@ script = ExtResource("1_t61qu")
 anim_frame = 6
 command = 6
 victim_anim_frame = 4
-victim_offset = Vector3(84, 0, 0)
+victim_offset = Vector3(94, 0, 0)
 slave_anim = "headlocked"
 
 [sub_resource type="Resource" id="Resource_pw4mh"]
@@ -80,7 +80,7 @@ script = ExtResource("1_t61qu")
 anim_frame = 6
 command = 6
 victim_anim_frame = 5
-victim_offset = Vector3(84, 0, 0)
+victim_offset = Vector3(94, 0, 0)
 slave_anim = "headlocked"
 
 [sub_resource type="Resource" id="Resource_npuwk"]
@@ -88,7 +88,7 @@ script = ExtResource("1_t61qu")
 anim_frame = 6
 command = 6
 victim_anim_frame = 6
-victim_offset = Vector3(71, 0, 0)
+victim_offset = Vector3(81, 0, 0)
 slave_anim = "headlocked"
 
 [sub_resource type="Resource" id="Resource_l3wrx"]
@@ -96,7 +96,7 @@ script = ExtResource("1_t61qu")
 anim_frame = 6
 command = 6
 victim_anim_frame = 7
-victim_offset = Vector3(71, 0, 0)
+victim_offset = Vector3(81, 0, 0)
 slave_anim = "headlocked"
 
 [resource]
