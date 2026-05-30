@@ -53,6 +53,41 @@ func test_static_hold_keeps_victim_attached_and_facing():
 	assert_almost_eq(vic.global_position.x, expected_x, 0.5, "held victim is pulled to captor.x + offset each tick")
 	assert_eq(vic._facing, atk._facing, "held victim faces with the captor")
 
+func test_headlocked_per_frame_anchor_pins_the_grip():
+	# The held victim's neck (grip) must not drift frame-to-frame: each headlocked frame gets a
+	# baked X render offset so the grip stays put. Unflipped, offset = the table value; flipped,
+	# it negates (the texture mirrors, grip must still hold in world space).
+	var tbl: Array = Fighter._ANIM_FRAME_X_OFFSET["headlocked"]
+	var f := _make()
+	if f.sprite == null or f.sprite.sprite_frames == null or not f.sprite.sprite_frames.has_animation("headlocked"):
+		pass_test("no headlocked sprite frames available in this build")
+		return
+	f.sprite.animation = "headlocked"
+	# Record the per-frame offset for each facing; flip must negate it so the grip holds in world.
+	var off_by_flip := {}
+	for facing in [1.0, -1.0]:
+		f._set_facing(facing)
+		var offs: Array = []
+		for i in range(tbl.size()):
+			f.sprite.frame = i
+			f._refresh_flip()
+			offs.append(f.sprite.offset.x)
+		off_by_flip[f.sprite.flip_h] = offs
+	# One facing is flipped, the other isn't; their offsets must be exact negations.
+	assert_true(off_by_flip.has(true) and off_by_flip.has(false), "headlocked flips with facing")
+	var raw: Array = off_by_flip[false]   # unflipped = the raw table
+	var flipped: Array = off_by_flip[true]
+	for i in range(tbl.size()):
+		assert_almost_eq(raw[i], float(tbl[i]), 0.01, "unflipped frame %d == table value" % i)
+		assert_almost_eq(flipped[i], -float(tbl[i]), 0.01, "flipped frame %d negates the table value" % i)
+	# The offset actually VARIES across frames (it pins a drifting grip, not a constant).
+	assert_true(raw[0] != raw[6], "per-frame offset varies (grip correction, not a constant)")
+	# A non-headlocked animation gets no horizontal correction.
+	if f.sprite.sprite_frames.has_animation("idle_front"):
+		f.sprite.animation = "idle_front"; f.sprite.frame = 0
+		f._refresh_flip()
+		assert_almost_eq(f.sprite.offset.x, 0.0, 0.01, "untabled anim has no grip offset")
+
 func test_release_staggers_the_victim_not_instant_idle():
 	# Arcade dnk_3_head_held_brk_anim: on release the victim is shoved away and plays a head-hit
 	# reaction (a stagger), not an instant snap to idle.

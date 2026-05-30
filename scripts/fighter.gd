@@ -261,11 +261,31 @@ const _ANIM_Y_OFFSET := {
 	"headlocked": 30.0,
 }
 
+## Per-FRAME horizontal RENDER offset (px, source-art space) that pins a held animation's grip
+## point so it doesn't drift frame-to-frame. The arcade re-derives this every frame from the
+## victim's sprite hotspot (ANI_SUPERSLAVE2 victimXoff); we bake it from our art instead.
+## headlocked: lock the NECK (the gripped head, = the body's forward/left edge near the top; the
+## right edge is the struggling arm and must keep moving). Values = ref(49) - head_L per frame
+## (head_L measured by tools/anchor_probe.gd); frames 4-5 are the settled hold (offset 0).
+const _ANIM_FRAME_X_OFFSET := {
+	"headlocked": [-7.0, -4.0, -1.0, 0.0, 0.0, 0.0, 3.0, 3.0],
+}
+
 ## Apply the correct flip + render offset for the current animation + facing.
 func _refresh_flip() -> void:
 	if sprite != null:
 		sprite.flip_h = flip_h_for(sprite.animation, _facing)
 		sprite.offset.y = _ANIM_Y_OFFSET.get(sprite.animation, 0.0)
+		# Per-frame grip-anchor correction (kills frame-to-frame drift). Measured in source-art
+		# space; when the sprite is flipped the texture mirrors, so negate to keep the grip point
+		# fixed in world space. Flip is constant during a hold, so this removes the wobble.
+		var fx: Variant = _ANIM_FRAME_X_OFFSET.get(sprite.animation)
+		var ox := 0.0
+		if fx != null and sprite.frame >= 0 and sprite.frame < fx.size():
+			ox = fx[sprite.frame]
+			if sprite.flip_h:
+				ox = -ox   # texture mirrored: negate so the grip holds in world space
+		sprite.offset.x = ox
 
 ## Facing as ±1 (right = +1). Logic-side; the sprite flip mirrors it.
 func facing() -> float:
