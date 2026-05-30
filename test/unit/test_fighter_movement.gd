@@ -80,3 +80,27 @@ func test_helpless_mode_snaps_velocity_to_zero():
 	f.mode = Fighter.Mode.DIZZY
 	f._physics_process(FRAME)
 	assert_eq(f.velocity, Vector2.ZERO, "control cut snaps to a stop")
+
+func _at_xy(x: float, y: float, side: int) -> Fighter:
+	var f := Fighter.new()
+	add_child_autofree(f)
+	f.global_position = Vector2(x, y)
+	f.side = side
+	f.separation_radii = Vector2.ZERO
+	return f
+
+func test_depth_facing_pivots_to_back_when_target_behind():
+	var me := _at_xy(100, 400, Fighter.Side.PLAYER)
+	# target far above (smaller Y = behind in depth) and to the right
+	var enemy := _at_xy(140, 200, Fighter.Side.ENEMY)
+	for _i in range(40):
+		me._physics_process(1.0 / 60.0)
+	assert_eq(me._depth_facing, Facing.BACK, "turns to face the behind/up target (back view)")
+	assert_eq(me.facing(), 1.0, "still horizontally facing the right-side target")
+
+func test_no_pivot_when_already_facing_target():
+	var me := _at_xy(100, 400, Fighter.Side.PLAYER)
+	var enemy := _at_xy(300, 500, Fighter.Side.ENEMY)  # right + nearer camera -> FR (default)
+	me._set_facing(1.0)
+	me._physics_process(1.0 / 60.0)
+	assert_false(me._turning, "no pivot needed: already facing the target corner")

@@ -49,6 +49,13 @@ static func input_allowed(m: int) -> bool:
 var health: int = Damage.LIFE_MAX
 var _facing: float = 1.0   # +1 faces right, -1 faces left; the sprite mirrors this
 var _depth_facing: int = Facing.FRONT   # FRONT = toward camera, BACK = away (Y-depth facing)
+const _TURN_FRAME_TICKS := 4          # arcade rotate cadence (~4 ticks/frame)
+const _DEPTH_DEADZONE := 24.0         # px of Y separation before flipping front/back
+var _turning: bool = false
+var _turn_frames: Array = []
+var _turn_idx: int = 0
+var _turn_dest: int = Facing.State.FR
+var _turn_accum: float = 0.0
 var _run_dir_x: float = 0.0   # latched horizontal run direction (+1/-1) while RUNNING
 var _player: SequencePlayer = SequencePlayer.new()
 var _react_timer: float = 0.0          # seconds left in a reaction (hitstun/getup/dizzy)
@@ -227,6 +234,10 @@ func _physics_process(delta: float) -> void:
 				var run_vel := Vector2(_run_dir_x * ArcadeUnits.RUN_SPEED, signf(dir.y) * ArcadeUnits.RUN_DEPTH_DRIFT)
 				velocity = velocity.move_toward(run_vel, walk_acceleration * delta)
 		if mode != Mode.RUNNING:
+			# Turn-around pivot (idle + walking): if facing must change, play the rotate
+			# clip this tick instead of walking.
+			if _service_turn(delta):
+				return
 			var walk_vel: Vector2 = MovementMath.walk_velocity(dir) * walk_speed_scale
 			walk_vel.y *= depth_speed_scale
 			var rel := RelativeInput.resolve(dir, _facing)
@@ -320,6 +331,71 @@ func _set_facing(f: float) -> void:
 func _update_facing(dir: Vector2) -> void:
 	if dir.x != 0.0:
 		_set_facing(dir.x)
+
+## Desired facing corner this tick, from the target (horizontal side + depth, with
+## hysteresis). Caller guarantees a valid target.
+func _desired_facing_state() -> int:
+	var h: float = signf(target.global_position.x - global_position.x)
+	if h == 0.0:
+		h = _facing
+	var d: int = Facing.desired_depth(global_position.y, target.global_position.y, _depth_facing, _DEPTH_DEADZONE)
+	return Facing.state_of(h, d)
+
+## Commit a finished pivot: adopt the destination corner's facing + depth.
+func _commit_facing_state(state: int) -> void:
+	_facing = Facing.horizontal_of(state)
+	_depth_facing = Facing.depth_of(state)
+	_refresh_flip()
+
+## Show one frame of the `rotate` clip (driven manually, never mirrored — the clip is drawn
+## for all four corners).
+func _show_rotate_frame(frame: int) -> void:
+	if sprite == null or sprite.sprite_frames == null or not sprite.sprite_frames.has_animation("rotate"):
+		return
+	sprite.animation = "rotate"
+	sprite.pause()
+	var last: int = sprite.sprite_frames.get_frame_count("rotate") - 1
+	sprite.frame = clampi(frame, 0, maxi(last, 0))
+	sprite.flip_h = false
+	sprite.offset = Vector2.ZERO
+
+## Hold position for a tick (no walk): used by the pivot and the getup phases.
+func _hold_in_place() -> void:
+	velocity = Vector2.ZERO
+	move_and_slide()
+	global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
+
+## Turn-around pivot. While idle or walking, if facing must change, play the `rotate` clip
+## instead of moving; commit the new facing on the last frame. Returns true while turning
+## (caller skips walking this tick). Attacks/grapples/reactions/running never call this.
+func _service_turn(delta: float) -> bool:
+	var per: float = ArcadeUnits.ticks_to_seconds(_TURN_FRAME_TICKS)
+	if _turning:
+		_turn_accum += delta
+		while _turn_accum >= per and _turn_idx < _turn_frames.size() - 1:
+			_turn_accum -= per
+			_turn_idx += 1
+		_show_rotate_frame(_turn_frames[_turn_idx])
+		if _turn_idx >= _turn_frames.size() - 1:
+			_commit_facing_state(_turn_dest)
+			_turning = false
+		_hold_in_place()
+		return true
+	if target == null or not is_instance_valid(target):
+		return false
+	var des: int = _desired_facing_state()
+	if des == Facing.state_of(_facing, _depth_facing):
+		return false
+	_turn_frames = RotatePlanner.plan(Facing.state_of(_facing, _depth_facing), des)
+	if _turn_frames.is_empty():
+		return false
+	_turning = true
+	_turn_dest = des
+	_turn_idx = 0
+	_turn_accum = 0.0
+	_show_rotate_frame(_turn_frames[0])
+	_hold_in_place()
+	return true
 
 ## Turn toward the nearest other fighter (called when a move starts).
 func _face_nearest_opponent() -> void:

@@ -40,12 +40,13 @@ func test_retargets_when_current_target_dies():
 
 func test_faces_target_continuously():
 	var me := _at(100, Fighter.Side.PLAYER)
-	var enemy := _at(300, Fighter.Side.ENEMY)   # to the right
+	var enemy := _at(300, Fighter.Side.ENEMY)   # to the right, same depth -> no turn needed
 	me._physics_process(FRAME)
 	assert_eq(me.facing(), 1.0, "faces right toward the right-side target")
-	enemy.global_position.x = -50               # move target to the left
-	me._physics_process(FRAME)
-	assert_eq(me.facing(), -1.0, "turns to keep facing the target")
+	enemy.global_position.x = -50               # move target to the left -> pivot around
+	for _i in range(30):
+		me._physics_process(FRAME)              # let the turn-around pivot complete
+	assert_eq(me.facing(), -1.0, "pivots around to keep facing the target")
 
 class _WalkLeft extends Fighter:
 	func get_input_direction() -> Vector2:
