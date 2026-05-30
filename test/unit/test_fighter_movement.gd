@@ -133,3 +133,12 @@ func test_back_depth_plays_back_variant():
 	f._depth_facing = Facing.BACK
 	f._update_animation(Vector2.RIGHT)
 	assert_eq(f.sprite.animation, "walk_horisontal_back")
+
+func test_no_movement_plays_idle_clip():
+	var f := _spawn()
+	f._depth_facing = Facing.FRONT
+	f._update_animation(Vector2.ZERO)
+	assert_eq(f.sprite.animation, "idle_front")
+	f._depth_facing = Facing.BACK
+	f._update_animation(Vector2.ZERO)
+	assert_eq(f.sprite.animation, "idle_back")
