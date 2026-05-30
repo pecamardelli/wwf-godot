@@ -11,6 +11,7 @@ var active_attack_box: Box3 = null
 # --- Grapple state surfaced to Fighter ---
 var slave_anim: String = ""                 # current victim anim (set by SLAVE_ANIM / SET_ATTACH)
 var whiffed: bool = false                    # WAIT_HIT_OPP timed out with no connect
+var blocked: bool = false                    # grab landed on a guarding victim (no grab)
 var damage_opp_seen: bool = false            # diagnostics/tests: DAMAGE_OPP fired this play
 var detach_seen: bool = false                # diagnostics/tests: DETACH fired this play
 var _pending_attach: bool = false
@@ -43,6 +44,7 @@ func play(seq: MoveSequence) -> void:
 	active_attack_box = null
 	slave_anim = ""
 	whiffed = false
+	blocked = false
 	damage_opp_seen = false
 	detach_seen = false
 	_pending_attach = false
@@ -69,6 +71,15 @@ func notify_grab_connected() -> void:
 	if _waiting_for_hit:
 		_waiting_for_hit = false
 		_freeze_left = ArcadeUnits.ticks_to_seconds(CONTACT_FREEZE_TICKS)
+
+## Grab landed on a guarding victim: no attach. Retract the reach (if the move opts in),
+## else end the move (throws). Mirrors arcade #missedb.
+func notify_grab_blocked() -> void:
+	if _waiting_for_hit:
+		_waiting_for_hit = false
+		blocked = true
+		if not _begin_reverse():
+			_finish()
 
 ## One-shot intent readers (read-and-clear) — Fighter calls these each tick.
 func consume_attach() -> bool:

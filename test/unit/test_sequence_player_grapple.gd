@@ -121,3 +121,19 @@ func test_whiff_reverses_the_reach_to_the_start():
 	assert_true(seen_after_whiff.find(1) < seen_after_whiff.find(0), "frames descend (2->1->0)")
 	assert_false(sp.consume_attach(), "the reverse phase never fires SET_ATTACH")
 	assert_false(sp.damage_opp_seen, "the reverse phase never damages")
+
+func test_block_sets_blocked_and_reverses():
+	var sp := SequencePlayer.new(); sp.play(_reach_grab_seq())
+	for _i in range(8):   # into the WAIT_HIT_OPP at index 2
+		sp.advance(FRAME)
+	assert_true(sp.is_waiting_for_hit(), "reached the grab window")
+	sp.notify_grab_blocked()
+	assert_true(sp.blocked, "blocked flag set")
+	assert_false(sp.is_waiting_for_hit(), "released the hold on a block")
+	var reversed := false
+	for _i in range(60):
+		sp.advance(FRAME)
+		if sp.current_frame() != null and sp.current_frame().anim_frame == 0:
+			reversed = true
+	assert_true(reversed, "reach retracted back to frame 0 after a block")
+	assert_false(sp.is_playing(), "move ends after the block reverse")
