@@ -32,10 +32,6 @@ var _grab_window_index: int = -1   # frame index of the WAIT_HIT_OPP reach apex
 var _reversing: bool = false       # retracting the reach after a whiff/block
 var _reverse_index: int = -1       # frame shown during the reverse phase
 
-## Contact freeze: on a grab connect, hold the reach frame this many arcade ticks before
-## the throw plays (arcade `WL 4,D3HT3Q+FR1` after ANI_WAITHITOPP, DNKSEQ2.ASM:4248).
-const CONTACT_FREEZE_TICKS := 2
-
 func play(seq: MoveSequence) -> void:
 	sequence = seq
 	_index = -1
@@ -65,12 +61,15 @@ func is_playing() -> bool:
 func is_waiting_for_hit() -> bool:
 	return _waiting_for_hit
 
-## Grab box connected: clear the WAIT_HIT_OPP hold but freeze on the reach frame for a
-## brief contact hitstop before the throw plays (arcade DNKSEQ2.ASM:4248).
+## Grab box connected: clear the WAIT_HIT_OPP hold but freeze on the reach frame for a brief
+## contact hitstop before the throw/puppet plays. Duration is per-move
+## (MoveSequence.contact_freeze_ticks): hip toss = 4 (arcade `WL 4,D3HT3Q+FR1`, DNKSEQ2.ASM:4248);
+## neck grab = 1 (arcade `ANI_SUPERSLAVE2,1,D4GH3A+FR4` settle, DNKSEQ3.ASM).
 func notify_grab_connected() -> void:
 	if _waiting_for_hit:
 		_waiting_for_hit = false
-		_freeze_left = ArcadeUnits.ticks_to_seconds(CONTACT_FREEZE_TICKS)
+		var ticks: int = sequence.contact_freeze_ticks if sequence != null else 4
+		_freeze_left = ArcadeUnits.ticks_to_seconds(ticks)
 
 ## Grab landed on a guarding victim: no attach. Retract the reach (if the move opts in),
 ## else end the move (throws). Mirrors arcade #missedb.
