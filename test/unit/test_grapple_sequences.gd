@@ -132,6 +132,12 @@ func test_neck_grab_reaches_then_grabs_mid_clip():
 		if f.command == SequenceFrame.Command.SET_ATTACH:
 			has_attach = true
 	assert_true(has_attach, "binds the victim with SET_ATTACH after the connect")
+	# SET_ATTACH lands on the FIRST connected step (right after the grab window at index 4).
+	assert_eq(m.frames[5].command, SequenceFrame.Command.SET_ATTACH, "binds on the first connected step")
+	# The connected pull-in spans the whole victim clip: first connected step shows victim
+	# frame 0, the final step shows the last victim frame (no dropped frames in the pull-in).
+	assert_eq(m.frames[5].victim_anim_frame, 0, "pull-in starts at victim frame 0")
+	assert_eq(m.frames[m.frames.size() - 1].victim_anim_frame, 7, "pull-in ends at the last victim frame (7)")
 	# It's a HOLD entry: no DAMAGE_OPP / DETACH (follow-ups drive those).
 	for f in m.frames:
 		assert_ne(f.command, SequenceFrame.Command.DAMAGE_OPP, "neck grab does not damage on entry")

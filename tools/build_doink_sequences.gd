@@ -187,6 +187,7 @@ func _neck_grab() -> MoveSequence:
 	var vframes: int = maxi(_sf.get_frame_count("headlocked"), 1)
 	var arr: Array[SequenceFrame] = []
 	# Reach lead-in (frames 0..NECK_GRAB_FRAME-1): no victim yet, just the reach animation.
+	# Reach plays at 3 ticks/frame (a touch quicker than the 4-tick puppet pull-in below).
 	for i in range(NECK_GRAB_FRAME):
 		arr.append(_gframe(3, i, SequenceFrame.Command.NONE, "", Vector3.ZERO, 0))
 	# Grab window at the reach apex.
