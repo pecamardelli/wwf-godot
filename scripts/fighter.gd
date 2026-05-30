@@ -130,7 +130,8 @@ func _physics_process(delta: float) -> void:
 	if not controlling and not _is_guarding() and target != null and is_instance_valid(target) \
 			and (_grappling == null or not _player.is_playing()):
 		_set_facing(target.global_position.x - global_position.x)
-		_depth_facing = Facing.desired_depth(global_position.y, target.global_position.y)
+		# Same hysteresis as the pivot path: keep current depth when roughly level (no jitter).
+		_depth_facing = Facing.desired_depth(global_position.y, target.global_position.y, _depth_facing, _DEPTH_DEADZONE)
 	# 1) Reaction / down-time countdown: no control, no walk. A knockdown (ONGROUND) hands
 	# off to the RISE phase when it expires; other reactions recover straight to NORMAL.
 	if _react_timer > 0.0:
