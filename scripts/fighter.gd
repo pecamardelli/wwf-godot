@@ -729,6 +729,8 @@ func _start_block_bounce() -> void:
 func _enter_reaction(r: Dictionary, hit_dir: int) -> void:
 	_player.play(null)                       # cancel any move in progress
 	_hit_by_current_move.clear()             # a cancelled move leaves no stale hit-list
+	_getup_rising = false                    # a fresh hit cancels any in-progress getup RISE
+	_getup_rise_time = 0.0
 	mode = r.mode
 	global_position.x += hit_dir * r.knockback  # push the victim AWAY from the attacker
 	_react_recover_mode = Mode.NORMAL

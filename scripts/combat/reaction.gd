@@ -46,6 +46,8 @@ static func _r(anim: String, mode: int, hitstun: int, knockback: float, getup: i
 ## finishers here as they get wired; verify against the art in playtest.
 const _FACE_DOWN_ROLL_MOVES := {"flying_clothesline": true, "faceslam": true}
 
+## `_family` is reserved (intentionally unused): orientation keys off the move id today, but
+## the signature anticipates family-differentiated falls (the arcade has them).
 static func fall_orientation(_family: int, move_id: String) -> int:
 	if _FACE_DOWN_ROLL_MOVES.has(move_id):
 		return Fighter.Fall.FACE_DOWN_ROLL

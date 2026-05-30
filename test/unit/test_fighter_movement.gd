@@ -164,3 +164,13 @@ func test_getup_clip_chosen_by_fall_orientation():
 	assert_eq(f._getup_anim(), "get_up_back")
 	f._fall_orientation = Fighter.Fall.FACE_UP
 	assert_eq(f._getup_anim(), "get_up_front")
+
+func test_fresh_hit_cancels_in_progress_getup_rise():
+	# Re-hit while rising must cancel the RISE so it can't linger as a phantom hold.
+	var f := _spawn()
+	f._getup_rising = true
+	f._getup_rise_time = 0.5
+	f._enter_reaction({"anim": "shoved", "mode": Fighter.Mode.NORMAL,
+		"hitstun_ticks": 12, "knockback": 10.0, "getup_ticks": 0}, 1)
+	assert_false(f._getup_rising, "a new hit cancels the in-progress getup rise")
+	assert_eq(f._getup_rise_time, 0.0)
