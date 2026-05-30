@@ -44,9 +44,9 @@ static func _r(anim: String, mode: int, hitstun: int, knockback: float, getup: i
 ## defaults to *_faceup_getup_anim, with *_facedown_getup_anim for face-down falls
 ## (REACT1.ASM, ADMSEQ2.ASM #choose_dir). Seed list is forward-looking — add slam/roll
 ## finishers here as they get wired; verify against the art in playtest.
-const _ROLL_FALL_MOVES := {"flying_clothesline": true, "faceslam": true}
+const _FACE_DOWN_ROLL_MOVES := {"flying_clothesline": true, "faceslam": true}
 
 static func fall_orientation(_family: int, move_id: String) -> int:
-	if _ROLL_FALL_MOVES.has(move_id):
+	if _FACE_DOWN_ROLL_MOVES.has(move_id):
 		return Fighter.Fall.FACE_DOWN_ROLL
 	return Fighter.Fall.FACE_UP
