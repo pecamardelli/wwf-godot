@@ -392,7 +392,7 @@ func _service_turn(delta: float) -> bool:
 	_turning = true
 	_turn_dest = des
 	_turn_idx = 0
-	_turn_accum = 0.0
+	_turn_accum = delta   # charge this tick so frame 0 isn't held one extra tick
 	_show_rotate_frame(_turn_frames[0])
 	_hold_in_place()
 	return true

@@ -95,12 +95,14 @@ func test_depth_facing_pivots_to_back_when_target_behind():
 	var enemy := _at_xy(140, 200, Fighter.Side.ENEMY)
 	for _i in range(40):
 		me._physics_process(1.0 / 60.0)
+	assert_false(me._turning, "pivot has completed")
 	assert_eq(me._depth_facing, Facing.BACK, "turns to face the behind/up target (back view)")
 	assert_eq(me.facing(), 1.0, "still horizontally facing the right-side target")
 
 func test_no_pivot_when_already_facing_target():
 	var me := _at_xy(100, 400, Fighter.Side.PLAYER)
 	var enemy := _at_xy(300, 500, Fighter.Side.ENEMY)  # right + nearer camera -> FR (default)
+	me.target = enemy                                   # explicit (don't depend on tick-order targeting)
 	me._set_facing(1.0)
 	me._physics_process(1.0 / 60.0)
 	assert_false(me._turning, "no pivot needed: already facing the target corner")
