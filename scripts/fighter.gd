@@ -277,6 +277,9 @@ func _apply_separation() -> void:
 	for other in get_tree().get_nodes_in_group("fighters"):
 		if other == self:
 			continue
+		# Walk over a downed or dead body — a fighter on the ground doesn't block the lane.
+		if other.mode == Mode.ONGROUND or other.is_dead():
+			continue
 		push += MovementMath.separation_push(global_position, other.global_position, separation_radii)
 	global_position += push
 

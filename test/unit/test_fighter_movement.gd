@@ -204,6 +204,20 @@ func test_downed_victim_does_not_reface_when_attacker_crosses():
 		me._physics_process(1.0 / 60.0)
 	assert_eq(me.facing(), 1.0, "a downed fighter does not track the attacker")
 
+func test_can_walk_over_a_downed_body():
+	var me := _at_xy(100, 400, Fighter.Side.PLAYER)
+	me.separation_radii = Vector2(50, 20)
+	var downed := _at_xy(110, 400, Fighter.Side.ENEMY)   # overlapping on the lane
+	# a STANDING body pushes me out...
+	var before := me.global_position
+	me._apply_separation()
+	assert_ne(me.global_position, before, "standing body still separates")
+	# ...a DOWNED body does not (walk over it)
+	me.global_position = before
+	downed.mode = Fighter.Mode.ONGROUND
+	me._apply_separation()
+	assert_eq(me.global_position, before, "no push from a body on the ground")
+
 func test_hip_toss_victim_lands_facing_away():
 	# Hip toss flips the victim over: it lands facing OPPOSITE the attacker, not the puppet's
 	# attacker-facing orientation it had during the throw.
