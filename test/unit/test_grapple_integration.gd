@@ -50,3 +50,26 @@ func test_hip_toss_lifts_the_victim():
 	# Proves the victim is driven UP off the ground (atk.y - off.y) during the throw —
 	# the lift scales with _GRAB_OFFSET_SCALE_Y, applied when the .tres is regenerated.
 	assert_gt(max_lift, 40.0, "victim is lifted well off the ground during the toss")
+
+func test_connected_neck_grab_enters_head_hold():
+	# Load the REAL neck_grab sequence via the motions table (same path as production).
+	var atk := _player(Vector2(100, 400), Fighter.Side.PLAYER)
+	atk._set_facing(1.0)
+	var vic := _player(Vector2(150, 400), Fighter.Side.ENEMY)
+	# Trigger the neck_grab: SPUNCH (B_SPUNCH=64) with J_TOWARD(8), matching the .tres values.
+	atk.motion_buffer.push(MotionBuffer.J_TOWARD | MotionBuffer.J_RIGHT, 1)
+	atk.motion_buffer.push(MotionBuffer.J_TOWARD | MotionBuffer.J_RIGHT, 2)
+	atk.motion_buffer.push(MotionBuffer.B_SPUNCH | MotionBuffer.J_TOWARD | MotionBuffer.J_RIGHT, 3)
+	atk._input_tick = 3
+	assert_true(atk.scan_specials(), "neck grab fired")
+	# Advance tick-by-tick until the grab window opens (WAIT_HIT_OPP at anim frame 4).
+	var guard := 0
+	while not atk._player.is_waiting_for_hit() and guard < 120:
+		atk._physics_process(1.0 / 60.0)
+		guard += 1
+	assert_true(atk._player.is_waiting_for_hit(), "reached the grab window")
+	# Connect: resolve_tick() with the victim in grab range and not guarding.
+	resolver.resolve_tick()
+	assert_eq(atk.mode, Fighter.Mode.HEADHOLD, "connected neck grab enters the head hold")
+	assert_eq(vic.mode, Fighter.Mode.HEADHELD, "victim is held")
+	assert_eq(atk._grappling, vic, "victim bound to the captor")
