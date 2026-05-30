@@ -239,6 +239,7 @@ func _physics_process(delta: float) -> void:
 		if mode != Mode.RUNNING and wants_to_run():
 			mode = Mode.RUNNING
 			_run_dir_x = signf(dir.x) if dir.x != 0.0 else signf(_facing)
+			_turning = false   # running snaps facing; abandon any in-progress turn-pivot
 		if mode == Mode.RUNNING:
 			# Pressing the OPPOSITE direction stops the run (GMS run.gml).
 			if signf(dir.x) != 0.0 and signf(dir.x) == -signf(_run_dir_x):
@@ -433,7 +434,8 @@ func _update_animation(dir: Vector2) -> void:
 	if sprite == null or sprite.sprite_frames == null:
 		return
 	# Turn-around pivot overlay: while turning, show the rotate clip (movement continues).
-	if _turning:
+	# Never during a run — running snaps facing and uses the run clip (no frozen rotate frame).
+	if _turning and mode != Mode.RUNNING:
 		_show_rotate_frame(_turn_frames[_turn_idx])
 		return
 	var anim: String

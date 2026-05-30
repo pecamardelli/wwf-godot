@@ -99,6 +99,29 @@ func test_depth_facing_pivots_to_back_when_target_behind():
 	assert_eq(me._depth_facing, Facing.BACK, "turns to face the behind/up target (back view)")
 	assert_eq(me.facing(), 1.0, "still horizontally facing the right-side target")
 
+class _RunHolder extends Fighter:
+	var run_now: bool = false
+	var held: Vector2 = Vector2.ZERO
+	func wants_to_run() -> bool:
+		return run_now
+	func get_input_direction() -> Vector2:
+		return held
+
+func test_latching_run_abandons_an_in_progress_pivot():
+	# A turn-pivot in flight must not freeze on its first rotate frame when a run latches
+	# (running snaps facing and shows the run clip).
+	var f := _RunHolder.new()
+	add_child_autofree(f)
+	f.global_position = Vector2(100, 400)
+	f.separation_radii = Vector2.ZERO
+	f.mode = Fighter.Mode.NORMAL
+	f._turning = true                       # pretend a pivot is mid-flight
+	f.held = Vector2.RIGHT
+	f.run_now = true
+	f._physics_process(1.0 / 60.0)          # latch the run
+	assert_eq(f.mode, Fighter.Mode.RUNNING, "run latched")
+	assert_false(f._turning, "the in-progress pivot is abandoned when running")
+
 func test_no_pivot_when_already_facing_target():
 	var me := _at_xy(100, 400, Fighter.Side.PLAYER)
 	var enemy := _at_xy(300, 500, Fighter.Side.ENEMY)  # right + nearer camera -> FR (default)
