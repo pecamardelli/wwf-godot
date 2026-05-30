@@ -111,7 +111,12 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 		move_and_slide()
 		global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
+		# Ease any release-rise render offset toward 0 (smooth rise out of the held pose).
+		if _release_rise_y != 0.0:
+			_release_rise_y = move_toward(_release_rise_y, 0.0, _RELEASE_RISE_SPEED * delta)
+			_refresh_flip()
 		if _react_timer <= 0.0:
+			_release_rise_y = 0.0   # reaction over: drop any leftover rise offset
 			if mode == Mode.ONGROUND and sprite != null and sprite.sprite_frames != null:
 				var anim := "get_up_back" if _facing < 0.0 else "get_up_front"
 				if sprite.sprite_frames.has_animation(anim):
@@ -276,7 +281,9 @@ const _ANIM_FRAME_X_OFFSET := {
 func _refresh_flip() -> void:
 	if sprite != null:
 		sprite.flip_h = flip_h_for(sprite.animation, _facing)
-		sprite.offset.y = _ANIM_Y_OFFSET.get(sprite.animation, 0.0)
+		# Base per-anim Y offset + a transient "rise" offset, so a freed headlock victim eases up
+		# from the lowered held pose instead of popping up the instant the held offset vanishes.
+		sprite.offset.y = _ANIM_Y_OFFSET.get(sprite.animation, 0.0) + _release_rise_y
 		# Per-frame grip-anchor correction (kills frame-to-frame drift). Measured in source-art
 		# space; when the sprite is flipped the texture mirrors, so negate to keep the grip point
 		# fixed in world space. Flip is constant during a hold, so this removes the wobble.
@@ -482,6 +489,10 @@ func _break_head_hold() -> void:
 ## from dnk_3_head_held_brk_anim). Shoved away from the captor, plays a hit reaction, recovers.
 const _HEADHOLD_RELEASE_PUSH := 14.0          # px shoved away from the captor on release
 const _HEADHOLD_RELEASE_STAGGER_TICKS := 14   # stagger duration before recovering to NORMAL
+## Transient vertical RENDER offset eased to 0 during a reaction. Set on head-hold release to the
+## held pose's lowered offset so the freed victim rises smoothly instead of snapping up a frame.
+var _release_rise_y: float = 0.0
+const _RELEASE_RISE_SPEED := 180.0            # px/s the held offset eases out on release
 func _release_with_stagger(captor_facing: float) -> void:
 	_grappled_by = null
 	mode = Mode.NORMAL
@@ -489,6 +500,8 @@ func _release_with_stagger(captor_facing: float) -> void:
 	global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
 	_react_recover_mode = Mode.NORMAL
 	_react_timer = ArcadeUnits.ticks_to_seconds(_HEADHOLD_RELEASE_STAGGER_TICKS)
+	# Start the stagger art at the held pose's lowered height, then ease up (no instant pop).
+	_release_rise_y = _ANIM_Y_OFFSET.get("headlocked", 0.0)
 	if sprite != null and sprite.sprite_frames != null and sprite.sprite_frames.has_animation("damage_front"):
 		sprite.play("damage_front")
 		_refresh_flip()
