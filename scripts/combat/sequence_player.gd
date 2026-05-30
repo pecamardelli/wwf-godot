@@ -34,7 +34,7 @@ var _reverse_index: int = -1       # frame shown during the reverse phase
 
 ## Contact freeze: on a grab connect, hold the reach frame this many arcade ticks before
 ## the throw plays (arcade `WL 4,D3HT3Q+FR1` after ANI_WAITHITOPP, DNKSEQ2.ASM:4248).
-const CONTACT_FREEZE_TICKS := 4
+const CONTACT_FREEZE_TICKS := 2
 
 func play(seq: MoveSequence) -> void:
 	sequence = seq

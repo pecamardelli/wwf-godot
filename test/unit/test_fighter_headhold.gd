@@ -48,7 +48,9 @@ func test_static_hold_keeps_victim_attached_and_facing():
 	vic.mode = Fighter.Mode.HEADHELD; vic._grappled_by = atk
 	vic._set_facing(-1.0); vic.global_position = Vector2(999, 999)   # drifted off
 	atk._physics_process(1.0 / 60.0)
-	assert_almost_eq(vic.global_position.x, 230.0, 0.5, "held victim is pulled to captor.x + offset each tick")
+	# captor.x (200) + the arcade-matched hold offset, facing right.
+	var expected_x: float = 200.0 + Fighter._HEADHOLD_VICTIM_X
+	assert_almost_eq(vic.global_position.x, expected_x, 0.5, "held victim is pulled to captor.x + offset each tick")
 	assert_eq(vic._facing, atk._facing, "held victim faces with the captor")
 
 func test_blocked_grab_recoils_the_attacker_backward():

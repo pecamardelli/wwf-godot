@@ -179,6 +179,10 @@ func _followup(id: String, anim: String, slave: String, slam_amode: int) -> Move
 ## — the head-hold follow-ups drive those.
 const NECK_GRAB_FRAME := 4   # headlocks sprite 05: reach apex / grab window
 const NECK_HOLD_FRAME := 6   # headlocks sprite 07: locked pose
+## Victim offset while pulled into / held in the lock. Arcade holds the victim ~51px forward
+## (head-hold #puppet_tbl #Doink locked frame raw X=51, DNKSEQ3.ASM:1549) so the captor's hands
+## grip the bent-over head. Must match Fighter._HEADHOLD_VICTIM_X (the static-hold continuation).
+const NECK_HOLD_VICTIM_X := 50.0
 
 func _neck_grab() -> MoveSequence:
 	var m := MoveSequence.new()
@@ -191,7 +195,7 @@ func _neck_grab() -> MoveSequence:
 	for i in range(NECK_GRAB_FRAME):
 		arr.append(_gframe(3, i, SequenceFrame.Command.NONE, "", Vector3.ZERO, 0))
 	# Grab window at the reach apex.
-	var gw := _gframe(3, NECK_GRAB_FRAME, SequenceFrame.Command.WAIT_HIT_OPP, "", Vector3(30, 0, 0), 0)
+	var gw := _gframe(3, NECK_GRAB_FRAME, SequenceFrame.Command.WAIT_HIT_OPP, "", Vector3(NECK_HOLD_VICTIM_X, 0, 0), 0)
 	gw.attack_box = _grab_box(); gw.wait_hit_max_ticks = 16
 	arr.append(gw)
 	# Connected pull-in: resample attacker frames [NECK_GRAB_FRAME+1 .. NECK_HOLD_FRAME] over
@@ -205,7 +209,7 @@ func _neck_grab() -> MoveSequence:
 		var aimg := cont_lo + int(round(t * float(cont_span)))
 		var vimg := int(round(t * float(vframes - 1)))
 		var cmd := SequenceFrame.Command.SET_ATTACH if s == 0 else SequenceFrame.Command.SLAVE_ANIM
-		arr.append(_gframe(4, aimg, cmd, "headlocked", Vector3(30, 0, 0), vimg))
+		arr.append(_gframe(4, aimg, cmd, "headlocked", Vector3(NECK_HOLD_VICTIM_X, 0, 0), vimg))
 	m.frames = arr
 	return m
 
