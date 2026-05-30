@@ -53,6 +53,30 @@ func test_static_hold_keeps_victim_attached_and_facing():
 	assert_almost_eq(vic.global_position.x, expected_x, 0.5, "held victim is pulled to captor.x + offset each tick")
 	assert_eq(vic._facing, atk._facing, "held victim faces with the captor")
 
+func test_held_loop_driven_in_sync_no_wobble():
+	# The struggle loop is driven MANUALLY (paused), and the grip offset is set for the SAME
+	# frame each tick. A free-running sprite would advance on its own timer and the offset would
+	# lag the shown frame -> the victim jitters forward/back. Assert: paused, and offset.x always
+	# matches the grip table for the currently-shown frame (facing right -> not flipped).
+	var atk := _make(); var vic := _make()
+	if vic.sprite == null or vic.sprite.sprite_frames == null or not vic.sprite.sprite_frames.has_animation("headlocked"):
+		pass_test("no headlocked sprite frames in this build"); return
+	atk.global_position = Vector2(200, 400); atk._set_facing(1.0)
+	atk.mode = Fighter.Mode.HEADHOLD; atk._grappling = vic
+	atk._set_headhold_break_ticks(600)
+	vic.mode = Fighter.Mode.HEADHELD; vic._grappled_by = atk
+	var tbl: Array = Fighter._ANIM_FRAME_X_OFFSET["headlocked"]
+	var seen := {}
+	for i in range(40):
+		vic._sim_time = float(i) * (1.0 / 30.0)
+		atk._hold_victim()
+		assert_false(vic.sprite.is_playing(), "held loop is paused (manually driven)")
+		var fr: int = vic.sprite.frame
+		seen[fr] = true
+		var expect: float = tbl[fr] if fr < tbl.size() else 0.0
+		assert_almost_eq(vic.sprite.offset.x, expect, 0.01, "grip offset matches shown frame %d" % fr)
+	assert_gt(seen.size(), 1, "the struggle loop actually advances through frames")
+
 func test_headlocked_per_frame_anchor_pins_the_grip():
 	# The held victim's neck (grip) must not drift frame-to-frame: each headlocked frame gets a
 	# baked X render offset so the grip stays put. Unflipped, offset = the table value; flipped,

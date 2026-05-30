@@ -420,6 +420,9 @@ const _BLOCK_RECOIL_SPEED := 140.0 # px/s of recoil travel
 var _recoil_remaining: float = 0.0
 var _block_recoiled: bool = false  # latch so the recoil fires once per blocked grab
 
+## Arcade head-held struggle loop cadence: D3BF3A plays at 4 ticks/frame (DNKSEQ3.ASM #loop).
+const _HEADHELD_LOOP_TICKS := 4
+
 ## During the STATIC head hold, keep the victim attached + facing the captor and LOOP its
 ## struggle (arcade master_keep_attached + the headheld loop). The neck-grab sequence drives
 ## the cinch; once it ends the captor isn't "playing", so the victim is driven from here.
@@ -429,10 +432,17 @@ func _hold_victim() -> void:
 	vic.global_position = global_position + Vector2(_HEADHOLD_VICTIM_X * _facing, 0.0)
 	vic.global_position = MovementMath.clamp_to_floor(vic.global_position, vic.floor_min_y, vic.floor_max_y)
 	if vic.sprite != null and vic.sprite.sprite_frames != null and vic.sprite.sprite_frames.has_animation("headlocked"):
-		# headlocked is loop=false in the SpriteFrames, so restart it when it finishes.
-		if vic.sprite.animation != "headlocked" or not vic.sprite.is_playing():
-			vic.sprite.play("headlocked")
-		vic._refresh_flip()
+		# Drive the struggle loop MANUALLY (paused): a free-running sprite advances on its own
+		# timer, so the per-frame grip offset (set in _refresh_flip) lags the displayed frame by
+		# up to a frame and the victim jitters forward/back. Setting the frame + its offset
+		# together each tick keeps the grip pinned. Cadence = arcade D3BF3A 4 ticks/frame
+		# (DNKSEQ3.ASM #loop).
+		var n: int = maxi(vic.sprite.sprite_frames.get_frame_count("headlocked"), 1)
+		var per: float = ArcadeUnits.ticks_to_seconds(_HEADHELD_LOOP_TICKS)
+		vic.sprite.animation = "headlocked"
+		vic.sprite.pause()
+		vic.sprite.frame = int(vic._sim_time / per) % n
+		vic._refresh_flip()   # grip offset for THIS frame, same tick
 
 ## Release the current victim to ONGROUND (knockdown) and clear both refs.
 func _detach_victim() -> void:
