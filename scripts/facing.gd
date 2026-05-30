@@ -7,7 +7,9 @@ const BACK := -1   # facing away from the camera
 
 enum State { FR, BR, BL, FL }
 
-## (horizontal ±1, depth FRONT/BACK) -> State.
+## (horizontal ±1, depth FRONT/BACK) -> State. `horizontal` is expected pre-signed (±1);
+## callers pass `_facing` or `signf(...)`. A zero/positive value maps to the right-facing
+## states (FR/BR), matching the sign convention used elsewhere (signf(0) == 0 -> right).
 static func state_of(horizontal: float, depth: int) -> int:
 	var right := horizontal >= 0.0
 	if depth == FRONT:
