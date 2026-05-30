@@ -21,7 +21,10 @@ func resolve_tick() -> void:
 				continue
 			var move: MoveSequence = attacker.current_move()
 			if move != null and move.is_grapple:
-				if _can_be_grabbed(victim):
+				if victim._is_guarding():
+					attacker._hit_by_current_move.append(victim)   # resolve once
+					attacker._player.notify_grab_blocked()
+				elif _can_be_grabbed(victim):
 					attacker._hit_by_current_move.append(victim)
 					victim.receive_grab(attacker, move)
 			else:

@@ -38,6 +38,16 @@ func test_grab_refuses_downed_victim():
 	resolver.resolve_tick()
 	assert_ne(vic.mode, Fighter.Mode.GRABBED, "cannot grab a downed fighter")
 
+func test_grab_on_a_guarding_victim_is_blocked_not_grabbed():
+	var atk := _fighter(Vector2(100, 400), Fighter.Side.PLAYER)
+	var vic := _fighter(Vector2(110, 400), Fighter.Side.ENEMY)
+	vic.mode = Fighter.Mode.BLOCK            # guarding -> _is_guarding() true
+	atk.start_move(_grab_seq())
+	atk._player.advance(1.0 / 60.0)          # open the WAIT_HIT_OPP box
+	resolver.resolve_tick()
+	assert_ne(vic.mode, Fighter.Mode.GRABBED, "a guarding victim is NOT grabbed")
+	assert_true(atk._player.blocked, "the attacker's grab registered as blocked")
+
 func test_grab_refuses_already_grabbed_victim():
 	# Two attackers, one victim: the second grab must NOT re-bind the already-held victim.
 	var a := _fighter(Vector2(100, 400), Fighter.Side.PLAYER)
