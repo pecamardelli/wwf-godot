@@ -59,15 +59,19 @@ victim never drops one). No `DAMAGE_OPP`/`DETACH` — follow-ups drive those.
 - Record `_grab_window_index` (the frame index when `WAIT_HIT_OPP` is entered).
 - Add `blocked: bool` and `notify_grab_blocked()` (mirrors `notify_grab_connected`),
   which ends the wait and triggers the reverse phase.
+- Gate the reverse on an explicit `MoveSequence.reverse_reach_on_whiff` flag (default
+  `false`, set `true` only by `neck_grab`). Gating on the flag rather than on
+  "`_grab_window_index > 0`" keeps every throw — and the existing throw unit tests whose
+  windup puts `WAIT_HIT_OPP` at index 1 — on the unchanged immediate-end path.
 - Replace the current "whiff → `_finish()`":
   - On `WAIT_HIT_OPP` timeout (whiff) **or** `notify_grab_blocked()` (block), **if**
-    `_grab_window_index > 0`, enter a **reverse phase**: clear the live grab box
-    (`attack_live = false`, `active_attack_box = null` — the reach is retracting, not
-    attacking), then step the already-played reach frames from `_grab_window_index` down
-    to `0` (reusing each frame's `anim_frame` + `duration_ticks`), then `_finish()`. Set
-    `whiffed`/`blocked` accordingly.
-  - If `_grab_window_index == 0` (throws — grab window at frame 0), keep the current
-    immediate `_finish()` (no behavior change for hip toss / grab & fling).
+    `sequence.reverse_reach_on_whiff` and `_grab_window_index > 0`, enter a **reverse
+    phase**: clear the live grab box (`attack_live = false`, `active_attack_box = null` —
+    the reach is retracting, not attacking), then step the already-played reach frames
+    from `_grab_window_index` down to `0` (reusing each frame's `anim_frame` +
+    `duration_ticks`), then `_finish()`. Set `whiffed`/`blocked` accordingly.
+  - Otherwise keep the current immediate `_finish()` (no behavior change for hip toss /
+    grab & fling).
 - `current_frame()` returns the reversed frame during the reverse phase so the Fighter
   renders it with no extra wiring.
 
@@ -76,7 +80,10 @@ victim never drops one). No `DAMAGE_OPP`/`DETACH` — follow-ups drive those.
   guarding (`victim._is_guarding()`), call `attacker._player.notify_grab_blocked()`
   instead of `receive_grab()`. A clean miss = no overlap = the existing timeout path.
 - `_can_be_grabbed()` is unchanged (a guarding, otherwise-eligible victim is "blocked,"
-  not "grabbed").
+  not "grabbed"). This block detection is universal (any grapple): a throw against a
+  guarding victim now ends instead of grabbing through the guard, but only `neck_grab`
+  reverses (flag), so throws just finish — arcade-faithful (`#missedb` exists for throws
+  too) and consistent.
 
 ### 3. `Fighter` — recoil on block
 - The attacker already renders `current_frame().anim_frame`, so reversed frames display
