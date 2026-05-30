@@ -114,6 +114,9 @@ func _physics_process(delta: float) -> void:
 	# correctly (no spurious pivot). Running sets its own facing below; guarding freezes it.
 	var controlling: bool = Fighter.input_allowed(mode) and not _player.is_playing() \
 			and _react_timer <= 0.0 and not _is_guarding()
+	# This snap runs every tick BEFORE the block branch, so the explicit `not _is_guarding()`
+	# is required (not redundant): without it, guarding — which makes `controlling` false —
+	# would still snap and rotate the guard toward the target. Keep both clauses.
 	if not controlling and not _is_guarding() and target != null and is_instance_valid(target) \
 			and (_grappling == null or not _player.is_playing()):
 		_set_facing(target.global_position.x - global_position.x)
