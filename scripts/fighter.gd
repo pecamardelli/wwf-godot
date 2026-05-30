@@ -608,6 +608,10 @@ func _anim_length_seconds(anim: String) -> float:
 	return float(n) / (fps * scale)
 
 ## Release the current victim to ONGROUND (knockdown) and clear both refs.
+## Throws that flip the victim over so it lands facing AWAY from the attacker, instead of
+## keeping the puppet's attacker-facing orientation (e.g. a hip toss sends them over and down).
+const _LAND_FACING_AWAY_MOVES := {"hip_toss": true}
+
 func _detach_victim() -> void:
 	var vic: Fighter = _grappling
 	_grappling = null
@@ -617,6 +621,9 @@ func _detach_victim() -> void:
 		vic._react_recover_mode = Mode.NORMAL
 		var mv_id: String = _player.sequence.id if _player.sequence != null else ""
 		vic._fall_orientation = Reaction.fall_orientation(AMode.Family.KNOCKDOWN, mv_id)
+		# Some throws (hip toss) flip the victim over: it lands facing opposite the attacker.
+		if _LAND_FACING_AWAY_MOVES.has(mv_id):
+			vic._facing = -_facing
 		vic._react_timer = ArcadeUnits.ticks_to_seconds(AMode.getup_ticks(AMode.Family.KNOCKDOWN))
 		if vic.sprite != null and vic.sprite.sprite_frames != null and vic.sprite.sprite_frames.has_animation("damage_lying"):
 			vic.sprite.play("damage_lying")

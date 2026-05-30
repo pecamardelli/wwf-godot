@@ -204,6 +204,19 @@ func test_downed_victim_does_not_reface_when_attacker_crosses():
 		me._physics_process(1.0 / 60.0)
 	assert_eq(me.facing(), 1.0, "a downed fighter does not track the attacker")
 
+func test_hip_toss_victim_lands_facing_away():
+	# Hip toss flips the victim over: it lands facing OPPOSITE the attacker, not the puppet's
+	# attacker-facing orientation it had during the throw.
+	var atk := _at_xy(100, 400, Fighter.Side.PLAYER)
+	var vic := _at_xy(140, 400, Fighter.Side.ENEMY)
+	atk._facing = 1.0
+	vic._facing = 1.0                       # puppet oriented to the attacker during the throw
+	atk._grappling = vic
+	vic._grappled_by = atk
+	atk._player.play(load("res://assets/sequences/doink/hip_toss.tres"))
+	atk._detach_victim()
+	assert_eq(vic._facing, -1.0, "hip-tossed victim lands facing opposite the attacker")
+
 func test_fresh_hit_cancels_in_progress_getup_rise():
 	# Re-hit while rising must cancel the RISE so it can't linger as a phantom hold.
 	var f := _spawn()
