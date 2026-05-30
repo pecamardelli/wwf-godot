@@ -53,6 +53,24 @@ func test_static_hold_keeps_victim_attached_and_facing():
 	assert_almost_eq(vic.global_position.x, expected_x, 0.5, "held victim is pulled to captor.x + offset each tick")
 	assert_eq(vic._facing, atk._facing, "held victim faces with the captor")
 
+func test_release_staggers_the_victim_not_instant_idle():
+	# Arcade dnk_3_head_held_brk_anim: on release the victim is shoved away and plays a head-hit
+	# reaction (a stagger), not an instant snap to idle.
+	var atk := _make(); var vic := _make()
+	atk.global_position = Vector2(200, 400); atk._set_facing(1.0)
+	atk.mode = Fighter.Mode.HEADHOLD; atk._grappling = vic
+	atk._set_headhold_break_ticks(1)   # auto-break almost immediately
+	vic.mode = Fighter.Mode.HEADHELD; vic._grappled_by = atk
+	vic.global_position = Vector2(251, 400)
+	for _i in range(10):
+		atk._physics_process(1.0 / 60.0)
+		if atk.mode != Fighter.Mode.HEADHOLD:
+			break
+	assert_ne(atk.mode, Fighter.Mode.HEADHOLD, "the hold auto-broke")
+	assert_gt(vic._react_timer, 0.0, "released victim staggers (in a reaction), not instant idle")
+	assert_eq(vic.mode, Fighter.Mode.NORMAL, "victim staggers standing (not knocked down)")
+	assert_gt(vic.global_position.x, 251.0, "victim is shoved away from the captor")
+
 func test_blocked_grab_recoils_the_attacker_backward():
 	var atk := _make(); var vic := _make()
 	atk.global_position = Vector2(100, 400)

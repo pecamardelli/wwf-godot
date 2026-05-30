@@ -432,14 +432,30 @@ func set_immobilize_ticks(ticks: int) -> void:
 func _set_headhold_break_ticks(ticks: int) -> void:
 	_headhold_break_time = ArcadeUnits.ticks_to_seconds(ticks)
 
-## Release a head hold (both fighters) back to NORMAL.
+## Release a head hold: the captor returns to NORMAL; the freed victim staggers back as if
+## struck rather than snapping to idle (arcade dnk_3_head_held_brk_anim shoves the victim away
+## and plays a head-hit reaction, DNKSEQ3.ASM).
 func _break_head_hold() -> void:
 	var vic: Fighter = _grappling
 	_grappling = null
 	mode = Mode.NORMAL
 	if vic != null and is_instance_valid(vic):
-		vic._grappled_by = null
-		vic.mode = Mode.NORMAL
+		vic._release_with_stagger(_facing)
+
+## Head-hit stagger when released from a head hold (arcade ANI_SET_XVEL away + D2AH2A head hit
+## from dnk_3_head_held_brk_anim). Shoved away from the captor, plays a hit reaction, recovers.
+const _HEADHOLD_RELEASE_PUSH := 14.0          # px shoved away from the captor on release
+const _HEADHOLD_RELEASE_STAGGER_TICKS := 14   # stagger duration before recovering to NORMAL
+func _release_with_stagger(captor_facing: float) -> void:
+	_grappled_by = null
+	mode = Mode.NORMAL
+	global_position.x += captor_facing * _HEADHOLD_RELEASE_PUSH   # shoved away from the captor
+	global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
+	_react_recover_mode = Mode.NORMAL
+	_react_timer = ArcadeUnits.ticks_to_seconds(_HEADHOLD_RELEASE_STAGGER_TICKS)
+	if sprite != null and sprite.sprite_frames != null and sprite.sprite_frames.has_animation("damage_front"):
+		sprite.play("damage_front")
+		_refresh_flip()
 
 func is_immobilized() -> bool:
 	return _immobilize_time > 0.0
