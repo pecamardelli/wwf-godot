@@ -377,10 +377,10 @@ func _drive_victim(_delta: float) -> void:
 	if _player.consume_detach():
 		_detach_victim()
 
-## Victim offset (in front of the captor) while held in the static headlock. Arcade holds the
-## victim ~51px forward (head-hold #puppet_tbl #Doink locked frame raw X=51, DNKSEQ3.ASM:1549;
-## LEAPATOPP attXoff=60) so the captor's hands grip the bent-over head, not the body center.
-const _HEADHOLD_VICTIM_X := 50.0
+## Victim offset (in front of the captor) while held in the static headlock. Arcade head-hold
+## #puppet_tbl #Doink locks the victim at raw X=51 (DNKSEQ3.ASM:1549), the frame the held loop
+## continues on, so the captor's hands grip the bent-over head, not the body center.
+const _HEADHOLD_VICTIM_X := 51.0
 ## Grab "leap" (arcade LEAPATOPP): step in toward the target, stopping ~Xoff=40 short,
 ## and travel at most MAX_X_DIST=40 total — a short, accelerated step, not a run-in.
 const _GRAPPLE_LEAP_GAP := 40.0   # stop this far from the target (arcade Xoff=40)

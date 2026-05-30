@@ -179,28 +179,33 @@ func _followup(id: String, anim: String, slave: String, slam_amode: int) -> Move
 ## — the head-hold follow-ups drive those.
 const NECK_GRAB_FRAME := 4   # headlocks sprite 05: reach apex / grab window
 const NECK_HOLD_FRAME := 6   # headlocks sprite 07: locked pose
-## Victim offset while pulled into / held in the lock. Arcade holds the victim ~51px forward
-## (head-hold #puppet_tbl #Doink locked frame raw X=51, DNKSEQ3.ASM:1549) so the captor's hands
-## grip the bent-over head. Must match Fighter._HEADHOLD_VICTIM_X (the static-hold continuation).
-const NECK_HOLD_VICTIM_X := 50.0
+## Victim X offset while pulled into the lock — the arcade head-hold #puppet_tbl #Doink raw X
+## values (DNKSEQ3.ASM:1549): the head is drawn in from ~60px to the locked 51px. (Y omitted:
+## the bend is baked into our art and the held victim is floor-clamped.) The final entry (51)
+## is the held/locked offset and MUST match Fighter._HEADHOLD_VICTIM_X (the hold continuation).
+const NECK_PUPPET_X := [60.0, 59.0, 64.0, 51.0]
+const NECK_HOLD_VICTIM_X := 51.0   # = NECK_PUPPET_X.back(): the locked/held offset
 
 func _neck_grab() -> MoveSequence:
 	var m := MoveSequence.new()
 	m.id = "neck_grab"; m.anim_name = "headlocks"; m.attack_mode = AMode.PUNCH
 	m.is_grapple = true; m.uninterruptable = true; m.reverse_reach_on_whiff = true
+	m.contact_freeze_ticks = 1   # arcade head hold has no long freeze (ANI_SUPERSLAVE2,1,FR4 settle)
 	var vframes: int = maxi(_sf.get_frame_count("headlocked"), 1)
 	var arr: Array[SequenceFrame] = []
 	# Reach lead-in (frames 0..NECK_GRAB_FRAME-1): no victim yet, just the reach animation.
 	# Reach plays at 3 ticks/frame (a touch quicker than the 4-tick puppet pull-in below).
 	for i in range(NECK_GRAB_FRAME):
 		arr.append(_gframe(3, i, SequenceFrame.Command.NONE, "", Vector3.ZERO, 0))
-	# Grab window at the reach apex.
-	var gw := _gframe(3, NECK_GRAB_FRAME, SequenceFrame.Command.WAIT_HIT_OPP, "", Vector3(NECK_HOLD_VICTIM_X, 0, 0), 0)
+	# Grab window at the reach apex. The victim (during the brief freeze) sits at the first
+	# puppet offset (NECK_PUPPET_X[0]), the start of being drawn into the lock.
+	var gw := _gframe(3, NECK_GRAB_FRAME, SequenceFrame.Command.WAIT_HIT_OPP, "", Vector3(NECK_PUPPET_X[0], 0, 0), 0)
 	gw.attack_box = _grab_box(); gw.wait_hit_max_ticks = 16
 	arr.append(gw)
 	# Connected pull-in: resample attacker frames [NECK_GRAB_FRAME+1 .. NECK_HOLD_FRAME] over
 	# enough steps that the victim "headlocked" clip plays EVERY frame (no drop — same rule as
-	# the throws). The attacker may repeat a frame; the watched victim never skips one.
+	# the throws). The victim X follows the arcade head-hold #puppet_tbl (NECK_PUPPET_X), drawn
+	# in from ~60 to the locked 51. The attacker may repeat a frame; the victim never skips one.
 	var cont_lo := NECK_GRAB_FRAME + 1   # first connected attacker frame (5)
 	var cont_span := NECK_HOLD_FRAME - cont_lo   # 1
 	var nc: int = maxi(cont_span + 1, vframes)
@@ -208,8 +213,9 @@ func _neck_grab() -> MoveSequence:
 		var t := float(s) / float(nc - 1)
 		var aimg := cont_lo + int(round(t * float(cont_span)))
 		var vimg := int(round(t * float(vframes - 1)))
+		var vx: float = NECK_PUPPET_X[int(round(t * float(NECK_PUPPET_X.size() - 1)))]
 		var cmd := SequenceFrame.Command.SET_ATTACH if s == 0 else SequenceFrame.Command.SLAVE_ANIM
-		arr.append(_gframe(4, aimg, cmd, "headlocked", Vector3(NECK_HOLD_VICTIM_X, 0, 0), vimg))
+		arr.append(_gframe(4, aimg, cmd, "headlocked", Vector3(vx, 0, 0), vimg))
 	m.frames = arr
 	return m
 

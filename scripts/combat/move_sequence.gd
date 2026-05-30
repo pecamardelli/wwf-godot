@@ -16,6 +16,10 @@ extends Resource
 ## A whiffed/blocked grab retracts the reach (plays the reach frames in reverse) instead of
 ## ending instantly. True only for the standing neck grab (arcade #missed/#missedb).
 @export var reverse_reach_on_whiff: bool = false
+## Arcade ticks to hold the reach frame after a grab connects, before the throw/puppet plays.
+## Hip toss = 4 (arcade `WL 4,D3HT3Q+FR1`, DNKSEQ2.ASM:4248); neck grab = 1 (arcade
+## `ANI_SUPERSLAVE2,1,D4GH3A+FR4` settle, DNKSEQ3.ASM) — the head hold has no long freeze.
+@export var contact_freeze_ticks: int = 4
 
 func total_ticks() -> int:
 	var t := 0
