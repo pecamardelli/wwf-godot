@@ -19,3 +19,10 @@ static func walk_anim(move_dir: Vector2, depth: int) -> String:
 	if iy != 0.0:
 		return "walk_vertical" + suffix
 	return "walk_horisontal" + suffix
+
+## True when the fighter moves AGAINST the way its body faces (backpedal / strafe / moving away
+## in depth), so the walk cycle should play in REVERSE — arcade legs follow MOVE_DIR while the
+## torso holds FACING_DIR. Facing vector = (horizontal ±1, depth ±1: FRONT=+1 toward camera/down,
+## BACK=-1 away/up). Dot < 0 means the movement opposes the facing.
+static func is_reverse(move_dir: Vector2, facing: float, depth: int) -> bool:
+	return move_dir.x * facing + move_dir.y * float(depth) < 0.0

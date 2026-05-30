@@ -56,6 +56,7 @@ var _turn_frames: Array = []
 var _turn_idx: int = 0
 var _turn_dest: int = Facing.State.FR
 var _turn_accum: float = 0.0
+var _anim_reversed: bool = false   # walk clip currently playing backwards (backpedal/strafe)
 var _fall_orientation: int = Fall.FACE_UP   # set at knockdown; selects the getup clip
 var _getup_rising: bool = false             # RISE phase: getup clip is playing
 var _getup_rise_time: float = 0.0           # seconds left in the RISE clip
@@ -241,10 +242,9 @@ func _physics_process(delta: float) -> void:
 				var run_vel := Vector2(_run_dir_x * ArcadeUnits.RUN_SPEED, signf(dir.y) * ArcadeUnits.RUN_DEPTH_DRIFT)
 				velocity = velocity.move_toward(run_vel, walk_acceleration * delta)
 		if mode != Mode.RUNNING:
-			# Turn-around pivot (idle + walking): if facing must change, play the rotate
-			# clip this tick instead of walking.
-			if _service_turn(delta):
-				return
+			# Turn-around pivot (idle + walking): drives the rotate overlay; locomotion below
+			# keeps running so the fighter does NOT stop while turning.
+			_service_turn(delta)
 			var walk_vel: Vector2 = MovementMath.walk_velocity(dir) * walk_speed_scale
 			walk_vel.y *= depth_speed_scale
 			var rel := RelativeInput.resolve(dir, _facing)
@@ -378,37 +378,34 @@ func _hold_in_place() -> void:
 	move_and_slide()
 	global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
 
-## Turn-around pivot. While idle or walking, if facing must change, play the `rotate` clip
-## instead of moving; commit the new facing on the last frame. Returns true while turning
-## (caller skips walking this tick). Attacks/grapples/reactions/running never call this.
-func _service_turn(delta: float) -> bool:
+## Turn-around pivot state machine. While idle or walking, if facing must change, the `rotate`
+## clip plays (shown by _update_animation) as an OVERLAY — locomotion continues, the fighter
+## does NOT stop. Advances the rotate frame on a fixed cadence; commits the new facing on the
+## last frame. Attacks/grapples/reactions/running never call this. The current frame to display
+## is `_turn_frames[_turn_idx]`; `_turning` tells _update_animation to show it.
+func _service_turn(delta: float) -> void:
 	var per: float = ArcadeUnits.ticks_to_seconds(_TURN_FRAME_TICKS)
 	if _turning:
 		_turn_accum += delta
 		while _turn_accum >= per and _turn_idx < _turn_frames.size() - 1:
 			_turn_accum -= per
 			_turn_idx += 1
-		_show_rotate_frame(_turn_frames[_turn_idx])
 		if _turn_idx >= _turn_frames.size() - 1:
 			_commit_facing_state(_turn_dest)
 			_turning = false
-		_hold_in_place()
-		return true
+		return
 	if target == null or not is_instance_valid(target):
-		return false
+		return
 	var des: int = _desired_facing_state()
 	if des == Facing.state_of(_facing, _depth_facing):
-		return false
+		return
 	_turn_frames = RotatePlanner.plan(Facing.state_of(_facing, _depth_facing), des)
 	if _turn_frames.is_empty():
-		return false
+		return
 	_turning = true
 	_turn_dest = des
 	_turn_idx = 0
 	_turn_accum = delta   # charge this tick so frame 0 isn't held one extra tick
-	_show_rotate_frame(_turn_frames[0])
-	_hold_in_place()
-	return true
 
 ## Turn toward the nearest other fighter (called when a move starts).
 func _face_nearest_opponent() -> void:
@@ -427,6 +424,10 @@ func _face_nearest_opponent() -> void:
 func _update_animation(dir: Vector2) -> void:
 	if sprite == null or sprite.sprite_frames == null:
 		return
+	# Turn-around pivot overlay: while turning, show the rotate clip (movement continues).
+	if _turning:
+		_show_rotate_frame(_turn_frames[_turn_idx])
+		return
 	var anim: String
 	if mode == Mode.RUNNING:
 		anim = "run"
@@ -434,10 +435,15 @@ func _update_animation(dir: Vector2) -> void:
 		anim = AnimSelector.walk_anim(dir, _depth_facing)
 	if not sprite.sprite_frames.has_animation(anim):
 		return
-	if sprite.animation != anim:
-		sprite.play(anim)
-	elif not sprite.is_playing():
-		sprite.play(anim)
+	# Reverse the walk cycle when moving AGAINST the way the body faces (backpedal / strafe /
+	# moving away in depth) — arcade legs follow MOVE_DIR while the torso holds FACING_DIR.
+	var reverse: bool = mode != Mode.RUNNING and AnimSelector.is_reverse(dir, _facing, _depth_facing)
+	if sprite.animation != anim or not sprite.is_playing() or reverse != _anim_reversed:
+		_anim_reversed = reverse
+		if reverse:
+			sprite.play_backwards(anim)
+		else:
+			sprite.play(anim)
 	_refresh_flip()
 
 ## Walk-speed multiplier from facing-relative state (arcade walk table modifiers).
