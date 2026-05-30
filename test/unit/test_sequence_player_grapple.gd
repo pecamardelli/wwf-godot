@@ -119,3 +119,5 @@ func test_whiff_reverses_the_reach_to_the_start():
 	assert_true(seen_after_whiff.has(1), "reverse shows reach frame 1")
 	assert_true(seen_after_whiff.has(0), "reverse shows reach frame 0")
 	assert_true(seen_after_whiff.find(1) < seen_after_whiff.find(0), "frames descend (2->1->0)")
+	assert_false(sp.consume_attach(), "the reverse phase never fires SET_ATTACH")
+	assert_false(sp.damage_opp_seen, "the reverse phase never damages")

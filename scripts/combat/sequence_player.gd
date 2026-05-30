@@ -184,6 +184,8 @@ func _finish() -> void:
 	attack_live = false
 	active_attack_box = null
 	_index = -1
+	_grab_window_index = -1
+	_reverse_index = -1
 	_waiting_for_hit = false
 	_reversing = false
 
@@ -191,10 +193,11 @@ func _finish() -> void:
 ## back to frame 0, then finish. Only when the move opts in and there IS a reach lead-in.
 ## Returns true if the reverse phase started (caller should NOT finish yet).
 func _begin_reverse() -> bool:
+	# _grab_window_index == 0 means WAIT_HIT_OPP is the very first frame — no lead-in to retract.
 	if sequence == null or not sequence.reverse_reach_on_whiff or _grab_window_index <= 0:
 		return false
 	_reversing = true
-	_reverse_index = _grab_window_index
+	_reverse_index = _grab_window_index   # start at the grab frame itself so the retraction begins at the apex
 	attack_live = false           # the reach is retracting, not attacking
 	active_attack_box = null
 	_time_left = ArcadeUnits.ticks_to_seconds(sequence.frames[_reverse_index].duration_ticks)
