@@ -171,31 +171,40 @@ func _throw(id: String, anim: String, slave: String, slam_amode: int, victim_tab
 func _followup(id: String, anim: String, slave: String, slam_amode: int) -> MoveSequence:
 	return _grapple(id, anim, slave, slam_amode, false)
 
-## Neck grab (STANDING): walk headlocks frames 0-6 only. The 16-frame headlocks clip is
-## two moves — sprites 01-07 (frames 0-6) = standing grab-into-hold; 08-16 (7-15) = the
-## from-ground headlock (a separate move, out of scope). Reach -> attach -> pull the victim
-## into the hold, ending on the held pose (frame 6) which the HEADHOLD state sustains. No
-## DAMAGE_OPP/DETACH here — the hold's follow-ups drive those.
-const NECK_STAND_FRAMES := 7   # headlocks sprites 01-07
+## Neck grab (STANDING), arcade dnk_3_head_hold_anim (DNKSEQ3.ASM:1389). Reach out through
+## the lead-in frames to a grab window at the reach APEX (sprite 05 = frame 4); on connect,
+## puppet the victim into the locked pose (sprite 07 = frame 6); on whiff/block the reach
+## retracts (reverse_reach_on_whiff). Standing portion only (sprites 01-07 = frames 0-6); the
+## from-ground headlock (sprites 08-16) is a separate move, out of scope. No DAMAGE_OPP/DETACH
+## — the head-hold follow-ups drive those.
+const NECK_GRAB_FRAME := 4   # headlocks sprite 05: reach apex / grab window
+const NECK_HOLD_FRAME := 6   # headlocks sprite 07: locked pose
 
 func _neck_grab() -> MoveSequence:
 	var m := MoveSequence.new()
 	m.id = "neck_grab"; m.anim_name = "headlocks"; m.attack_mode = AMode.PUNCH
-	m.is_grapple = true; m.uninterruptable = true
+	m.is_grapple = true; m.uninterruptable = true; m.reverse_reach_on_whiff = true
 	var vframes: int = maxi(_sf.get_frame_count("headlocked"), 1)
 	var arr: Array[SequenceFrame] = []
-	for i in range(NECK_STAND_FRAMES):
-		var t := float(i) / float(NECK_STAND_FRAMES - 1)
-		var cmd := SequenceFrame.Command.SLAVE_ANIM
-		if i == 0:
-			cmd = SequenceFrame.Command.WAIT_HIT_OPP
-		elif i == 1:
-			cmd = SequenceFrame.Command.SET_ATTACH
+	# Reach lead-in (frames 0..NECK_GRAB_FRAME-1): no victim yet, just the reach animation.
+	for i in range(NECK_GRAB_FRAME):
+		arr.append(_gframe(3, i, SequenceFrame.Command.NONE, "", Vector3.ZERO, 0))
+	# Grab window at the reach apex.
+	var gw := _gframe(3, NECK_GRAB_FRAME, SequenceFrame.Command.WAIT_HIT_OPP, "", Vector3(30, 0, 0), 0)
+	gw.attack_box = _grab_box(); gw.wait_hit_max_ticks = 16
+	arr.append(gw)
+	# Connected pull-in: resample attacker frames [NECK_GRAB_FRAME+1 .. NECK_HOLD_FRAME] over
+	# enough steps that the victim "headlocked" clip plays EVERY frame (no drop — same rule as
+	# the throws). The attacker may repeat a frame; the watched victim never skips one.
+	var cont_lo := NECK_GRAB_FRAME + 1   # first connected attacker frame (5)
+	var cont_span := NECK_HOLD_FRAME - cont_lo   # 1
+	var nc: int = maxi(cont_span + 1, vframes)
+	for s in range(nc):
+		var t := float(s) / float(nc - 1)
+		var aimg := cont_lo + int(round(t * float(cont_span)))
 		var vimg := int(round(t * float(vframes - 1)))
-		var fr := _gframe(3, i, cmd, "headlocked", Vector3(30, 0, 0), vimg)
-		if cmd == SequenceFrame.Command.WAIT_HIT_OPP:
-			fr.attack_box = _grab_box(); fr.wait_hit_max_ticks = 16
-		arr.append(fr)
+		var cmd := SequenceFrame.Command.SET_ATTACH if s == 0 else SequenceFrame.Command.SLAVE_ANIM
+		arr.append(_gframe(4, aimg, cmd, "headlocked", Vector3(30, 0, 0), vimg))
 	m.frames = arr
 	return m
 

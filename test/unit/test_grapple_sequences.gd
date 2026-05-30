@@ -97,7 +97,8 @@ func test_grapple_victim_plays_every_frame():
 	# in order, exactly because ANI_SUPERSLAVE2 names the victim frame per step independently.
 	var sf: SpriteFrames = load("res://assets/sprites/doink/doink_frames.tres")
 	for pair in [["hip_toss", "hip_tossed"], ["grab_fling", "flinged"],
-			["piledriver", "piledrivered"], ["head_slam", "faceslamed"], ["joy_buzzer", "joy_buzzer"]]:
+			["piledriver", "piledrivered"], ["head_slam", "faceslamed"], ["joy_buzzer", "joy_buzzer"],
+			["neck_grab", "headlocked"]]:
 		var m: MoveSequence = load("res://assets/sequences/doink/%s.tres" % pair[0])
 		var v: int = sf.get_frame_count(pair[1])
 		var seen := {}
@@ -109,14 +110,28 @@ func test_grapple_victim_plays_every_frame():
 		for i in range(v):
 			assert_true(seen.has(i), "%s victim shows slave frame %d (no dropped frame)" % [pair[0], i])
 
-func test_neck_grab_walks_standing_headlock_frames():
-	# headlocks sprites 01-07 (frames 0-6) = STANDING grab; 08-16 (7-15) = from-ground
-	# headlock, a separate move. The standing neck grab must walk 0-6 and stop.
+func test_neck_grab_reaches_then_grabs_mid_clip():
+	# Arcade dnk_3_head_hold_anim: reach lead-in (no grab), grab window at the reach apex
+	# (headlocks frame 4 = sprite 05), then puppet into the hold pose (frame 6 = sprite 07).
 	var m: MoveSequence = load("res://assets/sequences/doink/neck_grab.tres")
 	assert_eq(m.anim_name, "headlocks")
-	assert_eq(m.frames.size(), 7, "standing neck grab plays headlocks frames 0-6 only")
-	for i in range(7):
-		assert_eq(m.frames[i].anim_frame, i, "step %d shows headlocks frame %d" % [i, i])
+	assert_true(m.reverse_reach_on_whiff, "neck grab retracts on a whiff/block (flag set in the .tres)")
+	# Lead-in frames 0-3 are plain reach (no grab command).
+	for i in range(4):
+		assert_eq(m.frames[i].anim_frame, i, "reach lead-in shows headlocks frame %d" % i)
+		assert_eq(m.frames[i].command, SequenceFrame.Command.NONE, "reach frame %d has no grab command" % i)
+	# The grab window sits at the reach apex (frame index 4).
+	assert_eq(m.frames[4].command, SequenceFrame.Command.WAIT_HIT_OPP, "grab window at the reach apex")
+	assert_eq(m.frames[4].anim_frame, 4, "grab window shows headlocks frame 4 (sprite 05)")
+	assert_not_null(m.frames[4].attack_box, "grab window opens a grab box")
+	# The connected pull-in ends on the hold pose (headlocks frame 6 = sprite 07).
+	assert_eq(m.frames[m.frames.size() - 1].anim_frame, 6, "ends on the locked pose (sprite 07)")
+	# A SET_ATTACH binds the victim once the grab connects.
+	var has_attach := false
+	for f in m.frames:
+		if f.command == SequenceFrame.Command.SET_ATTACH:
+			has_attach = true
+	assert_true(has_attach, "binds the victim with SET_ATTACH after the connect")
 	# It's a HOLD entry: no DAMAGE_OPP / DETACH (follow-ups drive those).
 	for f in m.frames:
 		assert_ne(f.command, SequenceFrame.Command.DAMAGE_OPP, "neck grab does not damage on entry")

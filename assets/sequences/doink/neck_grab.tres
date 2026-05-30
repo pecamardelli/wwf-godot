@@ -5,66 +5,94 @@
 [ext_resource type="Script" path="res://scripts/combat/move_sequence.gd" id="3_0p6ip"]
 
 [sub_resource type="Resource" id="Resource_fojor"]
-script = ExtResource("2_2b7so")
-offset = Vector3(20, 60, 0)
-size = Vector3(70, 90, 40)
+script = ExtResource("1_t61qu")
+duration_ticks = 3
 
 [sub_resource type="Resource" id="Resource_1sdxm"]
 script = ExtResource("1_t61qu")
 duration_ticks = 3
-command = 4
-attack_box = SubResource("Resource_fojor")
-victim_offset = Vector3(30, 0, 0)
-slave_anim = "headlocked"
+anim_frame = 1
 
 [sub_resource type="Resource" id="Resource_12jl4"]
 script = ExtResource("1_t61qu")
 duration_ticks = 3
-anim_frame = 1
-command = 5
-victim_anim_frame = 1
-victim_offset = Vector3(30, 0, 0)
-slave_anim = "headlocked"
+anim_frame = 2
 
 [sub_resource type="Resource" id="Resource_vja3b"]
 script = ExtResource("1_t61qu")
 duration_ticks = 3
-anim_frame = 2
-command = 6
-victim_anim_frame = 2
-victim_offset = Vector3(30, 0, 0)
-slave_anim = "headlocked"
+anim_frame = 3
 
 [sub_resource type="Resource" id="Resource_q300j"]
-script = ExtResource("1_t61qu")
-duration_ticks = 3
-anim_frame = 3
-command = 6
-victim_anim_frame = 4
-victim_offset = Vector3(30, 0, 0)
-slave_anim = "headlocked"
+script = ExtResource("2_2b7so")
+offset = Vector3(20, 60, 0)
+size = Vector3(70, 90, 40)
 
 [sub_resource type="Resource" id="Resource_57akj"]
 script = ExtResource("1_t61qu")
 duration_ticks = 3
 anim_frame = 4
-command = 6
-victim_anim_frame = 5
+command = 4
+attack_box = SubResource("Resource_q300j")
 victim_offset = Vector3(30, 0, 0)
-slave_anim = "headlocked"
 
 [sub_resource type="Resource" id="Resource_w0r16"]
 script = ExtResource("1_t61qu")
-duration_ticks = 3
 anim_frame = 5
-command = 6
-victim_anim_frame = 6
+command = 5
 victim_offset = Vector3(30, 0, 0)
 slave_anim = "headlocked"
 
 [sub_resource type="Resource" id="Resource_lh0y2"]
 script = ExtResource("1_t61qu")
-duration_ticks = 3
+anim_frame = 5
+command = 6
+victim_anim_frame = 1
+victim_offset = Vector3(30, 0, 0)
+slave_anim = "headlocked"
+
+[sub_resource type="Resource" id="Resource_o5r85"]
+script = ExtResource("1_t61qu")
+anim_frame = 5
+command = 6
+victim_anim_frame = 2
+victim_offset = Vector3(30, 0, 0)
+slave_anim = "headlocked"
+
+[sub_resource type="Resource" id="Resource_w204p"]
+script = ExtResource("1_t61qu")
+anim_frame = 5
+command = 6
+victim_anim_frame = 3
+victim_offset = Vector3(30, 0, 0)
+slave_anim = "headlocked"
+
+[sub_resource type="Resource" id="Resource_ax8g1"]
+script = ExtResource("1_t61qu")
+anim_frame = 6
+command = 6
+victim_anim_frame = 4
+victim_offset = Vector3(30, 0, 0)
+slave_anim = "headlocked"
+
+[sub_resource type="Resource" id="Resource_pw4mh"]
+script = ExtResource("1_t61qu")
+anim_frame = 6
+command = 6
+victim_anim_frame = 5
+victim_offset = Vector3(30, 0, 0)
+slave_anim = "headlocked"
+
+[sub_resource type="Resource" id="Resource_npuwk"]
+script = ExtResource("1_t61qu")
+anim_frame = 6
+command = 6
+victim_anim_frame = 6
+victim_offset = Vector3(30, 0, 0)
+slave_anim = "headlocked"
+
+[sub_resource type="Resource" id="Resource_l3wrx"]
+script = ExtResource("1_t61qu")
 anim_frame = 6
 command = 6
 victim_anim_frame = 7
@@ -75,5 +103,6 @@ slave_anim = "headlocked"
 script = ExtResource("3_0p6ip")
 id = "neck_grab"
 anim_name = "headlocks"
-frames = Array[ExtResource("1_t61qu")]([SubResource("Resource_1sdxm"), SubResource("Resource_12jl4"), SubResource("Resource_vja3b"), SubResource("Resource_q300j"), SubResource("Resource_57akj"), SubResource("Resource_w0r16"), SubResource("Resource_lh0y2")])
+frames = Array[ExtResource("1_t61qu")]([SubResource("Resource_fojor"), SubResource("Resource_1sdxm"), SubResource("Resource_12jl4"), SubResource("Resource_vja3b"), SubResource("Resource_57akj"), SubResource("Resource_w0r16"), SubResource("Resource_lh0y2"), SubResource("Resource_o5r85"), SubResource("Resource_w204p"), SubResource("Resource_ax8g1"), SubResource("Resource_pw4mh"), SubResource("Resource_npuwk"), SubResource("Resource_l3wrx")])
 is_grapple = true
+reverse_reach_on_whiff = true
