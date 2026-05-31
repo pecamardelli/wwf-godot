@@ -6,7 +6,8 @@ class_name Proximity
 # Standing opponent (PUNCH NORMAL): DNK.ASM punch JJXM 50,45.
 const CLOSE_DX := 50.0
 const CLOSE_DZ := 45.0
-# Grounded opponent (PUNCH/KICK ONGROUND): DNK.ASM 120,120.
+# Grounded opponent (PUNCH/KICK ONGROUND): DNK.ASM 120,120. The arcade varies the grounded reach
+# per button (SPUNCH 136/112, SKICK 144/160); 120/120 is a single representative seed — tune in playtest.
 const GROUNDED_DX := 120.0
 const GROUNDED_DZ := 120.0
 

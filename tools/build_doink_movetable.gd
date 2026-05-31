@@ -22,7 +22,9 @@ func _init() -> void:
 	var D := MoveTable.Dir
 	var B := MoveTable.Btn
 
-	# PUNCH (low punch): far punch, close head butt, grounded elbow drop.
+	# PUNCH (low punch): far punch, close head butt, grounded elbow drop. NOTE: no RUNNING entry
+	# — the arcade running PUNCH is the flying clothesline (an aerial), deferred until the jump
+	# system exists; until then running+punch is intentionally a no-op (the run just ends).
 	t.add(R.NORMAL,   D.NEUTRAL, B.LOW_PUNCH, punch)
 	t.add(R.CLOSE,    D.NEUTRAL, B.LOW_PUNCH, headbutt)
 	t.add(R.GROUNDED, D.NEUTRAL, B.LOW_PUNCH, elbow)
