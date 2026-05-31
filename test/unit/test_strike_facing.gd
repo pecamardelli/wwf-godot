@@ -30,3 +30,13 @@ func test_strike_without_back_variant_falls_back_to_front():
 	f.start_move(load("res://assets/sequences/doink/uppercut.tres"))
 	f._play_sequence_anim()
 	assert_eq(f.sprite.animation, "uppercut", "no back clip -> front clip is used for both")
+
+func test_strike_back_clip_missing_from_spriteframes_falls_back_to_front():
+	var f := _spawn_fighter()
+	f._depth_facing = Facing.BACK
+	var seq := MoveSequence.new()
+	seq.anim_name = "mid_punch_front"
+	seq.anim_name_back = "nonexistent_anim"
+	f.start_move(seq)
+	f._play_sequence_anim()
+	assert_eq(f.sprite.animation, "mid_punch_front", "unregistered back clip -> front clip used")
