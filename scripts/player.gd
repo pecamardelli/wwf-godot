@@ -4,6 +4,7 @@ extends Fighter
 ## player_index 0 -> p1_* actions; player_index 1 -> p2_* actions.
 
 const _MOVES := preload("res://assets/movetables/doink.tres")
+const _HAIR_PICKUP := preload("res://assets/sequences/doink/hair_pickup.tres")
 
 ## Head-hold follow-ups, loaded by path (NOT in the main grab-initiator MotionTable).
 const _FOLLOWUP_MOTIONS := {
@@ -53,6 +54,17 @@ func _unhandled_input(_event: InputEvent) -> void:
 	# Normal-move dispatch lives in _physics_process now, AFTER the special scan, so a
 	# grab pre-empts a normal attack (arcade move_doink: check_secret_moves before mode_normal).
 
+## Hair pickup pre-empts the grounded elbow drop when the attacker is at the downed foe's head
+## (arcade #spunch_lbowdrop sub-branch). SPUNCH-only — GROUNDED+LOW_PUNCH also resolves to
+## elbow_drop, but the arcade gates hair pickup inside the SPUNCH handler. Geometric gate, not a
+## MoveTable cell — so we intercept the resolved move here. Returns the move to actually start.
+func _grounded_move_or_hair_pickup(seq: MoveSequence, btn: int) -> MoveSequence:
+	if seq != null and seq.id == "elbow_drop" and btn == MoveTable.Btn.HIGH_PUNCH \
+			and target != null and is_instance_valid(target) \
+			and HairPickup.gate(global_position.x, _facing, target.global_position.x, target._facing, target.mode):
+		return _HAIR_PICKUP
+	return seq
+
 ## Normal-move dispatch (arcade action_table / mode_normal). Run from _physics_process
 ## ONLY after scan_specials returns false, so a buffered grab always wins over a normal
 ## attack on the same press (the arcade pre-empts the action table on a secret-move match).
@@ -61,6 +73,7 @@ func _dispatch_normal_move() -> void:
 	if btn < 0:
 		return
 	var seq: MoveSequence = _MOVES.lookup(_current_range(), _current_dir(), btn)
+	seq = _grounded_move_or_hair_pickup(seq, btn)   # hair pickup pre-empts elbow drop at the head
 	if seq != null:
 		start_move(seq)
 	elif mode == Mode.RUNNING:
