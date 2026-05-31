@@ -39,30 +39,33 @@ func _init() -> void:
 	# consecutive punches and can only shadow hip_toss if the buffer contains
 	# toward — it doesn't, so ordering here is safe.
 
-	# Three-step throws: double-tap direction then button (newest-first).
-	# Trigger mask is ALL_DIR so holding a direction while pressing the button
-	# does not block the match; values[0] is button-only.
+	# Three-step throws: double-tap direction then button (newest-first). Trigger mask is
+	# ALL_DIR (button-only value). Directional-step masks follow the ARCADE encoding:
+	#  - AWAY grabs (hip_toss, grab_fling) use J_REAL_LR|J_UP|J_DOWN -> tolerate a vertical
+	#    component (arcade #hip_toss/#grab_fling mask).
+	#  - TOWARD grabs (neck_grab, hammer) use J_REAL_LR ONLY -> up/down stay SIGNIFICANT, so
+	#    down+toward (a diagonal) is REJECTED. Pure-cardinal toward (arcade #neck_grab/#hammer
+	#    `.word J_TOWARD, J_REAL_LR`). This is why holding down while pressing toward must NOT
+	#    fire the headlock.
+	# (Genesis override: hip_toss/grab_fling are 3-step here, not the arcade's single step.)
 	_add(t, "hip_toss",
 		[J.B_PUNCH, J.J_AWAY, J.J_AWAY],
-		[ALL_DIR, ~J.J_AWAY & 0xFFFF, ~J.J_AWAY & 0xFFFF],
+		[ALL_DIR, J.J_REAL_LR | J.J_UP | J.J_DOWN, J.J_REAL_LR | J.J_UP | J.J_DOWN],
 		32, S.call("hip_toss"))
 
 	_add(t, "grab_fling",
-		[J.B_SPUNCH | J.J_AWAY],
-		[J.J_REAL_LR | J.J_UP | J.J_DOWN],
-		10, S.call("grab_fling"))
+		[J.B_SPUNCH, J.J_AWAY, J.J_AWAY],
+		[ALL_DIR, J.J_REAL_LR | J.J_UP | J.J_DOWN, J.J_REAL_LR | J.J_UP | J.J_DOWN],
+		32, S.call("grab_fling"))
 
-	# Three-step motion: button (holding TOWARD is allowed), TOWARD, TOWARD (newest-first).
-	# The trigger mask is ALL_DIR so direction bits are ignored on step 0; values[0] must
-	# only contain bits NOT in the mask, i.e. just the button.
 	_add(t, "neck_grab",
 		[J.B_SPUNCH, J.J_TOWARD, J.J_TOWARD],
-		[ALL_DIR, ~J.J_TOWARD & 0xFFFF, ~J.J_TOWARD & 0xFFFF],
+		[ALL_DIR, J.J_REAL_LR, J.J_REAL_LR],
 		32, S.call("neck_grab"))
 
 	_add(t, "hammer",
 		[J.B_SKICK, J.J_TOWARD, J.J_TOWARD],
-		[ALL_DIR, ~J.J_TOWARD & 0xFFFF, ~J.J_TOWARD & 0xFFFF],
+		[ALL_DIR, J.J_REAL_LR, J.J_REAL_LR],
 		32, S.call("hammer"))
 
 	# Four-step quarter-circle-forward: DOWN, DOWN+TOWARD, TOWARD, B_PUNCH (newest-first).

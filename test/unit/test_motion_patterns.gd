@@ -35,6 +35,16 @@ func test_neck_grab_fires_on_double_toward_spunch():
 	var b := _buf_double_dir_then_button(MotionBuffer.J_TOWARD, MotionBuffer.J_RIGHT, MotionBuffer.B_SPUNCH)
 	assert_true(_registry_fires("neck_grab", b, 4))
 
+func test_neck_grab_does_not_fire_on_down_toward():
+	# headlock is PURE forward+forward; a down-toward diagonal must NOT trigger it (arcade
+	# directional mask J_REAL_LR keeps up/down significant).
+	var b := _buf_double_dir_then_button(MotionBuffer.J_TOWARD | MotionBuffer.J_DOWN, MotionBuffer.J_RIGHT, MotionBuffer.B_SPUNCH)
+	assert_false(_registry_fires("neck_grab", b, 4), "down+toward must not fire the headlock")
+
+func test_fling_fires_on_double_away_spunch():
+	var b := _buf_double_dir_then_button(MotionBuffer.J_AWAY, MotionBuffer.J_LEFT, MotionBuffer.B_SPUNCH)
+	assert_true(_registry_fires("grab_fling", b, 4))
+
 func test_grab_fling_needs_spunch_not_punch():
 	var b := _buf_double_dir_then_button(MotionBuffer.J_AWAY, MotionBuffer.J_LEFT, MotionBuffer.B_PUNCH)
 	assert_false(_registry_fires("grab_fling", b, 4), "grab-fling trigger is SPUNCH")
