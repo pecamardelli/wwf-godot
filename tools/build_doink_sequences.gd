@@ -30,9 +30,12 @@ func _init() -> void:
 	_save(_strike("kick",     "mid_kick_front",  AMode.KICK,    9, 5, _ab(26, 50, 0, 60, 14, 10)))
 	_save(_strike("uppercut", "uppercut",        AMode.UPRCUT,  6, 3, _ab(28, 66, 0, 60, 36, 10), false, 2))
 	_save(_strike("big_boot", "big_boot",        AMode.BIGBOOT, 8, 4, _ab(34, 60, 0, 70, 20, 10)))
+	# New ground strikes. Standing (knee/slap/spin_kick) use chest/leg-height boxes like the
+	# strikes above; the GROUNDED moves (stomp/elbow_drop) hit a downed foe, so their boxes sit
+	# LOW (floor level), not at standing head height. All boxes are seeded — tune in playtest.
 	_save(_strike("knee",       "close_kick_front",      AMode.KNEE,     _sf.get_frame_count("close_kick_front"),      2, _ab(24, 70, 0, 55, 40, 10)))
-	_save(_strike("stomp",      "stomp_front_legdrop",   AMode.STOMP,    _sf.get_frame_count("stomp_front_legdrop"),   2, _ab(20, 110, 0, 60, 30, 10)))
-	_save(_strike("elbow_drop", "elbow_drop_front",      AMode.LBDROP,   _sf.get_frame_count("elbow_drop_front"),      2, _ab(20, 100, 0, 60, 36, 10)))
+	_save(_strike("stomp",      "stomp_front_legdrop",   AMode.STOMP,    _sf.get_frame_count("stomp_front_legdrop"),   2, _ab(22, 24, 0, 60, 40, 10)))
+	_save(_strike("elbow_drop", "elbow_drop_front",      AMode.LBDROP,   _sf.get_frame_count("elbow_drop_front"),      2, _ab(22, 24, 0, 60, 40, 10)))
 	_save(_strike("slap",       "slap_front",            AMode.SLAP,     _sf.get_frame_count("slap_front"),            2, _ab(22, 84, 0, 55, 12, 10), false, 2))
 	_save(_strike("spin_kick",  "power_kick_front",      AMode.SPINKICK, _sf.get_frame_count("power_kick_front"),      3, _ab(26, 60, 0, 80, 30, 10)))
 	# Grapple throws (victim channel). DOINK.ASM:572 (hip toss), :504 (grab & fling).
