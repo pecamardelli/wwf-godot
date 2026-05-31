@@ -1,0 +1,155 @@
+[gd_resource type="Resource" script_class="MoveSequence" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/sequence_frame.gd" id="1_85wku"]
+[ext_resource type="Script" path="res://scripts/combat/box3.gd" id="2_2thgw"]
+[ext_resource type="Script" path="res://scripts/combat/move_sequence.gd" id="3_d82f0"]
+
+[sub_resource type="Resource" id="Resource_byj5o"]
+script = ExtResource("1_85wku")
+duration_ticks = 3
+anim_frame = 7
+
+[sub_resource type="Resource" id="Resource_h5olt"]
+script = ExtResource("1_85wku")
+duration_ticks = 3
+anim_frame = 8
+
+[sub_resource type="Resource" id="Resource_n1aks"]
+script = ExtResource("2_2thgw")
+offset = Vector3(22, 40, 0)
+size = Vector3(70, 80, 40)
+
+[sub_resource type="Resource" id="Resource_kyyxb"]
+script = ExtResource("1_85wku")
+duration_ticks = 3
+anim_frame = 9
+command = 4
+attack_box = SubResource("Resource_n1aks")
+victim_offset = Vector3(120, 0, 0)
+slave_anim = "lifted"
+
+[sub_resource type="Resource" id="Resource_iunte"]
+script = ExtResource("1_85wku")
+anim_frame = 10
+command = 5
+victim_offset = Vector3(120, 0, 0)
+slave_anim = "lifted"
+
+[sub_resource type="Resource" id="Resource_x0o47"]
+script = ExtResource("1_85wku")
+anim_frame = 10
+command = 6
+victim_anim_frame = 1
+victim_offset = Vector3(120, 0, 0)
+slave_anim = "lifted"
+
+[sub_resource type="Resource" id="Resource_f750o"]
+script = ExtResource("1_85wku")
+anim_frame = 11
+command = 6
+victim_anim_frame = 2
+victim_offset = Vector3(120, 18, 0)
+slave_anim = "lifted"
+
+[sub_resource type="Resource" id="Resource_isb0g"]
+script = ExtResource("1_85wku")
+anim_frame = 11
+command = 6
+victim_anim_frame = 3
+victim_offset = Vector3(100, 18, 0)
+slave_anim = "lifted"
+
+[sub_resource type="Resource" id="Resource_nlu7k"]
+script = ExtResource("1_85wku")
+anim_frame = 11
+command = 6
+victim_anim_frame = 4
+victim_offset = Vector3(100, 18, 0)
+slave_anim = "lifted"
+
+[sub_resource type="Resource" id="Resource_42pyg"]
+script = ExtResource("1_85wku")
+anim_frame = 12
+command = 6
+victim_anim_frame = 5
+victim_offset = Vector3(100, 18, 0)
+slave_anim = "lifted"
+
+[sub_resource type="Resource" id="Resource_dxewj"]
+script = ExtResource("1_85wku")
+anim_frame = 12
+command = 6
+victim_anim_frame = 6
+victim_offset = Vector3(100, 30, 0)
+slave_anim = "lifted"
+
+[sub_resource type="Resource" id="Resource_brapp"]
+script = ExtResource("1_85wku")
+anim_frame = 13
+command = 6
+victim_anim_frame = 7
+victim_offset = Vector3(90, 30, 0)
+slave_anim = "lifted"
+
+[sub_resource type="Resource" id="Resource_q8y04"]
+script = ExtResource("1_85wku")
+anim_frame = 13
+command = 6
+victim_anim_frame = 8
+victim_offset = Vector3(90, 30, 0)
+slave_anim = "lifted"
+
+[sub_resource type="Resource" id="Resource_wb6fx"]
+script = ExtResource("1_85wku")
+anim_frame = 13
+command = 6
+victim_offset = Vector3(90, 12, 0)
+slave_anim = "liftgrabbed"
+
+[sub_resource type="Resource" id="Resource_m1cne"]
+script = ExtResource("1_85wku")
+anim_frame = 14
+command = 6
+victim_anim_frame = 1
+victim_offset = Vector3(90, 12, 0)
+slave_anim = "liftgrabbed"
+
+[sub_resource type="Resource" id="Resource_nltvd"]
+script = ExtResource("1_85wku")
+anim_frame = 14
+command = 6
+victim_anim_frame = 2
+victim_offset = Vector3(90, 12, 0)
+slave_anim = "liftgrabbed"
+
+[sub_resource type="Resource" id="Resource_w2svu"]
+script = ExtResource("1_85wku")
+anim_frame = 14
+command = 6
+victim_anim_frame = 3
+victim_offset = Vector3(81, 12, 0)
+slave_anim = "liftgrabbed"
+
+[sub_resource type="Resource" id="Resource_22qt2"]
+script = ExtResource("1_85wku")
+anim_frame = 15
+command = 6
+victim_anim_frame = 4
+victim_offset = Vector3(81, 0, 0)
+slave_anim = "liftgrabbed"
+
+[sub_resource type="Resource" id="Resource_i4f11"]
+script = ExtResource("1_85wku")
+anim_frame = 15
+command = 6
+victim_offset = Vector3(81, 0, 0)
+slave_anim = "headlocked"
+
+[resource]
+script = ExtResource("3_d82f0")
+id = "hair_pickup"
+anim_name = "headlocks"
+frames = Array[ExtResource("1_85wku")]([SubResource("Resource_byj5o"), SubResource("Resource_h5olt"), SubResource("Resource_kyyxb"), SubResource("Resource_iunte"), SubResource("Resource_x0o47"), SubResource("Resource_f750o"), SubResource("Resource_isb0g"), SubResource("Resource_nlu7k"), SubResource("Resource_42pyg"), SubResource("Resource_dxewj"), SubResource("Resource_brapp"), SubResource("Resource_q8y04"), SubResource("Resource_wb6fx"), SubResource("Resource_m1cne"), SubResource("Resource_nltvd"), SubResource("Resource_w2svu"), SubResource("Resource_22qt2"), SubResource("Resource_i4f11")])
+is_grapple = true
+reverse_reach_on_whiff = true
+contact_freeze_ticks = 1

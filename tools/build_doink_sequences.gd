@@ -48,6 +48,7 @@ func _init() -> void:
 	_save(_throw("grab_fling", "fling",    "flinged",    AMode.BIGBOOT))
 	# Head grab: connect -> HEADHOLD (no DAMAGE_OPP/DETACH here; head-hold drives follow-ups).
 	_save(_neck_grab())
+	_save(_hair_pickup())
 	# Head-hold follow-ups (DOINK.ASM:685-832). Victim is already attached (no grab window).
 	_save(_followup("piledriver", "piledriver", "piledrivered", AMode.BIGBOOT))
 	_save(_followup("head_slam",  "faceslam",   "faceslamed",   AMode.BIGBOOT))
@@ -232,6 +233,60 @@ func _neck_grab() -> MoveSequence:
 		var vx: float = NECK_PUPPET_X[int(round(t * float(NECK_PUPPET_X.size() - 1)))]
 		var cmd := SequenceFrame.Command.SET_ATTACH if s == 0 else SequenceFrame.Command.SLAVE_ANIM
 		arr.append(_gframe(4, aimg, cmd, "headlocked", Vector3(vx, 0, 0), vimg))
+	m.frames = arr
+	return m
+
+## Hair pickup (from the ground), arcade dnk_4_hair_pickup_anim (DNKSEQ3.ASM:3020) driven by the
+## from-ground headlock attacker frames (headlocks 7-15). Reach DOWN to the downed foe's hair
+## (grab window), HOIST through lifted -> liftgrabbed, land on the held headlocked loop. No
+## DAMAGE_OPP/DETACH: the head-hold follow-ups own damage + release. The final victim offset is
+## NECK_HOLD_VICTIM_X so the static hold continuation (Fighter._HEADHOLD_VICTIM_X) lines up.
+const HAIR_REACH_LO := 7     # headlocks: first from-ground frame (bend toward the hair)
+const HAIR_GRAB_FRAME := 9   # headlocks: hand reaches the hair -> grab window
+const HAIR_LIFT_HI := 15     # headlocks: last from-ground frame (victim hoisted to standing)
+## SEEDED-for-playtest (not yet arcade-exact). Victim X hauled from arm's length (grab) in to
+## the locked hold; the final entry MUST equal Fighter._HEADHOLD_VICTIM_X (== NECK_HOLD_VICTIM_X
+## == 81) so the static hold continuation lines up without a jump.
+const HAIR_PUPPET_X := [120.0, 100.0, 90.0, 81.0]
+## SEEDED-for-playtest (not yet arcade-exact). Victim Y (+up) is a hump: feet leave the mat
+## mid-hoist (0 -> apex -> back to the floor line 0). Shape and apex height tuned in playtest.
+const HAIR_LIFT_Y := [0.0, 18.0, 30.0, 12.0, 0.0]
+
+func _hair_pickup() -> MoveSequence:
+	var m := MoveSequence.new()
+	m.id = "hair_pickup"; m.anim_name = "headlocks"; m.attack_mode = AMode.PUNCH
+	m.is_grapple = true; m.uninterruptable = true; m.reverse_reach_on_whiff = true
+	m.contact_freeze_ticks = 1
+	var arr: Array[SequenceFrame] = []
+	# Reach DOWN lead-in (headlocks 7..GRAB-1): bend to the hair, no victim attached yet.
+	for i in range(HAIR_REACH_LO, HAIR_GRAB_FRAME):
+		arr.append(_gframe(3, i, SequenceFrame.Command.NONE, "", Vector3.ZERO, 0))
+	# Grab window at the hair: a LOW box (downed foe). Victim sits at the first lift offset.
+	var gw := _gframe(3, HAIR_GRAB_FRAME, SequenceFrame.Command.WAIT_HIT_OPP, "lifted",
+		Vector3(HAIR_PUPPET_X[0], HAIR_LIFT_Y[0], 0), 0)
+	gw.attack_box = Box3.new()
+	gw.attack_box.offset = Vector3(22, 40, 0); gw.attack_box.size = Vector3(70, 80, 40)
+	gw.wait_hit_max_ticks = 16
+	arr.append(gw)
+	# Connected HOIST: walk EVERY frame of lifted then liftgrabbed (no victim frame dropped),
+	# land on headlocked frame 0 (the static hold then loops headlocked). Attacker frames ramp
+	# GRAB+1..HAIR_LIFT_HI; victim X is drawn in to the lock; Y humps up then settles to 0.
+	var steps: Array = []
+	for vf in range(_sf.get_frame_count("lifted")):
+		steps.append(["lifted", vf])
+	for vf in range(_sf.get_frame_count("liftgrabbed")):
+		steps.append(["liftgrabbed", vf])
+	steps.append(["headlocked", 0])   # arrival into the held loop
+	var nc: int = steps.size()
+	for s in range(nc):
+		var t := float(s) / float(nc - 1)
+		var aimg: int = (HAIR_GRAB_FRAME + 1) + int(round(t * float(HAIR_LIFT_HI - (HAIR_GRAB_FRAME + 1))))
+		var vx: float = HAIR_PUPPET_X[int(round(t * float(HAIR_PUPPET_X.size() - 1)))]
+		var vy: float = HAIR_LIFT_Y[int(round(t * float(HAIR_LIFT_Y.size() - 1)))]
+		var cmd := SequenceFrame.Command.SET_ATTACH if s == 0 else SequenceFrame.Command.SLAVE_ANIM
+		arr.append(_gframe(4, aimg, cmd, steps[s][0], Vector3(vx, vy, 0), steps[s][1]))
+	# Pin the final held offset to the hold continuation (overrides the ramp's last value).
+	arr[arr.size() - 1].victim_offset = Vector3(NECK_HOLD_VICTIM_X, 0, 0)
 	m.frames = arr
 	return m
 
