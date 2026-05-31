@@ -55,4 +55,5 @@ anim_frame = 7
 script = ExtResource("3_i1yta")
 id = "punch"
 anim_name = "mid_punch_front"
+anim_name_back = "mid_punch_back"
 frames = Array[ExtResource("1_avnmg")]([SubResource("Resource_5f4fe"), SubResource("Resource_4c0xw"), SubResource("Resource_sbfkw"), SubResource("Resource_7sugx"), SubResource("Resource_84003"), SubResource("Resource_33vqi"), SubResource("Resource_yyhhx"), SubResource("Resource_jrq24")])

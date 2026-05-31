@@ -25,24 +25,24 @@ func _init() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT))
 	_sf = load(FRAMES)
 	# Punch-family strikes run at 2 ticks/frame (snappier); kicks stay at the default 3.
-	_save(_strike("punch",    "mid_punch_front", AMode.PUNCH,   8, 4, _ab(22, 86, 0, 55, 9, 10), false, 2))
-	_save(_strike("headbutt", "headbutt_front",  AMode.HDBUTT,  6, 3, _ab(18, 92, 0, 40, 12, 10), true, 2))
-	_save(_strike("kick",     "mid_kick_front",  AMode.KICK,    9, 5, _ab(26, 50, 0, 60, 14, 10)))
+	_save(_strike("punch",    "mid_punch_front", AMode.PUNCH,   8, 4, _ab(22, 86, 0, 55, 9, 10), false, 2, "mid_punch_back"))
+	_save(_strike("headbutt", "headbutt_front",  AMode.HDBUTT,  6, 3, _ab(18, 92, 0, 40, 12, 10), true, 2, "headbutt_back"))
+	_save(_strike("kick",     "mid_kick_front",  AMode.KICK,    9, 5, _ab(26, 50, 0, 60, 14, 10), false, 3, "mid_kick_back"))
 	_save(_strike("uppercut", "uppercut",        AMode.UPRCUT,  6, 3, _ab(28, 66, 0, 60, 36, 10), false, 2))
 	_save(_strike("big_boot", "big_boot",        AMode.BIGBOOT, 8, 4, _ab(34, 60, 0, 70, 20, 10)))
 	# New ground strikes. Standing (knee/slap/spin_kick) use chest/leg-height boxes like the
 	# strikes above; the GROUNDED moves (stomp/elbow_drop) hit a downed foe, so their boxes sit
 	# LOW (floor level), not at standing head height. All boxes are seeded — tune in playtest.
-	_save(_strike("knee",       "close_kick_front",      AMode.KNEE,     _sf.get_frame_count("close_kick_front"),      2, _ab(24, 70, 0, 55, 40, 10)))
-	_save(_strike("stomp",      "stomp_front_legdrop",   AMode.STOMP,    _sf.get_frame_count("stomp_front_legdrop"),   2, _ab(22, 24, 0, 60, 40, 10)))
-	_save(_strike("elbow_drop", "elbow_drop_front",      AMode.LBDROP,   _sf.get_frame_count("elbow_drop_front"),      2, _ab(22, 24, 0, 60, 40, 10)))
-	_save(_strike("slap",       "slap_front",            AMode.SLAP,     _sf.get_frame_count("slap_front"),            2, _ab(22, 84, 0, 55, 12, 10), false, 2))
-	_save(_strike("spin_kick",  "power_kick_front",      AMode.SPINKICK, _sf.get_frame_count("power_kick_front"),      3, _ab(26, 60, 0, 80, 30, 10)))
+	_save(_strike("knee",       "close_kick_front",      AMode.KNEE,     _sf.get_frame_count("close_kick_front"),      2, _ab(24, 70, 0, 55, 40, 10), false, 3, "close_kick_back"))
+	_save(_strike("stomp",      "stomp_front_legdrop",   AMode.STOMP,    _sf.get_frame_count("stomp_front_legdrop"),   2, _ab(22, 24, 0, 60, 40, 10), false, 3, "stomp_back"))
+	_save(_strike("elbow_drop", "elbow_drop_front",      AMode.LBDROP,   _sf.get_frame_count("elbow_drop_front"),      2, _ab(22, 24, 0, 60, 40, 10), false, 3, "elbow_drop_back"))
+	_save(_strike("slap",       "slap_front",            AMode.SLAP,     _sf.get_frame_count("slap_front"),            2, _ab(22, 84, 0, 55, 12, 10), false, 2, "slap_back"))
+	_save(_strike("spin_kick",  "power_kick_front",      AMode.SPINKICK, _sf.get_frame_count("power_kick_front"),      3, _ab(26, 60, 0, 80, 30, 10), false, 3, "power_kick_back"))
 	# Secret-move strikes (motion-buffer specials). Tuning knobs seeded from arcade timing;
 	# contact frame, box, and ticks_per_frame are initial values for playtest refinement.
 	_save(_strike("ear_slap",     "clapper",                  AMode.EARSLAP,  _sf.get_frame_count("clapper"),                  2, _ab(20, 84, 0, 55, 14, 10), false, 2))
 	_save(_strike("hammer",       "happy_hammer",             AMode.HAMMER,   _sf.get_frame_count("happy_hammer"),             3, _ab(24, 96, 0, 60, 40, 10)))
-	_save(_strike("boxing_glove", "boxing_glove_smash_front", AMode.BOXGLOVE, _sf.get_frame_count("boxing_glove_smash_front"), 3, _ab(28, 80, 0, 80, 30, 10)))
+	_save(_strike("boxing_glove", "boxing_glove_smash_front", AMode.BOXGLOVE, _sf.get_frame_count("boxing_glove_smash_front"), 3, _ab(28, 80, 0, 80, 30, 10), false, 3, "boxing_glove_smash_back"))
 	# Grapple throws (victim channel). DOINK.ASM:572 (hip toss), :504 (grab & fling).
 	_save(_throw("hip_toss",   "hip_toss", "hip_tossed", AMode.BIGBOOT, _HIPTOSS_VICTIM))
 	_save(_throw("grab_fling", "fling",    "flinged",    AMode.BIGBOOT))
@@ -66,9 +66,9 @@ func _frame(dur: int, img: int, cmd: int = SequenceFrame.Command.NONE, box: Box3
 ## image (anim_frame = i), `ticks_per_frame` ticks each, with the hitbox live from
 ## `contact` to `contact+2` (capped). This keeps the visible frame and the hit
 ## window in sync; lower ticks_per_frame = faster-reading swing.
-func _strike(id: String, anim_name: String, amode: int, frame_count: int, contact: int, box: Box3, dizzy: bool = false, ticks_per_frame: int = 3) -> MoveSequence:
+func _strike(id: String, anim_name: String, amode: int, frame_count: int, contact: int, box: Box3, dizzy: bool = false, ticks_per_frame: int = 3, anim_back: String = "") -> MoveSequence:
 	var m := MoveSequence.new()
-	m.id = id; m.anim_name = anim_name; m.attack_mode = amode; m.causes_dizzy = dizzy
+	m.id = id; m.anim_name = anim_name; m.anim_name_back = anim_back; m.attack_mode = amode; m.causes_dizzy = dizzy
 	var off_frame := mini(contact + 2, frame_count - 1)
 	var arr: Array[SequenceFrame] = []
 	for i in range(frame_count):

@@ -5,6 +5,10 @@ extends Resource
 
 @export var id: String = ""
 @export var anim_name: String = ""
+## Depth-facing variant: played when the attacker faces BACK (away from the camera). Empty
+## means use anim_name for both facings (moves with no back-facing art). The strike's frame
+## TIMING comes from the sequence frames regardless of which clip displays.
+@export var anim_name_back: String = ""
 @export_enum("PUNCH", "HDBUTT", "KICK", "KNEE", "UPRCUT", "BIGBOOT", "STOMP", "LBDROP", "SLAP", "SPINKICK", "EARSLAP", "HAMMER", "BOXGLOVE") var attack_mode: int = AMode.PUNCH
 @export var frames: Array[SequenceFrame] = []
 ## MODE_UNINT: while playing, new input is ignored until the sequence ends.

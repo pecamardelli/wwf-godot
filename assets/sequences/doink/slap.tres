@@ -55,5 +55,6 @@ anim_frame = 7
 script = ExtResource("3_oboq0")
 id = "slap"
 anim_name = "slap_front"
+anim_name_back = "slap_back"
 attack_mode = 8
 frames = Array[ExtResource("1_suts3")]([SubResource("Resource_2bfti"), SubResource("Resource_02c5d"), SubResource("Resource_b5y6l"), SubResource("Resource_bh8i1"), SubResource("Resource_dfuca"), SubResource("Resource_5i57e"), SubResource("Resource_j5ram"), SubResource("Resource_raiwe")])

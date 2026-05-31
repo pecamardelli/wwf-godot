@@ -55,5 +55,6 @@ anim_frame = 7
 script = ExtResource("3_p4561")
 id = "boxing_glove"
 anim_name = "boxing_glove_smash_front"
+anim_name_back = "boxing_glove_smash_back"
 attack_mode = 12
 frames = Array[ExtResource("1_4ugqv")]([SubResource("Resource_5nohx"), SubResource("Resource_pf1os"), SubResource("Resource_yjpb8"), SubResource("Resource_e0441"), SubResource("Resource_12pko"), SubResource("Resource_7dxev"), SubResource("Resource_qldsn"), SubResource("Resource_5nu1h")])

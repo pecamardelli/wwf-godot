@@ -40,5 +40,6 @@ command = 3
 script = ExtResource("3_uohoo")
 id = "knee"
 anim_name = "close_kick_front"
+anim_name_back = "close_kick_back"
 attack_mode = 3
 frames = Array[ExtResource("1_yq2l7")]([SubResource("Resource_3wted"), SubResource("Resource_r7unn"), SubResource("Resource_khc3k"), SubResource("Resource_e87yt"), SubResource("Resource_h71t4")])

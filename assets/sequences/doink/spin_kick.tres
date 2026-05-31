@@ -55,5 +55,6 @@ anim_frame = 7
 script = ExtResource("3_72xgk")
 id = "spin_kick"
 anim_name = "power_kick_front"
+anim_name_back = "power_kick_back"
 attack_mode = 9
 frames = Array[ExtResource("1_7cudq")]([SubResource("Resource_vjm61"), SubResource("Resource_4obmi"), SubResource("Resource_ej0oo"), SubResource("Resource_2lpth"), SubResource("Resource_cerm2"), SubResource("Resource_ykvm7"), SubResource("Resource_fof4m"), SubResource("Resource_hx86s")])

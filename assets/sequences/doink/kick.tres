@@ -60,5 +60,6 @@ anim_frame = 8
 script = ExtResource("3_iywye")
 id = "kick"
 anim_name = "mid_kick_front"
+anim_name_back = "mid_kick_back"
 attack_mode = 2
 frames = Array[ExtResource("1_pmfpx")]([SubResource("Resource_qwiqs"), SubResource("Resource_vxpin"), SubResource("Resource_uir85"), SubResource("Resource_iinqm"), SubResource("Resource_dnjfd"), SubResource("Resource_7tmmh"), SubResource("Resource_rtiap"), SubResource("Resource_1at17"), SubResource("Resource_yj8e2")])

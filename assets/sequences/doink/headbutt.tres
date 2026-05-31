@@ -45,6 +45,7 @@ command = 3
 script = ExtResource("3_na8se")
 id = "headbutt"
 anim_name = "headbutt_front"
+anim_name_back = "headbutt_back"
 attack_mode = 1
 frames = Array[ExtResource("1_8ytua")]([SubResource("Resource_626df"), SubResource("Resource_1e6y8"), SubResource("Resource_72nsc"), SubResource("Resource_pc6mb"), SubResource("Resource_eejg8"), SubResource("Resource_s7kg6")])
 causes_dizzy = true

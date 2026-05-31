@@ -45,5 +45,6 @@ anim_frame = 5
 script = ExtResource("3_f7lvk")
 id = "elbow_drop"
 anim_name = "elbow_drop_front"
+anim_name_back = "elbow_drop_back"
 attack_mode = 7
 frames = Array[ExtResource("1_shb6v")]([SubResource("Resource_4hcul"), SubResource("Resource_uaqr8"), SubResource("Resource_ggm5d"), SubResource("Resource_7er3o"), SubResource("Resource_opdk1"), SubResource("Resource_4swcf")])

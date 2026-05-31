@@ -785,6 +785,11 @@ func _play_sequence_anim() -> void:
 	if sprite == null or _player.sequence == null:
 		return
 	var anim: String = _player.sequence.anim_name
+	# Depth-facing strike variant: play the back clip when facing away (if the move has one).
+	var back: String = _player.sequence.anim_name_back
+	if _depth_facing == Facing.BACK and back != "" \
+			and sprite.sprite_frames != null and sprite.sprite_frames.has_animation(back):
+		anim = back
 	if sprite.sprite_frames == null or not sprite.sprite_frames.has_animation(anim):
 		return
 	if sprite.animation != anim:
