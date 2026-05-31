@@ -11,6 +11,11 @@ const _BASE := {
 	AMode.BIGBOOT: 18,
 	AMode.STOMP: 8,
 	AMode.LBDROP: 17,
+	AMode.SLAP: 10,
+	AMode.SPINKICK: 18,
+	AMode.EARSLAP: 10,
+	AMode.HAMMER: 22,
+	AMode.BOXGLOVE: 25,
 }
 
 static func base(amode: int) -> int:

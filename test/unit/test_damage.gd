@@ -30,3 +30,10 @@ func test_big_hit_far_overkill_still_kills():
 
 func test_apply_normal_subtract():
 	assert_eq(Damage.apply_health(163, 10), 153)
+
+func test_new_ground_modes_have_base_damage():
+	assert_gt(DamageTable.base(AMode.SLAP), 0)
+	assert_gt(DamageTable.base(AMode.SPINKICK), 0)
+	assert_gt(DamageTable.base(AMode.EARSLAP), 0)
+	assert_gt(DamageTable.base(AMode.HAMMER), 0)
+	assert_gt(DamageTable.base(AMode.BOXGLOVE), 0)

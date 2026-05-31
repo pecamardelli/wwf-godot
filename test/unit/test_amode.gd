@@ -18,3 +18,10 @@ func test_knockdown_getup_is_270_ticks():
 
 func test_most_moves_get_right_up():
 	assert_eq(AMode.getup_ticks(AMode.Family.HEAD_HIT), 0)
+
+func test_new_ground_modes_have_reaction_families():
+	assert_eq(AMode.reaction_for(AMode.SLAP), AMode.Family.HEAD_HIT)
+	assert_eq(AMode.reaction_for(AMode.SPINKICK), AMode.Family.STAGGER)
+	assert_eq(AMode.reaction_for(AMode.EARSLAP), AMode.Family.HEAD_HIT)
+	assert_eq(AMode.reaction_for(AMode.HAMMER), AMode.Family.KNOCKDOWN)
+	assert_eq(AMode.reaction_for(AMode.BOXGLOVE), AMode.Family.KNOCKDOWN)

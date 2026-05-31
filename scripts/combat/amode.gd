@@ -3,7 +3,7 @@ class_name AMode
 ## REACT1.ASM:833-901): the reaction is chosen by the ATTACKER's mode, not by damage.
 
 ## Subset of AMODE_* we implement in 2b (the wired strikes). Extend in later plans.
-enum { PUNCH, HDBUTT, KICK, KNEE, UPRCUT, BIGBOOT, STOMP, LBDROP }
+enum { PUNCH, HDBUTT, KICK, KNEE, UPRCUT, BIGBOOT, STOMP, LBDROP, SLAP, SPINKICK, EARSLAP, HAMMER, BOXGLOVE }
 
 ## Reaction families (arcade STDSEQ reaction tables, REACT1.ASM:1723-1866).
 enum Family { HEAD_HIT, BODY_HIT, FALL_BACK, KNOCKDOWN, STAGGER, ONGROUND, BLOCK, DIZZY }
@@ -18,6 +18,11 @@ const _HIT_TABLE := {
 	BIGBOOT: Family.KNOCKDOWN,
 	STOMP: Family.ONGROUND,
 	LBDROP: Family.ONGROUND,
+	SLAP: Family.HEAD_HIT,
+	SPINKICK: Family.STAGGER,
+	EARSLAP: Family.HEAD_HIT,
+	HAMMER: Family.KNOCKDOWN,
+	BOXGLOVE: Family.KNOCKDOWN,
 }
 
 static func reaction_for(amode: int) -> int:
