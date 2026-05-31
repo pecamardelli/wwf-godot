@@ -11,6 +11,7 @@ const _BASE := {
 	AMode.BIGBOOT: 18,
 	AMode.STOMP: 8,
 	AMode.LBDROP: 17,
+	# Seeded values — arcade DAMAGE.EQU not yet extracted for these moves; tune in playtest.
 	AMode.SLAP: 10,
 	AMode.SPINKICK: 18,
 	AMode.EARSLAP: 10,

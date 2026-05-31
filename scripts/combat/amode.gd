@@ -18,6 +18,7 @@ const _HIT_TABLE := {
 	BIGBOOT: Family.KNOCKDOWN,
 	STOMP: Family.ONGROUND,
 	LBDROP: Family.ONGROUND,
+	# Seeded families for the new ground strikes (arcade reaction not yet extracted per-move; tune in playtest).
 	SLAP: Family.HEAD_HIT,
 	SPINKICK: Family.STAGGER,
 	EARSLAP: Family.HEAD_HIT,
