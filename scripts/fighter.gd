@@ -720,10 +720,12 @@ func receive_grab(attacker: Fighter, move: MoveSequence) -> void:
 	_player.play(null)                 # cancel anything I was doing
 	_hit_by_current_move.clear()
 	_react_timer = 0.0
+	_getup_rising = false        # a downed foe grabbed mid-getup (hair pickup) stops rising
+	_getup_rise_time = 0.0
 	_grappled_by = attacker
 	attacker._grappling = self
 	attacker._player.notify_grab_connected()
-	if move != null and move.id == "neck_grab":
+	if move != null and (move.id == "neck_grab" or move.id == "hair_pickup"):
 		mode = Mode.HEADHELD
 		attacker.mode = Mode.HEADHOLD
 		attacker._set_headhold_break_ticks(180)   # ~3.4s hold window (arcade head_held_brk)

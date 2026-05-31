@@ -153,3 +153,17 @@ func test_blocked_grab_recoils_the_attacker_backward():
 	for _i in range(20):
 		atk._physics_process(1.0 / 60.0)
 	assert_lt(atk.global_position.x, x0, "a blocked grab recoils the attacker backward (away from the victim)")
+
+func test_hair_pickup_lifts_downed_midgetup_victim_into_head_hold():
+	var atk := _make(); var vic := _make()
+	# Victim is DOWN and already rising — the grab must cancel the getup and lift it.
+	vic.mode = Fighter.Mode.ONGROUND
+	vic._getup_rising = true; vic._getup_rise_time = 0.3
+	atk.start_move(load("res://assets/sequences/doink/hair_pickup.tres"))
+	vic.receive_grab(atk, atk.current_move())
+	atk._player.notify_grab_connected()
+	assert_eq(atk.mode, Fighter.Mode.HEADHOLD, "attacker enters the head hold")
+	assert_eq(vic.mode, Fighter.Mode.HEADHELD, "downed victim is lifted into the held state")
+	assert_false(vic._getup_rising, "getup is cancelled by the grab")
+	assert_eq(vic._getup_rise_time, 0.0, "getup timer cleared")
+	assert_gt(atk._headhold_break_time, 0.0, "break timer armed like neck_grab")
