@@ -18,7 +18,9 @@ func _init() -> void:
 	var spin_kick: MoveSequence = load(SEQ + "spin_kick.tres")
 	var elbow: MoveSequence = load(SEQ + "elbow_drop.tres")
 	var big_boot: MoveSequence = load(SEQ + "big_boot.tres")
-	var R := MoveTable.Rng; var D := MoveTable.Dir; var B := MoveTable.Btn
+	var R := MoveTable.Rng
+	var D := MoveTable.Dir
+	var B := MoveTable.Btn
 
 	# PUNCH (low punch): far punch, close head butt, grounded elbow drop.
 	t.add(R.NORMAL,   D.NEUTRAL, B.LOW_PUNCH, punch)
