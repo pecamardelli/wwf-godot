@@ -47,3 +47,14 @@ func test_running_is_running_range():
 	p.target = e
 	p.mode = Fighter.Mode.RUNNING
 	assert_eq(p._current_range(), MoveTable.Rng.RUNNING)
+
+func test_no_target_is_normal_range():
+	var p := _player_at(100, 400)
+	p.target = null
+	assert_eq(p._current_range(), MoveTable.Rng.NORMAL)
+
+func test_grounded_opponent_outside_depth_is_normal():
+	var p := _player_at(100, 400)
+	var e := _enemy_at(100, 600, Fighter.Mode.ONGROUND)  # dx0, dz200>120 -> out of grounded reach
+	p.target = e
+	assert_eq(p._current_range(), MoveTable.Rng.NORMAL)
