@@ -1,19 +1,28 @@
 extends "res://addons/gut/test.gd"
 
-func _table() -> MoveTable:
-	return load("res://assets/movetables/doink.tres")
+const T := preload("res://assets/movetables/doink.tres")
 
-func test_low_punch_far_is_punch_close_is_headbutt():
-	var t := _table()
-	assert_eq(t.lookup(MoveTable.Rng.NORMAL, MoveTable.Dir.NEUTRAL, MoveTable.Btn.LOW_PUNCH).id, "punch")
-	assert_eq(t.lookup(MoveTable.Rng.CLOSE, MoveTable.Dir.NEUTRAL, MoveTable.Btn.LOW_PUNCH).id, "headbutt")
+func _id(rng: int, dir: int, btn: int) -> String:
+	var s: MoveSequence = T.lookup(rng, dir, btn)
+	return s.id if s != null else ""
 
-func test_high_punch_is_uppercut():
-	assert_eq(_table().lookup(MoveTable.Rng.NORMAL, MoveTable.Dir.NEUTRAL, MoveTable.Btn.HIGH_PUNCH).id, "uppercut")
+func test_punch_by_range():
+	assert_eq(_id(MoveTable.Rng.NORMAL,   MoveTable.Dir.NEUTRAL, MoveTable.Btn.LOW_PUNCH), "punch")
+	assert_eq(_id(MoveTable.Rng.CLOSE,    MoveTable.Dir.NEUTRAL, MoveTable.Btn.LOW_PUNCH), "headbutt")
+	assert_eq(_id(MoveTable.Rng.GROUNDED, MoveTable.Dir.NEUTRAL, MoveTable.Btn.LOW_PUNCH), "elbow_drop")
 
-func test_dir_specific_falls_back_to_neutral():
-	# no TOWARD entry exists -> falls back to the NEUTRAL low-kick (kick)
-	assert_eq(_table().lookup(MoveTable.Rng.NORMAL, MoveTable.Dir.TOWARD, MoveTable.Btn.LOW_KICK).id, "kick")
+func test_kick_by_range():
+	assert_eq(_id(MoveTable.Rng.NORMAL,   MoveTable.Dir.NEUTRAL, MoveTable.Btn.LOW_KICK), "kick")
+	assert_eq(_id(MoveTable.Rng.CLOSE,    MoveTable.Dir.NEUTRAL, MoveTable.Btn.LOW_KICK), "knee")
+	assert_eq(_id(MoveTable.Rng.GROUNDED, MoveTable.Dir.NEUTRAL, MoveTable.Btn.LOW_KICK), "stomp")
+	assert_eq(_id(MoveTable.Rng.RUNNING,  MoveTable.Dir.NEUTRAL, MoveTable.Btn.LOW_KICK), "big_boot")
 
-func test_running_high_kick_is_big_boot():
-	assert_eq(_table().lookup(MoveTable.Rng.RUNNING, MoveTable.Dir.NEUTRAL, MoveTable.Btn.HIGH_KICK).id, "big_boot")
+func test_super_punch_far_slap_close_down_uppercut():
+	assert_eq(_id(MoveTable.Rng.NORMAL, MoveTable.Dir.NEUTRAL, MoveTable.Btn.HIGH_PUNCH), "slap")
+	assert_eq(_id(MoveTable.Rng.CLOSE,  MoveTable.Dir.NEUTRAL, MoveTable.Btn.HIGH_PUNCH), "slap")
+	assert_eq(_id(MoveTable.Rng.CLOSE,  MoveTable.Dir.DOWN,    MoveTable.Btn.HIGH_PUNCH), "uppercut")
+
+func test_super_kick_far_spin_close_knee():
+	assert_eq(_id(MoveTable.Rng.NORMAL,   MoveTable.Dir.NEUTRAL, MoveTable.Btn.HIGH_KICK), "spin_kick")
+	assert_eq(_id(MoveTable.Rng.CLOSE,    MoveTable.Dir.NEUTRAL, MoveTable.Btn.HIGH_KICK), "knee")
+	assert_eq(_id(MoveTable.Rng.GROUNDED, MoveTable.Dir.NEUTRAL, MoveTable.Btn.HIGH_KICK), "stomp")

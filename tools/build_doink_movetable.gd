@@ -11,22 +11,39 @@ func _init() -> void:
 	var punch: MoveSequence = load(SEQ + "punch.tres")
 	var headbutt: MoveSequence = load(SEQ + "headbutt.tres")
 	var kick: MoveSequence = load(SEQ + "kick.tres")
+	var knee: MoveSequence = load(SEQ + "knee.tres")
+	var stomp: MoveSequence = load(SEQ + "stomp.tres")
 	var uppercut: MoveSequence = load(SEQ + "uppercut.tres")
+	var slap: MoveSequence = load(SEQ + "slap.tres")
+	var spin_kick: MoveSequence = load(SEQ + "spin_kick.tres")
+	var elbow: MoveSequence = load(SEQ + "elbow_drop.tres")
 	var big_boot: MoveSequence = load(SEQ + "big_boot.tres")
-	# Low punch: far -> punch, close -> headbutt.
-	t.add(MoveTable.Rng.NORMAL, MoveTable.Dir.NEUTRAL, MoveTable.Btn.LOW_PUNCH, punch)
-	t.add(MoveTable.Rng.CLOSE,  MoveTable.Dir.NEUTRAL, MoveTable.Btn.LOW_PUNCH, headbutt)
-	# High punch -> uppercut (both ranges).
-	t.add(MoveTable.Rng.NORMAL, MoveTable.Dir.NEUTRAL, MoveTable.Btn.HIGH_PUNCH, uppercut)
-	t.add(MoveTable.Rng.CLOSE,  MoveTable.Dir.NEUTRAL, MoveTable.Btn.HIGH_PUNCH, uppercut)
-	# Low kick -> kick (both ranges).
-	t.add(MoveTable.Rng.NORMAL, MoveTable.Dir.NEUTRAL, MoveTable.Btn.LOW_KICK, kick)
-	t.add(MoveTable.Rng.CLOSE,  MoveTable.Dir.NEUTRAL, MoveTable.Btn.LOW_KICK, kick)
-	# Only HIGH_KICK has a RUNNING-range entry: in the arcade the big boot is Doink's
-	# sole running attack, so running LOW_PUNCH/HIGH_PUNCH/LOW_KICK intentionally do nothing.
-	# High kick -> big boot (all ranges; it is also the running attack).
-	for r in [MoveTable.Rng.NORMAL, MoveTable.Rng.CLOSE, MoveTable.Rng.RUNNING]:
-		t.add(r, MoveTable.Dir.NEUTRAL, MoveTable.Btn.HIGH_KICK, big_boot)
+	var R := MoveTable.Rng; var D := MoveTable.Dir; var B := MoveTable.Btn
+
+	# PUNCH (low punch): far punch, close head butt, grounded elbow drop.
+	t.add(R.NORMAL,   D.NEUTRAL, B.LOW_PUNCH, punch)
+	t.add(R.CLOSE,    D.NEUTRAL, B.LOW_PUNCH, headbutt)
+	t.add(R.GROUNDED, D.NEUTRAL, B.LOW_PUNCH, elbow)
+
+	# KICK (low kick): far kick, close knee, grounded stomp, running big boot.
+	t.add(R.NORMAL,   D.NEUTRAL, B.LOW_KICK, kick)
+	t.add(R.CLOSE,    D.NEUTRAL, B.LOW_KICK, knee)
+	t.add(R.GROUNDED, D.NEUTRAL, B.LOW_KICK, stomp)
+	t.add(R.RUNNING,  D.NEUTRAL, B.LOW_KICK, big_boot)
+
+	# SPUNCH (high punch): far/close slap, close+DOWN uppercut, grounded elbow drop, running big boot.
+	t.add(R.NORMAL,   D.NEUTRAL, B.HIGH_PUNCH, slap)
+	t.add(R.CLOSE,    D.NEUTRAL, B.HIGH_PUNCH, slap)
+	t.add(R.CLOSE,    D.DOWN,    B.HIGH_PUNCH, uppercut)
+	t.add(R.GROUNDED, D.NEUTRAL, B.HIGH_PUNCH, elbow)
+	t.add(R.RUNNING,  D.NEUTRAL, B.HIGH_PUNCH, big_boot)
+
+	# SKICK (high kick): far spin kick, close knee, grounded stomp, running big boot.
+	t.add(R.NORMAL,   D.NEUTRAL, B.HIGH_KICK, spin_kick)
+	t.add(R.CLOSE,    D.NEUTRAL, B.HIGH_KICK, knee)
+	t.add(R.GROUNDED, D.NEUTRAL, B.HIGH_KICK, stomp)
+	t.add(R.RUNNING,  D.NEUTRAL, B.HIGH_KICK, big_boot)
+
 	var err := ResourceSaver.save(t, OUT)
 	print("doink movetable -> ", error_string(err))
 	if err != OK:

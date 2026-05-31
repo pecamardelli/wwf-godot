@@ -1,22 +1,34 @@
 [gd_resource type="Resource" script_class="MoveTable" format=3]
 
-[ext_resource type="Resource" path="res://assets/sequences/doink/punch.tres" id="1_d5cjl"]
-[ext_resource type="Resource" path="res://assets/sequences/doink/headbutt.tres" id="2_suyf6"]
-[ext_resource type="Resource" path="res://assets/sequences/doink/uppercut.tres" id="3_thkea"]
-[ext_resource type="Resource" path="res://assets/sequences/doink/kick.tres" id="4_cp5s2"]
-[ext_resource type="Resource" path="res://assets/sequences/doink/big_boot.tres" id="5_i50a5"]
-[ext_resource type="Script" path="res://scripts/combat/move_table.gd" id="6_gkspo"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/punch.tres" id="1_gkspo"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/headbutt.tres" id="2_koiq6"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/elbow_drop.tres" id="3_nke5g"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/kick.tres" id="4_twive"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/knee.tres" id="5_4v5u3"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/stomp.tres" id="6_pdd76"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/big_boot.tres" id="7_vekm7"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/slap.tres" id="8_tyxoa"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/uppercut.tres" id="9_jqskd"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/spin_kick.tres" id="10_oeoja"]
+[ext_resource type="Script" path="res://scripts/combat/move_table.gd" id="11_8qa5h"]
 
 [resource]
-script = ExtResource("6_gkspo")
+script = ExtResource("11_8qa5h")
 entries = {
-"0|0|0": ExtResource("1_d5cjl"),
-"0|0|1": ExtResource("3_thkea"),
-"0|0|2": ExtResource("4_cp5s2"),
-"0|0|3": ExtResource("5_i50a5"),
-"1|0|0": ExtResource("2_suyf6"),
-"1|0|1": ExtResource("3_thkea"),
-"1|0|2": ExtResource("4_cp5s2"),
-"1|0|3": ExtResource("5_i50a5"),
-"2|0|3": ExtResource("5_i50a5")
+"0|0|0": ExtResource("1_gkspo"),
+"0|0|1": ExtResource("8_tyxoa"),
+"0|0|2": ExtResource("4_twive"),
+"0|0|3": ExtResource("10_oeoja"),
+"1|0|0": ExtResource("2_koiq6"),
+"1|0|1": ExtResource("8_tyxoa"),
+"1|0|2": ExtResource("5_4v5u3"),
+"1|0|3": ExtResource("5_4v5u3"),
+"1|3|1": ExtResource("9_jqskd"),
+"2|0|1": ExtResource("7_vekm7"),
+"2|0|2": ExtResource("7_vekm7"),
+"2|0|3": ExtResource("7_vekm7"),
+"3|0|0": ExtResource("3_nke5g"),
+"3|0|1": ExtResource("3_nke5g"),
+"3|0|2": ExtResource("6_pdd76"),
+"3|0|3": ExtResource("6_pdd76")
 }
