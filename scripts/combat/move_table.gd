@@ -5,7 +5,7 @@ extends Resource
 
 # Range/Button enum names are avoided: they shadow native Godot classes (Range, Button)
 # and fail to parse in Godot 4.x. Rng/Btn are the dispatch-key dimensions.
-enum Rng { NORMAL, CLOSE, RUNNING }
+enum Rng { NORMAL, CLOSE, RUNNING, GROUNDED }
 enum Dir { NEUTRAL, TOWARD, AWAY, DOWN }
 enum Btn { LOW_PUNCH, HIGH_PUNCH, LOW_KICK, HIGH_KICK }
 

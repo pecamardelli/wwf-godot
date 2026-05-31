@@ -16,8 +16,6 @@ const _FOLLOWUP_SEQUENCES := {
 	"joy_buzzer": preload("res://assets/sequences/doink/joy_buzzer.tres"),
 }
 
-const _CLOSE_GATE := 50.0   # arcade close-range gate (headbutt vs punch), DOINK.ASM:1921; tune in playtest
-
 @export var player_index: int = 0
 
 ## Motion-input state (arcade wrest_joystat). Filled each frame by feed_input().
@@ -80,8 +78,15 @@ func _pressed_button() -> int:
 func _current_range() -> int:
 	if mode == Mode.RUNNING:
 		return MoveTable.Rng.RUNNING
-	if target != null and is_instance_valid(target) \
-			and global_position.distance_to(target.global_position) <= _CLOSE_GATE:
+	if target == null or not is_instance_valid(target):
+		return MoveTable.Rng.NORMAL
+	# A downed opponent within the grounded reach uses the grounded moves (stomp / elbow drop).
+	if target.mode == Mode.ONGROUND:
+		if Proximity.is_within(global_position, target.global_position, Proximity.GROUNDED_DX, Proximity.GROUNDED_DZ):
+			return MoveTable.Rng.GROUNDED
+		return MoveTable.Rng.NORMAL
+	# Standing opponent: close vs far by the arcade (X,Z)-AND test.
+	if Proximity.is_within(global_position, target.global_position, Proximity.CLOSE_DX, Proximity.CLOSE_DZ):
 		return MoveTable.Rng.CLOSE
 	return MoveTable.Rng.NORMAL
 
