@@ -69,3 +69,11 @@ func test_boxing_glove_six_punches_does_not_fire():
 	var seq := []
 	for i in range(6): seq.append(MotionBuffer.B_PUNCH)
 	assert_false(_fires("boxing_glove", seq))
+
+func test_ear_slap_down_quarter_circle_punch():
+	# oldest-first: DOWN, DOWN+TOWARD, TOWARD, then B_PUNCH trigger.
+	assert_true(_fires("ear_slap", [
+		MotionBuffer.J_DOWN,
+		MotionBuffer.J_DOWN | MotionBuffer.J_TOWARD,
+		MotionBuffer.J_TOWARD,
+		MotionBuffer.B_PUNCH]))

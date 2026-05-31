@@ -39,7 +39,10 @@ func _init() -> void:
 	# consecutive punches and can only shadow hip_toss if the buffer contains
 	# toward — it doesn't, so ordering here is safe.
 
-	# Single-step throws (button + direction on the same frame).
+	# Single-step throws (button + direction on the same frame). NOTE: unlike the multi-step
+	# patterns above, the direction IS part of values[0], so the mask must NOT be ALL_DIR —
+	# masking J_AWAY would erase the very bit the value depends on. Only the real-L/R + up/down
+	# bits are ignored here.
 	_add(t, "hip_toss",
 		[J.B_PUNCH | J.J_AWAY],
 		[J.J_REAL_LR | J.J_UP | J.J_DOWN],

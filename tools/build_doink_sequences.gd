@@ -42,7 +42,7 @@ func _init() -> void:
 	# contact frame, box, and ticks_per_frame are initial values for playtest refinement.
 	_save(_strike("ear_slap",     "clapper",                  AMode.EARSLAP,  _sf.get_frame_count("clapper"),                  2, _ab(20, 84, 0, 55, 14, 10), false, 2))
 	_save(_strike("hammer",       "happy_hammer",             AMode.HAMMER,   _sf.get_frame_count("happy_hammer"),             3, _ab(24, 96, 0, 60, 40, 10)))
-	_save(_strike("boxing_glove", "boxing_glove_smash_front", AMode.BOXGLOVE, _sf.get_frame_count("boxing_glove_smash_front"),3, _ab(28, 80, 0, 80, 30, 10)))
+	_save(_strike("boxing_glove", "boxing_glove_smash_front", AMode.BOXGLOVE, _sf.get_frame_count("boxing_glove_smash_front"), 3, _ab(28, 80, 0, 80, 30, 10)))
 	# Grapple throws (victim channel). DOINK.ASM:572 (hip toss), :504 (grab & fling).
 	_save(_throw("hip_toss",   "hip_toss", "hip_tossed", AMode.BIGBOOT, _HIPTOSS_VICTIM))
 	_save(_throw("grab_fling", "fling",    "flinged",    AMode.BIGBOOT))
