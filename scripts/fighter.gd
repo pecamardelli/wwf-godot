@@ -56,7 +56,7 @@ var health: int = Damage.LIFE_MAX
 var _facing: float = 1.0   # +1 faces right, -1 faces left; the sprite mirrors this
 var _depth_facing: int = Facing.FRONT   # FRONT = toward camera, BACK = away (Y-depth facing)
 const _TURN_FRAME_TICKS := 4          # arcade rotate cadence (~4 ticks/frame)
-const _DEPTH_DEADZONE := 24.0         # px of Y separation before flipping front/back
+const _DEPTH_DEADZONE := 0.0          # flip front/back the moment we cross the target's Y (no lag)
 var _turning: bool = false
 var _turn_frames: Array = []
 var _turn_idx: int = 0
