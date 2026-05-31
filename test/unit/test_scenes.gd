@@ -31,3 +31,10 @@ func test_sandbox_player1_has_motion_registry():
 	assert_not_null(p1.motions, "Player1 has a grapple MotionTable assigned")
 	assert_eq(p1.motions.lookup("hip_toss").id, "hip_toss", "registry maps the hip toss")
 	assert_eq(p1.motions.moves().size(), 3, "registry has the 3 grab initiators")
+
+func test_new_doink_strike_sequences_load():
+	for id in ["knee", "stomp", "elbow_drop", "slap", "spin_kick"]:
+		var seq: MoveSequence = load("res://assets/sequences/doink/%s.tres" % id)
+		assert_not_null(seq, "%s.tres loads" % id)
+		assert_eq(seq.id, id)
+		assert_gt(seq.frames.size(), 0, "%s has frames" % id)

@@ -1,0 +1,49 @@
+[gd_resource type="Resource" script_class="MoveSequence" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/sequence_frame.gd" id="1_0qi65"]
+[ext_resource type="Script" path="res://scripts/combat/box3.gd" id="2_3wwpc"]
+[ext_resource type="Script" path="res://scripts/combat/move_sequence.gd" id="3_ewh8d"]
+
+[sub_resource type="Resource" id="Resource_2adm6"]
+script = ExtResource("1_0qi65")
+duration_ticks = 3
+
+[sub_resource type="Resource" id="Resource_uo27y"]
+script = ExtResource("1_0qi65")
+duration_ticks = 3
+anim_frame = 1
+
+[sub_resource type="Resource" id="Resource_e76u5"]
+script = ExtResource("2_3wwpc")
+offset = Vector3(20, 110, 0)
+size = Vector3(60, 30, 10)
+
+[sub_resource type="Resource" id="Resource_70ykh"]
+script = ExtResource("1_0qi65")
+duration_ticks = 3
+anim_frame = 2
+command = 2
+attack_box = SubResource("Resource_e76u5")
+
+[sub_resource type="Resource" id="Resource_eoxxo"]
+script = ExtResource("1_0qi65")
+duration_ticks = 3
+anim_frame = 3
+
+[sub_resource type="Resource" id="Resource_crn55"]
+script = ExtResource("1_0qi65")
+duration_ticks = 3
+anim_frame = 4
+command = 3
+
+[sub_resource type="Resource" id="Resource_5vibc"]
+script = ExtResource("1_0qi65")
+duration_ticks = 3
+anim_frame = 5
+
+[resource]
+script = ExtResource("3_ewh8d")
+id = "stomp"
+anim_name = "stomp_front_legdrop"
+attack_mode = 6
+frames = Array[ExtResource("1_0qi65")]([SubResource("Resource_2adm6"), SubResource("Resource_uo27y"), SubResource("Resource_70ykh"), SubResource("Resource_eoxxo"), SubResource("Resource_crn55"), SubResource("Resource_5vibc")])

@@ -1,0 +1,49 @@
+[gd_resource type="Resource" script_class="MoveSequence" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/sequence_frame.gd" id="1_shb6v"]
+[ext_resource type="Script" path="res://scripts/combat/box3.gd" id="2_nnhxl"]
+[ext_resource type="Script" path="res://scripts/combat/move_sequence.gd" id="3_f7lvk"]
+
+[sub_resource type="Resource" id="Resource_4hcul"]
+script = ExtResource("1_shb6v")
+duration_ticks = 3
+
+[sub_resource type="Resource" id="Resource_uaqr8"]
+script = ExtResource("1_shb6v")
+duration_ticks = 3
+anim_frame = 1
+
+[sub_resource type="Resource" id="Resource_nrabv"]
+script = ExtResource("2_nnhxl")
+offset = Vector3(20, 100, 0)
+size = Vector3(60, 36, 10)
+
+[sub_resource type="Resource" id="Resource_ggm5d"]
+script = ExtResource("1_shb6v")
+duration_ticks = 3
+anim_frame = 2
+command = 2
+attack_box = SubResource("Resource_nrabv")
+
+[sub_resource type="Resource" id="Resource_7er3o"]
+script = ExtResource("1_shb6v")
+duration_ticks = 3
+anim_frame = 3
+
+[sub_resource type="Resource" id="Resource_opdk1"]
+script = ExtResource("1_shb6v")
+duration_ticks = 3
+anim_frame = 4
+command = 3
+
+[sub_resource type="Resource" id="Resource_4swcf"]
+script = ExtResource("1_shb6v")
+duration_ticks = 3
+anim_frame = 5
+
+[resource]
+script = ExtResource("3_f7lvk")
+id = "elbow_drop"
+anim_name = "elbow_drop_front"
+attack_mode = 7
+frames = Array[ExtResource("1_shb6v")]([SubResource("Resource_4hcul"), SubResource("Resource_uaqr8"), SubResource("Resource_ggm5d"), SubResource("Resource_7er3o"), SubResource("Resource_opdk1"), SubResource("Resource_4swcf")])

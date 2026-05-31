@@ -1,0 +1,44 @@
+[gd_resource type="Resource" script_class="MoveSequence" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/sequence_frame.gd" id="1_yq2l7"]
+[ext_resource type="Script" path="res://scripts/combat/box3.gd" id="2_gmmwc"]
+[ext_resource type="Script" path="res://scripts/combat/move_sequence.gd" id="3_uohoo"]
+
+[sub_resource type="Resource" id="Resource_3wted"]
+script = ExtResource("1_yq2l7")
+duration_ticks = 3
+
+[sub_resource type="Resource" id="Resource_r7unn"]
+script = ExtResource("1_yq2l7")
+duration_ticks = 3
+anim_frame = 1
+
+[sub_resource type="Resource" id="Resource_t4l5u"]
+script = ExtResource("2_gmmwc")
+offset = Vector3(24, 70, 0)
+size = Vector3(55, 40, 10)
+
+[sub_resource type="Resource" id="Resource_khc3k"]
+script = ExtResource("1_yq2l7")
+duration_ticks = 3
+anim_frame = 2
+command = 2
+attack_box = SubResource("Resource_t4l5u")
+
+[sub_resource type="Resource" id="Resource_e87yt"]
+script = ExtResource("1_yq2l7")
+duration_ticks = 3
+anim_frame = 3
+
+[sub_resource type="Resource" id="Resource_h71t4"]
+script = ExtResource("1_yq2l7")
+duration_ticks = 3
+anim_frame = 4
+command = 3
+
+[resource]
+script = ExtResource("3_uohoo")
+id = "knee"
+anim_name = "close_kick_front"
+attack_mode = 3
+frames = Array[ExtResource("1_yq2l7")]([SubResource("Resource_3wted"), SubResource("Resource_r7unn"), SubResource("Resource_khc3k"), SubResource("Resource_e87yt"), SubResource("Resource_h71t4")])

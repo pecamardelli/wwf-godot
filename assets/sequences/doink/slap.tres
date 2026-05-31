@@ -1,0 +1,59 @@
+[gd_resource type="Resource" script_class="MoveSequence" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/sequence_frame.gd" id="1_suts3"]
+[ext_resource type="Script" path="res://scripts/combat/box3.gd" id="2_wn7yc"]
+[ext_resource type="Script" path="res://scripts/combat/move_sequence.gd" id="3_oboq0"]
+
+[sub_resource type="Resource" id="Resource_2bfti"]
+script = ExtResource("1_suts3")
+duration_ticks = 2
+
+[sub_resource type="Resource" id="Resource_02c5d"]
+script = ExtResource("1_suts3")
+duration_ticks = 2
+anim_frame = 1
+
+[sub_resource type="Resource" id="Resource_q3y55"]
+script = ExtResource("2_wn7yc")
+offset = Vector3(22, 84, 0)
+size = Vector3(55, 12, 10)
+
+[sub_resource type="Resource" id="Resource_b5y6l"]
+script = ExtResource("1_suts3")
+duration_ticks = 2
+anim_frame = 2
+command = 2
+attack_box = SubResource("Resource_q3y55")
+
+[sub_resource type="Resource" id="Resource_bh8i1"]
+script = ExtResource("1_suts3")
+duration_ticks = 2
+anim_frame = 3
+
+[sub_resource type="Resource" id="Resource_dfuca"]
+script = ExtResource("1_suts3")
+duration_ticks = 2
+anim_frame = 4
+command = 3
+
+[sub_resource type="Resource" id="Resource_5i57e"]
+script = ExtResource("1_suts3")
+duration_ticks = 2
+anim_frame = 5
+
+[sub_resource type="Resource" id="Resource_j5ram"]
+script = ExtResource("1_suts3")
+duration_ticks = 2
+anim_frame = 6
+
+[sub_resource type="Resource" id="Resource_raiwe"]
+script = ExtResource("1_suts3")
+duration_ticks = 2
+anim_frame = 7
+
+[resource]
+script = ExtResource("3_oboq0")
+id = "slap"
+anim_name = "slap_front"
+attack_mode = 8
+frames = Array[ExtResource("1_suts3")]([SubResource("Resource_2bfti"), SubResource("Resource_02c5d"), SubResource("Resource_b5y6l"), SubResource("Resource_bh8i1"), SubResource("Resource_dfuca"), SubResource("Resource_5i57e"), SubResource("Resource_j5ram"), SubResource("Resource_raiwe")])
