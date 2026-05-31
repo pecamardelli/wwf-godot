@@ -1,0 +1,69 @@
+[gd_resource type="Resource" script_class="MoveSequence" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/sequence_frame.gd" id="1_dxklo"]
+[ext_resource type="Script" path="res://scripts/combat/box3.gd" id="2_68rw6"]
+[ext_resource type="Script" path="res://scripts/combat/move_sequence.gd" id="3_61cwt"]
+
+[sub_resource type="Resource" id="Resource_23gnv"]
+script = ExtResource("1_dxklo")
+duration_ticks = 3
+
+[sub_resource type="Resource" id="Resource_eu4h3"]
+script = ExtResource("1_dxklo")
+duration_ticks = 3
+anim_frame = 1
+
+[sub_resource type="Resource" id="Resource_tv6sl"]
+script = ExtResource("1_dxklo")
+duration_ticks = 3
+anim_frame = 2
+
+[sub_resource type="Resource" id="Resource_0ol4g"]
+script = ExtResource("2_68rw6")
+offset = Vector3(24, 96, 0)
+size = Vector3(60, 40, 10)
+
+[sub_resource type="Resource" id="Resource_hdg1x"]
+script = ExtResource("1_dxklo")
+duration_ticks = 3
+anim_frame = 3
+command = 2
+attack_box = SubResource("Resource_0ol4g")
+
+[sub_resource type="Resource" id="Resource_ffidv"]
+script = ExtResource("1_dxklo")
+duration_ticks = 3
+anim_frame = 4
+
+[sub_resource type="Resource" id="Resource_onyrt"]
+script = ExtResource("1_dxklo")
+duration_ticks = 3
+anim_frame = 5
+command = 3
+
+[sub_resource type="Resource" id="Resource_g3hu2"]
+script = ExtResource("1_dxklo")
+duration_ticks = 3
+anim_frame = 6
+
+[sub_resource type="Resource" id="Resource_o6ker"]
+script = ExtResource("1_dxklo")
+duration_ticks = 3
+anim_frame = 7
+
+[sub_resource type="Resource" id="Resource_to1qt"]
+script = ExtResource("1_dxklo")
+duration_ticks = 3
+anim_frame = 8
+
+[sub_resource type="Resource" id="Resource_lgh8b"]
+script = ExtResource("1_dxklo")
+duration_ticks = 3
+anim_frame = 9
+
+[resource]
+script = ExtResource("3_61cwt")
+id = "hammer"
+anim_name = "happy_hammer"
+attack_mode = 11
+frames = Array[ExtResource("1_dxklo")]([SubResource("Resource_23gnv"), SubResource("Resource_eu4h3"), SubResource("Resource_tv6sl"), SubResource("Resource_hdg1x"), SubResource("Resource_ffidv"), SubResource("Resource_onyrt"), SubResource("Resource_g3hu2"), SubResource("Resource_o6ker"), SubResource("Resource_to1qt"), SubResource("Resource_lgh8b")])

@@ -69,7 +69,9 @@ func test_main_table_excludes_followups():
 	var t: MotionTable = load("res://assets/motions/doink_motions.tres")
 	assert_null(t.lookup("piledriver"), "follow-ups are NOT in the main grab-initiator table")
 	assert_null(t.lookup("head_slam"))
-	assert_eq(t.moves().size(), 3, "main table = 3 grab initiators only")
+	# 3 grab initiators (hip_toss, grab_fling, neck_grab) + 3 secret-move strikes
+	# (hammer, ear_slap, boxing_glove) = 6 total. Follow-ups stay out.
+	assert_eq(t.moves().size(), 6, "main table has 6 entries (3 initiators + 3 secret strikes)")
 
 func test_grapple_sequences_walk_every_attacker_frame():
 	# Bug 2 guard: the throw/follow-up must step through EVERY sprite frame of its attacker

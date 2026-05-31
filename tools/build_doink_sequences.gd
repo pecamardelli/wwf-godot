@@ -38,6 +38,11 @@ func _init() -> void:
 	_save(_strike("elbow_drop", "elbow_drop_front",      AMode.LBDROP,   _sf.get_frame_count("elbow_drop_front"),      2, _ab(22, 24, 0, 60, 40, 10)))
 	_save(_strike("slap",       "slap_front",            AMode.SLAP,     _sf.get_frame_count("slap_front"),            2, _ab(22, 84, 0, 55, 12, 10), false, 2))
 	_save(_strike("spin_kick",  "power_kick_front",      AMode.SPINKICK, _sf.get_frame_count("power_kick_front"),      3, _ab(26, 60, 0, 80, 30, 10)))
+	# Secret-move strikes (motion-buffer specials). Tuning knobs seeded from arcade timing;
+	# contact frame, box, and ticks_per_frame are initial values for playtest refinement.
+	_save(_strike("ear_slap",     "clapper",                  AMode.EARSLAP,  _sf.get_frame_count("clapper"),                  2, _ab(20, 84, 0, 55, 14, 10), false, 2))
+	_save(_strike("hammer",       "happy_hammer",             AMode.HAMMER,   _sf.get_frame_count("happy_hammer"),             3, _ab(24, 96, 0, 60, 40, 10)))
+	_save(_strike("boxing_glove", "boxing_glove_smash_front", AMode.BOXGLOVE, _sf.get_frame_count("boxing_glove_smash_front"),3, _ab(28, 80, 0, 80, 30, 10)))
 	# Grapple throws (victim channel). DOINK.ASM:572 (hip toss), :504 (grab & fling).
 	_save(_throw("hip_toss",   "hip_toss", "hip_tossed", AMode.BIGBOOT, _HIPTOSS_VICTIM))
 	_save(_throw("grab_fling", "fling",    "flinged",    AMode.BIGBOOT))
