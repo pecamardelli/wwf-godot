@@ -13,9 +13,8 @@
 [sub_resource type="Resource" id="Resource_h21ki"]
 script = ExtResource("1_g0tcr")
 move_id = "hip_toss"
-values = PackedInt32Array(20)
-masks = PackedInt32Array(3075)
-max_ticks = 10
+values = PackedInt32Array(16, 4, 4)
+masks = PackedInt32Array(3087, 65531, 65531)
 
 [sub_resource type="Resource" id="Resource_wsudf"]
 script = ExtResource("1_g0tcr")

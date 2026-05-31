@@ -2,7 +2,7 @@ extends "res://addons/gut/test.gd"
 ## Proves the authored .tres patterns fire on realistic edge sequences (arcade-faithful:
 ## a held direction on the trigger frame is tolerated).
 
-# --- Helpers for the per-file pattern tests (old style, load individual .tres) ---
+# --- Helpers ---
 
 func _buf_double_dir_then_button(dir_bit: int, real_lr: int, btn: int) -> MotionBuffer:
 	var b := MotionBuffer.new()
@@ -12,30 +12,34 @@ func _buf_double_dir_then_button(dir_bit: int, real_lr: int, btn: int) -> Motion
 	b.push(btn | dir_bit | real_lr, 4)           # button trigger WHILE holding the dir
 	return b
 
-func test_hip_toss_pattern_fires_with_held_direction():
-	var m: MotionMove = load("res://assets/motions/doink/hip_toss.tres")
-	var b := _buf_double_dir_then_button(MotionBuffer.J_AWAY, MotionBuffer.J_LEFT, MotionBuffer.B_PUNCH)
-	assert_true(MotionMatcher.matches(m, b, 4))
-
-func test_neck_grab_pattern_fires_with_held_direction():
-	var m: MotionMove = load("res://assets/motions/doink/neck_grab.tres")
-	var b := _buf_double_dir_then_button(MotionBuffer.J_TOWARD, MotionBuffer.J_RIGHT, MotionBuffer.B_SPUNCH)
-	assert_true(MotionMatcher.matches(m, b, 4))
-
-func test_hip_toss_does_not_fire_on_toward():
-	var m: MotionMove = load("res://assets/motions/doink/hip_toss.tres")
-	var b := _buf_double_dir_then_button(MotionBuffer.J_TOWARD, MotionBuffer.J_RIGHT, MotionBuffer.B_PUNCH)
-	assert_false(MotionMatcher.matches(m, b, 4), "hip toss needs AWAY, not TOWARD")
-
-func test_grab_fling_needs_spunch_not_punch():
-	var m: MotionMove = load("res://assets/motions/doink/grab_fling.tres")
-	var b := _buf_double_dir_then_button(MotionBuffer.J_AWAY, MotionBuffer.J_LEFT, MotionBuffer.B_PUNCH)
-	assert_false(MotionMatcher.matches(m, b, 4), "grab-fling trigger is SPUNCH")
-
-# --- Table-level tests driven through the real MotionTable (new specials) ---
-
 func _get_mt() -> MotionTable:
 	return load("res://assets/motions/doink_motions.tres")
+
+func _registry_fires(move_id: String, b: MotionBuffer, tick: int) -> bool:
+	for m in _get_mt().moves():
+		if m.move_id == move_id:
+			return MotionMatcher.matches(m, b, tick)
+	return false
+
+# --- Registry-driven grab tests ---
+
+func test_hip_toss_fires_on_double_away_punch():
+	var b := _buf_double_dir_then_button(MotionBuffer.J_AWAY, MotionBuffer.J_LEFT, MotionBuffer.B_PUNCH)
+	assert_true(_registry_fires("hip_toss", b, 4))
+
+func test_hip_toss_does_not_fire_on_toward():
+	var b := _buf_double_dir_then_button(MotionBuffer.J_TOWARD, MotionBuffer.J_RIGHT, MotionBuffer.B_PUNCH)
+	assert_false(_registry_fires("hip_toss", b, 4), "hip toss needs AWAY, not TOWARD")
+
+func test_neck_grab_fires_on_double_toward_spunch():
+	var b := _buf_double_dir_then_button(MotionBuffer.J_TOWARD, MotionBuffer.J_RIGHT, MotionBuffer.B_SPUNCH)
+	assert_true(_registry_fires("neck_grab", b, 4))
+
+func test_grab_fling_needs_spunch_not_punch():
+	var b := _buf_double_dir_then_button(MotionBuffer.J_AWAY, MotionBuffer.J_LEFT, MotionBuffer.B_PUNCH)
+	assert_false(_registry_fires("grab_fling", b, 4), "grab-fling trigger is SPUNCH")
+
+# --- Table-level tests driven through the real MotionTable (new specials) ---
 
 func _buf(seq: Array) -> MotionBuffer:
 	# seq is oldest-first; push with increasing ticks (newest last, like Player.feed_input).
