@@ -318,3 +318,16 @@ screen) one stood still. Root causes and fixes:
     dropped (`special_frequency 0.35→0.18`).
   - *Softer:* SHORT-band attack rates eased (PRESSING 0.9→0.7 etc.), `reaction_delay (6,16)→(8,22)`,
     `aggression 0.85→0.7`.
+- **KAMIKAZE lock + quick getup + ground-attack gating (5th playtest).**
+  - *KAMIKAZE was near-permanent:* the `LOW_HEALTH` event fired **every frame** below 30% health and
+    both it and `BIG_HIT` flipped to KAMIKAZE at `aggression` (~70%) odds, so a hurt enemy was
+    re-rolled into berserk constantly. Now `LOW_HEALTH` is **edge-triggered once** (on dropping below
+    30%) and only goes KAMIKAZE at `LOW_HEALTH_BERSERK` (~25%), else CALCULATOR; `BIG_HIT` no longer
+    flips stance at all. KAMIKAZE is now genuinely rare (the timed re-roll + the occasional
+    low-health berserk).
+  - *Quick getup:* the arcade knockdown is ~270 ticks (~5 s) and AI fighters never mashed, so a
+    thrown enemy lay there. `Enemy` now **auto-mashes** (`mash_recover`) while ONGROUND, getting to
+    its feet briskly like a mashing player.
+  - *Ground attacks gated:* stomp / elbow drop (`attack_mode` family `ONGROUND`) now only connect
+    with a foe that is actually **lying down** (`mode == ONGROUND and not _getup_rising`) — they pass
+    over a standing or already-rising fighter, matching the arcade's `MODE_ONGROUND` gating.
