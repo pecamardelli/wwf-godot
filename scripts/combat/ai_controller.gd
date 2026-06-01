@@ -94,3 +94,33 @@ static func choose_action(stance: int, special_frequency: float, band: int,
 	if band == Band.SHORT and roll_kind < clampf(special_frequency * _special_mult(stance), 0.0, 1.0):
 		return AIIntent.Action.GRAB
 	return AIIntent.Action.STRIKE
+
+const _RANGE_BASE := {              # PreferredRange -> base hold distance (px)
+	AIProfile.PreferredRange.CLOSE: 45.0,
+	AIProfile.PreferredRange.MID: 110.0,
+	AIProfile.PreferredRange.LONG: 200.0,
+}
+const _SEEK_DEADZONE := 12.0        # px tolerance around desired distance before moving
+
+## The distance this fighter wants to hold, from preferred_range shifted by the active stance.
+static func desired_distance(stance: int, preferred_range: int) -> float:
+	var base: float = _RANGE_BASE.get(preferred_range, 45.0)
+	match stance:
+		Stance.KAMIKAZE:   return maxf(base - 60.0, 0.0)   # rush in
+		Stance.PRESSING:   return maxf(base - 20.0, 0.0)
+		Stance.SPACING:    return base + 60.0              # back off / circle
+		Stance.CALCULATOR: return base + 30.0
+	return base
+
+## Movement direction (analog -1..1 per axis) to reach `desired` distance from the target.
+## Toward when too far, away when too close, zero inside the deadzone.
+static func seek_dir(self_x: float, self_z: float, target_x: float, target_z: float, desired: float) -> Vector2:
+	var to_target := Vector2(target_x - self_x, target_z - self_z)
+	var dist := to_target.length()
+	if dist < 0.001:
+		return Vector2.ZERO
+	if dist > desired + _SEEK_DEADZONE:
+		return to_target / dist
+	if dist < desired - _SEEK_DEADZONE:
+		return -to_target / dist
+	return Vector2.ZERO

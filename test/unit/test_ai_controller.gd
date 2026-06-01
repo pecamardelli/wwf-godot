@@ -88,3 +88,25 @@ func test_choose_action_grab_only_in_short_band():
 	# grapples need to be close: MID band with special_frequency 1.0 still STRIKEs
 	assert_eq(AIController.choose_action(AIController.Stance.PRESSING, 1.0, AIController.Band.MID, 0.0, 0.0),
 		AIIntent.Action.STRIKE)
+
+func test_desired_distance_by_preferred_range_then_stance():
+	# CLOSE base small; SPACING/CALCULATOR push it out; KAMIKAZE rushes to ~0
+	var close_press := AIController.desired_distance(AIController.Stance.PRESSING, AIProfile.PreferredRange.CLOSE)
+	var close_space := AIController.desired_distance(AIController.Stance.SPACING, AIProfile.PreferredRange.CLOSE)
+	var close_kam := AIController.desired_distance(AIController.Stance.KAMIKAZE, AIProfile.PreferredRange.CLOSE)
+	assert_gt(close_space, close_press)
+	assert_lt(close_kam, close_press)
+
+func test_seek_dir_moves_toward_when_too_far():
+	# self at 0, target at +300 x, desired 40 -> move +x (toward)
+	var d := AIController.seek_dir(0, 0, 300, 0, 40.0)
+	assert_gt(d.x, 0.0)
+
+func test_seek_dir_backs_off_when_too_close():
+	# self at 0, target at +20 x, desired 100 -> move -x (away)
+	var d := AIController.seek_dir(0, 0, 20, 0, 100.0)
+	assert_lt(d.x, 0.0)
+
+func test_seek_dir_holds_inside_deadzone():
+	var d := AIController.seek_dir(0, 0, 42, 0, 40.0)  # within deadzone of desired
+	assert_eq(d, Vector2.ZERO)
