@@ -19,3 +19,12 @@ var rng := RandomNumberGenerator.new()
 var current_stance: int = Stance.PRESSING
 var stance_timer: float = 0.0
 var delay: int = 0
+
+## Arcade DRONE.ASM #slctscrpt: metric = max(|Xdist|, 2*|Zdist|), banded by thresholds.
+static func distance_band(dx: float, dz: float) -> int:
+	var metric := maxf(absf(dx), 2.0 * absf(dz))
+	if metric <= BAND_SHORT_MAX:
+		return Band.SHORT
+	if metric <= BAND_MID_MAX:
+		return Band.MID
+	return Band.LONG
