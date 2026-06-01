@@ -81,11 +81,15 @@ func _build_perception() -> Dictionary:
 			event = AIController.Event.BIG_HIT
 		elif float(health) / float(Damage.LIFE_MAX) < 0.3:
 			event = AIController.Event.LOW_HEALTH
+		# Is the target already caught in someone else's grapple? Then wait it out (arcade rule).
+		var held_by_other: bool = (target.mode == Mode.HEADHELD or target.mode == Mode.GRABBED) \
+			and target._grappled_by != self
 		return {
 			"dx": target.global_position.x - global_position.x,
 			"dz": target.global_position.y - global_position.y,
 			"target_attacking": attacking,
 			"target_downed": target.mode == Mode.ONGROUND,
+			"target_held_by_other": held_by_other,
 			"ally_count": _ally_count(),
 			"repeat_count": _consecutive_incoming,
 			"event": event,

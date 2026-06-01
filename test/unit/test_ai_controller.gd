@@ -240,3 +240,41 @@ func test_decide_kamikaze_still_attacks_a_downed_foe():
 			got_attack = true
 			break
 	assert_true(got_attack, "the rare KAMIKAZE stance keeps piling on a downed foe")
+
+func test_decide_waits_out_a_hold_by_another_fighter():
+	# Target already held by someone else: stand off, don't attack, back away to the wait gap.
+	var c := AIController.new(); c.rng.seed = 1
+	var perc := _perc(30, 0); perc["target_held_by_other"] = true
+	var i := c.decide(perc, _profile_always_pressing(), 1.0 / 60.0)
+	assert_ne(i.action, AIIntent.Action.STRIKE)
+	assert_ne(i.action, AIIntent.Action.GRAB)
+	assert_lt(i.move_dir.x, 0.0, "backs off to wait out the hold")
+
+func test_decide_kamikaze_also_waits_out_a_hold():
+	# Unlike get-up grace, respecting a hold applies to EVERY stance — even KAMIKAZE.
+	var c := AIController.new(); c.rng.seed = 1
+	var p := _profile_always_pressing()
+	p.enabled_stances = [AIController.Stance.KAMIKAZE]
+	p.stance_weights = {AIController.Stance.KAMIKAZE: 1.0}
+	c.current_stance = AIController.Stance.KAMIKAZE
+	var perc := _perc(30, 0); perc["target_held_by_other"] = true
+	for _n in range(20):
+		var i := c.decide(perc, p, 1.0 / 60.0)
+		assert_ne(i.action, AIIntent.Action.STRIKE, "KAMIKAZE still waits out a hold")
+		assert_ne(i.action, AIIntent.Action.GRAB)
+
+func test_decide_grab_is_usually_a_throw_not_a_headlock():
+	# special_frequency 1.0 forces grabs; with HEADLOCK_SHARE ~0.3 most should be hip_toss.
+	var c := AIController.new(); c.rng.seed = 7
+	var p := _profile_always_pressing()
+	p.special_frequency = 1.0
+	p.reaction_delay = Vector2i(1, 1)
+	var headlocks := 0
+	var throws := 0
+	for _n in range(60):
+		c.delay = 0
+		var i := c.decide(_perc(30, 0), p, 1.0 / 60.0)
+		if i.action == AIIntent.Action.GRAB:
+			if i.move_id == "neck_grab": headlocks += 1
+			elif i.move_id == "hip_toss": throws += 1
+	assert_gt(throws, headlocks, "throws outnumber headlocks")

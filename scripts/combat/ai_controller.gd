@@ -85,11 +85,11 @@ static func attack_prob(stance: int, band: int) -> float:
 	if band != Band.SHORT:
 		return 0.0
 	match stance:
-		Stance.KAMIKAZE:   return 0.98
-		Stance.PRESSING:   return 0.9
-		Stance.CALCULATOR: return 0.65
-		Stance.SPACING:    return 0.4
-	return 0.7
+		Stance.KAMIKAZE:   return 0.95
+		Stance.PRESSING:   return 0.7
+		Stance.CALCULATOR: return 0.5
+		Stance.SPACING:    return 0.3
+	return 0.6
 
 ## Stance multiplier on the profile's special_frequency (grab eagerness).
 static func _special_mult(stance: int) -> float:
@@ -118,10 +118,12 @@ const _RANGE_BASE := {              # PreferredRange -> base hold distance (px)
 	AIProfile.PreferredRange.LONG: 200.0,
 }
 const _SEEK_DEADZONE := 12.0        # px tolerance around desired distance before moving
-## Distance a fighter hangs back to while the target is downed, giving them room to get up.
-## Just outside strike reach (BAND_SHORT_MAX) so the enemy looms but doesn't stomp. KAMIKAZE
-## ignores this — the rare "gone crazy" stance keeps piling on.
-const GETUP_SPACE := 100.0
+## Distance a fighter hangs back to while standing off (target downed, or already held by another
+## fighter). Just outside strike reach (BAND_SHORT_MAX) so it looms but doesn't pile on.
+const STANDOFF_SPACE := 100.0
+## Share of grabs that are the sustained head-hold (neck grab) vs a quick throw (hip toss). Kept
+## low so the enemy doesn't lock the player in a headlock constantly.
+const HEADLOCK_SHARE := 0.3
 
 ## The distance this fighter wants to hold, from preferred_range shifted by the active stance.
 static func desired_distance(stance: int, preferred_range: int) -> float:
@@ -185,16 +187,18 @@ func decide(perception: Dictionary, profile: AIProfile, delta: float) -> AIInten
 
 	var intent := AIIntent.new()
 
-	# Get-up grace: when the target is downed, ordinary stances hang back and let them rise —
-	# only the rare KAMIKAZE ("gone crazy") keeps attacking a downed foe. This is what stops the
-	# beat-down loop where the player can never get up.
-	var giving_getup_space: bool = perception.get("target_downed", false) \
-		and current_stance != Stance.KAMIKAZE
+	# Stand off (hang back, don't attack) in two cases:
+	#  - the target is already held by ANOTHER fighter — arcade rule: others wait out a hold until
+	#    it breaks or reverses; applies to every stance.
+	#  - the target is downed — give them room to get up; only the rare KAMIKAZE ignores this.
+	var target_held: bool = perception.get("target_held_by_other", false)
+	var stand_off: bool = target_held \
+		or (perception.get("target_downed", false) and current_stance != Stance.KAMIKAZE)
 
 	# --- movement (every frame) ---
 	var desired := desired_distance(current_stance, profile.preferred_range)
-	if giving_getup_space:
-		desired = maxf(desired, GETUP_SPACE)   # back off to the wake-up gap
+	if stand_off:
+		desired = maxf(desired, STANDOFF_SPACE)   # back off to the wake-up / wait gap
 	intent.move_dir = seek_dir(0.0, 0.0, dx, dz, desired)
 	intent.want_run = intent.move_dir != Vector2.ZERO and band == Band.LONG \
 		and rng.randf() < profile.run_tendency
@@ -209,10 +213,10 @@ func decide(perception: Dictionary, profile: AIProfile, delta: float) -> AIInten
 			return intent
 
 	# --- offense (cooldown-gated) ---
-	if giving_getup_space:
+	if stand_off:
 		if delay > 0:
 			delay -= 1
-		return intent   # IDLE: give a downed foe room to get up (KAMIKAZE excepted above)
+		return intent   # IDLE: respect a hold / give a downed foe room to get up
 	if delay > 0:
 		delay -= 1
 		return intent   # IDLE action, keep moving
@@ -221,7 +225,8 @@ func decide(perception: Dictionary, profile: AIProfile, delta: float) -> AIInten
 	if act == AIIntent.Action.STRIKE:
 		intent.button = pick_strike_button(profile.limb_bias, rng.randf(), rng.randf(), HEAVY_STRIKE_CHANCE)
 	elif act == AIIntent.Action.GRAB:
-		intent.move_id = "neck_grab"   # default grab; Enemy maps id -> sequence (later task)
+		# Mostly a quick throw; only occasionally the sustained head-hold (Enemy maps id -> sequence).
+		intent.move_id = "neck_grab" if rng.randf() < HEADLOCK_SHARE else "hip_toss"
 	delay = rng.randi_range(profile.reaction_delay.x, profile.reaction_delay.y)
 	return intent
 
