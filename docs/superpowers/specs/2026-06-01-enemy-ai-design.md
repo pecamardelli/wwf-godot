@@ -272,3 +272,30 @@ New `class_name`s require `godot --headless --path . --import` before the runner
   tests become flaky. This is a hard rule for `AIController`.
 - **Crowd hook is inert now** — verified by test at `ally_count = 1` (no-op) and `> 1` (penalty
   applied), so the future multi-enemy feature inherits correct behavior for free.
+
+---
+
+## 11. Tuning revision (2026-06-01, post-playtest)
+
+First playtest showed enemies that were too passive, swung from out of range, and (with two on
+screen) one stood still. Root causes and fixes:
+
+- **Out-of-range whiffs.** The arcade's distance bands select a move *category*, not an attack
+  probability: SHORT = standing strikes/grabs, MID/LONG = `drn_seek` approach moves (verified in
+  `DRONE.ASM` `wnshort_t`/`wnmed_t`/`wnlong_t`). The original AI let strikes fire in MID (≤180px)
+  while Doink's punch only reaches ~71px. Fix: strikes/grabs fire **only in the SHORT band**, and
+  `BAND_SHORT_MAX` is set to our real strike reach (**70px**, from the punch box + hurt-box half
+  width), not the arcade's 100px (different sprite scale). MID/LONG now just close the gap.
+- **Standstill / shyness with crowds.** `_build_perception` fired the `MOBBED` event every frame
+  whenever an enemy had an ally, locking it into SPACING (retreat). With the Sandbox's old idle
+  `Player2` sitting on the enemy side, even the lone real enemy saw `ally_count == 2` and backed
+  off. Fix: **`MOBBED` is no longer fired** — crowd difficulty is expressed solely as the
+  `block_chance` reduction (gangs stay aggressive but block less, the arcade's "easy when mobbed"
+  without the passivity). The `event_stance` MOBBED branch is kept (still unit-tested) for a
+  future deliberate use.
+- **Aggression + variety.** `basic_doink` retuned aggressive from the start: `reaction_delay
+  (16,44)→(6,16)`, `aggression 0.65→0.85`, `special_frequency 0.2→0.35`, stance mix
+  PRESSING 4 / KAMIKAZE 3 / SPACING 0.5. `pick_strike_button` now mixes in heavy variants
+  (slap / spin kick) via `HEAVY_STRIKE_CHANCE`, so it's not just basic jabs.
+- **Sandbox.** The idle co-op-placeholder `Player2` (a scriptless `Player` on the enemy side) is
+  replaced by a second AI `Enemy`, so the scene pits the player against two pressuring foes.
