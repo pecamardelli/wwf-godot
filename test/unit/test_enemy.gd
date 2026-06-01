@@ -107,3 +107,12 @@ func test_enemy_reverses_a_headhold_when_skill_roll_succeeds():
 			reversed = true
 			break
 	assert_true(reversed, "high-skill enemy reverses the head hold")
+
+func test_downed_enemy_mashes_to_its_feet_quickly():
+	var e := _enemy()
+	e.mode = Fighter.Mode.ONGROUND
+	e._react_timer = 5.0   # arcade ~5 s knockdown
+	for _i in range(30):   # 0.5 s of being down
+		e._physics_process(1.0 / 60.0)
+	# Natural decay over 0.5 s is only ~0.5 s; auto-mashing shaves far more.
+	assert_lt(e._react_timer, 3.0, "the enemy mashed its getup timer down well past natural decay")

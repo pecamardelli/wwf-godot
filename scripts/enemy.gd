@@ -18,6 +18,7 @@ var _intent := AIIntent.new()
 var _last_health: int = 0
 var _consecutive_incoming: int = 0
 var _target_was_attacking: bool = false
+var _signalled_low_health: bool = false   # LOW_HEALTH event is edge-triggered, fired once
 
 func _ready() -> void:
 	super()
@@ -36,6 +37,9 @@ func wants_to_block() -> bool:
 	return _intent.action == AIIntent.Action.BLOCK
 
 func _physics_process(delta: float) -> void:
+	# Knocked down: "mash" to our feet quickly, like a player would, instead of lying there for the
+	# full ~5 s arcade getup. (mash_recover no-ops unless we're actually ONGROUND with time left.)
+	mash_recover()
 	# Puppet victim (held/thrown): driven by the captor; no AI this frame.
 	if mode == Mode.GRABBED:
 		super(delta)
@@ -65,22 +69,21 @@ func _physics_process(delta: float) -> void:
 func _build_perception() -> Dictionary:
 	var event := AIController.Event.NONE
 	if target != null and is_instance_valid(target):
-		var dropped := _last_health - health
 		var attacking: bool = target.is_attacking()
 		if attacking and not _target_was_attacking:
 			_consecutive_incoming += 1          # a new distinct swing (rising edge)
 		elif not attacking:
 			_consecutive_incoming = 0           # reset between swings
 		_target_was_attacking = attacking
-		# big-hit / low-health events drive early stance flips. NOTE: we deliberately do NOT fire
-		# MOBBED here — forcing SPACING whenever an enemy had an ally made ganging fighters back
-		# off and stand around (playtest). Crowd difficulty is expressed instead as the block
-		# reduction in AIController.block_chance (ally_count below), so a gang stays aggressive but
-		# each member blocks less — the arcade's "easy when mobbed" without the passivity.
-		if dropped >= 12:
-			event = AIController.Event.BIG_HIT
-		elif float(health) / float(Damage.LIFE_MAX) < 0.3:
+		# LOW_HEALTH is EDGE-triggered — fired once when we first drop below 30% — so it can't relock
+		# the stance every frame (that bug kept hurt enemies stuck in KAMIKAZE). We don't fire BIG_HIT
+		# (a hit already staggers us; flipping stance on every blow over-churned aggression) nor MOBBED
+		# (forcing SPACING when allied made gangs stand around; crowd difficulty is the block reduction
+		# in AIController.block_chance via ally_count below).
+		var low: bool = float(health) / float(Damage.LIFE_MAX) < 0.3
+		if low and not _signalled_low_health:
 			event = AIController.Event.LOW_HEALTH
+		_signalled_low_health = low
 		# Is the target already caught in someone else's grapple? Then wait it out (arcade rule).
 		var held_by_other: bool = (target.mode == Mode.HEADHELD or target.mode == Mode.GRABBED) \
 			and target._grappled_by != self

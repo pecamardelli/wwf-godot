@@ -230,19 +230,23 @@ func decide(perception: Dictionary, profile: AIProfile, delta: float) -> AIInten
 	delay = rng.randi_range(profile.reaction_delay.x, profile.reaction_delay.y)
 	return intent
 
+## Chance a fighter "goes crazy" (KAMIKAZE) the moment it drops to low health — kept low so the
+## relentless stance stays a rare, dramatic moment, not the norm.
+const LOW_HEALTH_BERSERK := 0.25
+
 ## Apply an early stance flip from a fight event, falling back to `current` when the chosen
-## stance is not enabled. roll (0..1) breaks ties between two candidate moods.
+## stance is not enabled. roll (0..1) breaks ties between two candidate moods. Events are meant to
+## be edge-triggered by the caller (once per transition), NOT fired every frame.
 static func event_stance(current: int, event: int, profile: AIProfile, roll: float) -> int:
 	var want := current
 	match event:
 		Event.MOBBED:
 			want = Stance.SPACING
-		Event.BIG_HIT:
-			want = Stance.KAMIKAZE if roll < profile.aggression else Stance.SPACING
 		Event.LOW_HEALTH:
-			want = Stance.KAMIKAZE if roll < profile.aggression else Stance.CALCULATOR
+			# Cornered: usually play careful, only rarely go berserk.
+			want = Stance.KAMIKAZE if roll < LOW_HEALTH_BERSERK else Stance.CALCULATOR
 		_:
-			return current
+			return current   # BIG_HIT and others no longer flip stance
 	if profile.enabled_stances.has(want):
 		return want
 	return current

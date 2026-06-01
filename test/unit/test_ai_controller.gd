@@ -140,13 +140,21 @@ func test_event_stance_mobbed_goes_spacing():
 	assert_eq(AIController.event_stance(AIController.Stance.PRESSING, AIController.Event.MOBBED, p, 0.5),
 		AIController.Stance.SPACING)
 
-func test_event_stance_big_hit_aggressive_goes_kamikaze():
+func test_event_stance_big_hit_no_longer_flips():
+	# BIG_HIT used to flip to KAMIKAZE — that churned aggression, so it now keeps the current stance.
 	var p := AIProfile.new()
-	p.aggression = 0.9
 	p.enabled_stances = [AIController.Stance.KAMIKAZE, AIController.Stance.SPACING]
-	# high aggression -> KAMIKAZE on a big hit
-	assert_eq(AIController.event_stance(AIController.Stance.PRESSING, AIController.Event.BIG_HIT, p, 0.5),
+	assert_eq(AIController.event_stance(AIController.Stance.PRESSING, AIController.Event.BIG_HIT, p, 0.1),
+		AIController.Stance.PRESSING)
+
+func test_event_stance_low_health_usually_calculator_rarely_kamikaze():
+	var p := AIProfile.new()
+	p.enabled_stances = [AIController.Stance.KAMIKAZE, AIController.Stance.CALCULATOR]
+	# roll below the rare berserk chance -> KAMIKAZE; above -> the cautious CALCULATOR
+	assert_eq(AIController.event_stance(AIController.Stance.PRESSING, AIController.Event.LOW_HEALTH, p, 0.1),
 		AIController.Stance.KAMIKAZE)
+	assert_eq(AIController.event_stance(AIController.Stance.PRESSING, AIController.Event.LOW_HEALTH, p, 0.9),
+		AIController.Stance.CALCULATOR)
 
 func test_event_stance_none_keeps_current():
 	var p := AIProfile.new()
