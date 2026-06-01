@@ -72,13 +72,15 @@ func _build_perception() -> Dictionary:
 		elif not attacking:
 			_consecutive_incoming = 0           # reset between swings
 		_target_was_attacking = attacking
-		# big-hit / low-health events drive early stance flips
+		# big-hit / low-health events drive early stance flips. NOTE: we deliberately do NOT fire
+		# MOBBED here — forcing SPACING whenever an enemy had an ally made ganging fighters back
+		# off and stand around (playtest). Crowd difficulty is expressed instead as the block
+		# reduction in AIController.block_chance (ally_count below), so a gang stays aggressive but
+		# each member blocks less — the arcade's "easy when mobbed" without the passivity.
 		if dropped >= 12:
 			event = AIController.Event.BIG_HIT
 		elif float(health) / float(Damage.LIFE_MAX) < 0.3:
 			event = AIController.Event.LOW_HEALTH
-		elif _ally_count() > 1:
-			event = AIController.Event.MOBBED
 		return {
 			"dx": target.global_position.x - global_position.x,
 			"dz": target.global_position.y - global_position.y,
