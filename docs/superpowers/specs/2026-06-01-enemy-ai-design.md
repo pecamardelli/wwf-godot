@@ -303,3 +303,8 @@ screen) one stood still. Root causes and fixes:
   "won't let you up" behaviour only appears when an enemy occasionally "goes crazy."
 - **Sandbox.** The idle co-op-placeholder `Player2` (a scriptless `Player` on the enemy side) is
   replaced by a second AI `Enemy`, so the scene pits the player against two pressuring foes.
+- **Single-target strikes (3rd playtest).** A punch was damaging two enemies at once when they
+  stacked. The arcade resolves a swing against ONE fighter — `COLLIS.ASM` exits its collision loop
+  on the first hit (`MODE_STATUS_BIT`). `AttackResolver` now hits only the **closest** overlapping
+  fighter and the swing is spent once it connects. Friendly fire is preserved (any fighter can be
+  the victim) — it's just limited to one victim per swing.
