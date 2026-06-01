@@ -23,6 +23,7 @@ func test_enemy_approaches_and_damages_the_player():
 	var e := Enemy.new(); root.add_child(e); autofree(e)
 	e.global_position = Vector2(100, 400); e.separation_radii = Vector2.ZERO
 	e.side = Fighter.Side.ENEMY; e.profile = _profile(); e._ai.current_stance = AIController.Stance.KAMIKAZE
+	e._ai.rng.seed = 1   # deterministic fight (the AIController's only randomness source)
 	var p := Player.new(); root.add_child(p); autofree(p)
 	p.global_position = Vector2(160, 400); p.separation_radii = Vector2.ZERO
 	p.side = Fighter.Side.PLAYER
