@@ -4,6 +4,8 @@
 [ext_resource type="Script" uid="uid://jvapegdi11vw" path="res://scripts/player.gd" id="2"]
 [ext_resource type="Script" uid="uid://ddix3t544ausd" path="res://scripts/combat/attack_resolver.gd" id="3"]
 [ext_resource type="Resource" path="res://assets/motions/doink_motions.tres" id="4_motions"]
+[ext_resource type="Script" uid="uid://dbmxtwh7dwqnn" path="res://scripts/enemy.gd" id="5_enemy"]
+[ext_resource type="Resource" path="res://assets/ai_profiles/basic_doink.tres" id="6_profile"]
 
 [node name="Sandbox" type="Node2D" unique_id=788869202]
 y_sort_enabled = true
@@ -42,9 +44,11 @@ player_index = 1
 motions = null
 side = 1
 
-[node name="Dummy" parent="." unique_id=1478545216 instance=ExtResource("1")]
-position = Vector2(680, 470)
+[node name="Enemy" parent="." unique_id=1478545216 instance=ExtResource("1")]
+position = Vector2(700, 470)
+script = ExtResource("5_enemy")
 side = 1
+profile = ExtResource("6_profile")
 
 [node name="AttackResolver" type="Node" parent="." unique_id=1909308380]
 script = ExtResource("3")

@@ -39,3 +39,13 @@ func test_new_doink_strike_sequences_load():
 		assert_not_null(seq, "%s.tres loads" % id)
 		assert_eq(seq.id, id)
 		assert_gt(seq.frames.size(), 0, "%s has frames" % id)
+
+func test_sandbox_has_an_enemy():
+	var scene: Node = load("res://scenes/Sandbox.tscn").instantiate()
+	autofree(scene)
+	var found := false
+	for child in scene.get_children():
+		if child is Enemy:
+			found = true
+			break
+	assert_true(found, "Sandbox contains an AI-driven Enemy")

@@ -466,6 +466,28 @@ func _update_animation(dir: Vector2) -> void:
 			sprite.play(anim, custom_speed)
 	_refresh_flip()
 
+func _current_range() -> int:
+	if mode == Mode.RUNNING:
+		return MoveTable.Rng.RUNNING
+	if target == null or not is_instance_valid(target):
+		return MoveTable.Rng.NORMAL
+	# A downed opponent within the grounded reach uses the grounded moves (stomp / elbow drop).
+	if target.mode == Mode.ONGROUND:
+		if Proximity.is_within(global_position, target.global_position, Proximity.GROUNDED_DX, Proximity.GROUNDED_DZ):
+			return MoveTable.Rng.GROUNDED
+		return MoveTable.Rng.NORMAL
+	# Standing opponent: close vs far by the arcade (X,Z)-AND test.
+	if Proximity.is_within(global_position, target.global_position, Proximity.CLOSE_DX, Proximity.CLOSE_DZ):
+		return MoveTable.Rng.CLOSE
+	return MoveTable.Rng.NORMAL
+
+func _current_dir() -> int:
+	var rel := RelativeInput.resolve(get_input_direction(), _facing)
+	if rel.down: return MoveTable.Dir.DOWN
+	if rel.toward: return MoveTable.Dir.TOWARD
+	if rel.away: return MoveTable.Dir.AWAY
+	return MoveTable.Dir.NEUTRAL
+
 ## Walk-speed multiplier from facing-relative state (arcade walk table modifiers).
 func walk_dir_multiplier(moving_away: bool, target_down: bool) -> float:
 	var m := 1.0
@@ -639,6 +661,18 @@ var _block_bouncing: bool = false
 
 func set_immobilize_ticks(ticks: int) -> void:
 	_immobilize_time = ArcadeUnits.ticks_to_seconds(ticks)
+
+## Swap grapple roles: this fighter becomes the grappler driving `captor`, who is immobilized
+## and GRABBED, and starts `seq`. Shared by Player counter-patterns and Enemy skill reversals.
+func reverse_into_grappler(captor: Fighter, seq: MoveSequence) -> void:
+	captor._grappling = null
+	captor._grappled_by = self
+	captor.mode = Mode.GRABBED
+	captor.set_immobilize_ticks(15)
+	_grappled_by = null
+	_grappling = captor
+	mode = Mode.GRABBING
+	start_move(seq)
 
 func _set_headhold_break_ticks(ticks: int) -> void:
 	_headhold_break_time = ArcadeUnits.ticks_to_seconds(ticks)

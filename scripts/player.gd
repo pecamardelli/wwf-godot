@@ -88,28 +88,6 @@ func _pressed_button() -> int:
 	if _pressed(p + "high_kick"): return MoveTable.Btn.HIGH_KICK
 	return -1
 
-func _current_range() -> int:
-	if mode == Mode.RUNNING:
-		return MoveTable.Rng.RUNNING
-	if target == null or not is_instance_valid(target):
-		return MoveTable.Rng.NORMAL
-	# A downed opponent within the grounded reach uses the grounded moves (stomp / elbow drop).
-	if target.mode == Mode.ONGROUND:
-		if Proximity.is_within(global_position, target.global_position, Proximity.GROUNDED_DX, Proximity.GROUNDED_DZ):
-			return MoveTable.Rng.GROUNDED
-		return MoveTable.Rng.NORMAL
-	# Standing opponent: close vs far by the arcade (X,Z)-AND test.
-	if Proximity.is_within(global_position, target.global_position, Proximity.CLOSE_DX, Proximity.CLOSE_DZ):
-		return MoveTable.Rng.CLOSE
-	return MoveTable.Rng.NORMAL
-
-func _current_dir() -> int:
-	var rel := RelativeInput.resolve(get_input_direction(), _facing)
-	if rel.down: return MoveTable.Dir.DOWN
-	if rel.toward: return MoveTable.Dir.TOWARD
-	if rel.away: return MoveTable.Dir.AWAY
-	return MoveTable.Dir.NEUTRAL
-
 ## In HEADHOLD: poll the buffer for follow-up grapples + the joybuzzer charge release.
 ## On a match, start the follow-up (victim stays attached) and immobilize the victim.
 func scan_headhold_followups() -> bool:
@@ -148,16 +126,7 @@ func scan_headhold_reversal() -> bool:
 		return false
 	for id in ["piledriver", "head_slam"]:
 		if MotionMatcher.matches(_FOLLOWUP_MOTIONS[id], motion_buffer, _input_tick):
-			var captor: Fighter = _grappled_by
-			# Swap roles: I become the holder driving the former captor.
-			captor._grappling = null
-			captor._grappled_by = self
-			captor.mode = Fighter.Mode.GRABBED
-			captor.set_immobilize_ticks(15)
-			_grappled_by = null
-			_grappling = captor
-			mode = Fighter.Mode.GRABBING
-			start_move(_FOLLOWUP_SEQUENCES[id])
+			reverse_into_grappler(_grappled_by, _FOLLOWUP_SEQUENCES[id])
 			motion_buffer.clear()
 			return true
 	return false
