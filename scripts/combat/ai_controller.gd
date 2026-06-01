@@ -141,6 +141,57 @@ static func next_stance(current: int, weights: Dictionary, enabled: Array, roll:
 			return st
 	return current
 
+## Decide this frame's intent and advance mood/cadence state. Movement is recomputed every
+## frame; new OFFENSIVE actions are gated by the reaction-delay cooldown. Defense (block)
+## pre-empts when the target is attacking in range.
+func decide(perception: Dictionary, profile: AIProfile, delta: float) -> AIIntent:
+	var dx: float = perception.get("dx", 0.0)
+	var dz: float = perception.get("dz", 0.0)
+	var band := distance_band(dx, dz)
+
+	# --- mood layer ---
+	var event: int = perception.get("event", Event.NONE)
+	if event != Event.NONE:
+		current_stance = event_stance(current_stance, event, profile, rng.randf())
+		stance_timer = STANCE_BASE_SECONDS * profile.stance_duration_scale
+	else:
+		stance_timer -= delta
+		if stance_timer <= 0.0:
+			current_stance = next_stance(current_stance, profile.stance_weights,
+				profile.enabled_stances, rng.randf())
+			# jitter 0.75x..1.25x so fighters don't re-roll in lockstep
+			stance_timer = STANCE_BASE_SECONDS * profile.stance_duration_scale * rng.randf_range(0.75, 1.25)
+
+	var intent := AIIntent.new()
+
+	# --- movement (every frame) ---
+	var desired := desired_distance(current_stance, profile.preferred_range)
+	intent.move_dir = seek_dir(0.0, 0.0, dx, dz, desired)
+	intent.want_run = intent.move_dir != Vector2.ZERO and band == Band.LONG \
+		and rng.randf() < profile.run_tendency
+
+	# --- defense pre-empt ---
+	if perception.get("target_attacking", false) and band != Band.LONG:
+		var threshold := block_chance(profile.skill, profile.block_skill,
+			perception.get("repeat_count", 0), perception.get("ally_count", 1))
+		if should_block(threshold, rng.randi_range(0, 99)):
+			intent.action = AIIntent.Action.BLOCK
+			delay = maxi(profile.reaction_delay.x, 15)   # arcade min 15 ticks after a block
+			return intent
+
+	# --- offense (cooldown-gated) ---
+	if delay > 0:
+		delay -= 1
+		return intent   # IDLE action, keep moving
+	var act := choose_action(current_stance, profile.special_frequency, band, rng.randf(), rng.randf())
+	intent.action = act
+	if act == AIIntent.Action.STRIKE:
+		intent.button = pick_strike_button(profile.limb_bias, rng.randf())
+	elif act == AIIntent.Action.GRAB:
+		intent.move_id = "neck_grab"   # default grab; Enemy maps id -> sequence (later task)
+	delay = rng.randi_range(profile.reaction_delay.x, profile.reaction_delay.y)
+	return intent
+
 ## Apply an early stance flip from a fight event, falling back to `current` when the chosen
 ## stance is not enabled. roll (0..1) breaks ties between two candidate moods.
 static func event_stance(current: int, event: int, profile: AIProfile, roll: float) -> int:

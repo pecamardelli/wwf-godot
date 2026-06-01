@@ -148,3 +148,62 @@ func test_event_stance_falls_back_to_current_when_target_disabled():
 	p.enabled_stances = [AIController.Stance.PRESSING]   # SPACING not enabled
 	assert_eq(AIController.event_stance(AIController.Stance.PRESSING, AIController.Event.MOBBED, p, 0.5),
 		AIController.Stance.PRESSING)
+
+func _profile_always_pressing() -> AIProfile:
+	var p := AIProfile.new()
+	p.skill = 6
+	p.aggression = 0.5
+	p.preferred_range = AIProfile.PreferredRange.CLOSE
+	p.special_frequency = 0.0       # strikes only, for deterministic action
+	p.limb_bias = 0.0               # always punch
+	p.reaction_delay = Vector2i(10, 10)
+	p.enabled_stances = [AIController.Stance.PRESSING]
+	p.stance_weights = {AIController.Stance.PRESSING: 1.0}
+	return p
+
+func _perc(dx: float, dz: float, attacking := false, allies := 1) -> Dictionary:
+	return {"dx": dx, "dz": dz, "target_attacking": attacking, "target_grappling": false,
+		"ally_count": allies, "repeat_count": 0, "event": AIController.Event.NONE}
+
+func test_decide_moves_toward_far_target():
+	var c := AIController.new(); c.rng.seed = 1
+	var i := c.decide(_perc(300, 0), _profile_always_pressing(), 1.0 / 60.0)
+	assert_gt(i.move_dir.x, 0.0)            # walk toward
+	assert_ne(i.action, AIIntent.Action.GRAB)
+
+func test_decide_strikes_when_in_short_range_and_off_cooldown():
+	var c := AIController.new(); c.rng.seed = 1
+	var p := _profile_always_pressing()
+	p.enabled_stances = [AIController.Stance.KAMIKAZE]
+	p.stance_weights = {AIController.Stance.KAMIKAZE: 1.0}
+	c.current_stance = AIController.Stance.KAMIKAZE
+	var got_strike := false
+	for _n in range(20):
+		var i := c.decide(_perc(30, 0), p, 1.0 / 60.0)
+		if i.action == AIIntent.Action.STRIKE:
+			assert_eq(i.button, MoveTable.Btn.LOW_PUNCH)
+			got_strike = true
+			break
+	assert_true(got_strike, "kamikaze in short range strikes within a few decisions")
+
+func test_decide_respects_cooldown_no_new_action_while_delay_positive():
+	var c := AIController.new(); c.rng.seed = 1
+	c.delay = 5
+	var i := c.decide(_perc(30, 0), _profile_always_pressing(), 1.0 / 60.0)
+	assert_eq(i.action, AIIntent.Action.IDLE)   # gated by cooldown
+	assert_eq(c.delay, 4)                        # decremented
+
+func test_decide_blocks_when_target_attacking_in_range_high_skill():
+	var c := AIController.new(); c.rng.seed = 1
+	var p := _profile_always_pressing()
+	p.skill = 29; p.block_skill = 2.0           # ~99% block
+	var i := c.decide(_perc(30, 0, true), p, 1.0 / 60.0)
+	assert_eq(i.action, AIIntent.Action.BLOCK)
+
+func test_decide_sets_event_stance():
+	var c := AIController.new(); c.rng.seed = 1
+	var p := _profile_always_pressing()
+	p.enabled_stances = [AIController.Stance.PRESSING, AIController.Stance.SPACING]
+	var perc := _perc(30, 0); perc["event"] = AIController.Event.MOBBED
+	c.decide(perc, p, 1.0 / 60.0)
+	assert_eq(c.current_stance, AIController.Stance.SPACING)
