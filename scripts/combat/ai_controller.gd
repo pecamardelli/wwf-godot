@@ -53,3 +53,9 @@ static func block_chance(skill: int, block_skill: float, repeat_count: int, ally
 ## roll is 0..99 (e.g. rng.randi_range(0, 99)).
 static func should_block(threshold: int, roll: int) -> bool:
 	return roll < threshold
+
+## Grapple/leaping-reversal chance. Arcade gates reversals at ~skill/4; we normalize that to
+## a 0..1 probability over the 0..29 skill range, scaled by reversal_skill. roll is 0..1.
+static func should_reverse(skill: int, reversal_skill: float, roll: float) -> bool:
+	var chance := (float(clampi(skill, 0, 29)) / 29.0) * reversal_skill
+	return roll < chance

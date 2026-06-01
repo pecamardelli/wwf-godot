@@ -42,3 +42,14 @@ func test_block_chance_block_skill_multiplier_and_clamp():
 func test_should_block_roll_under_threshold():
 	assert_true(AIController.should_block(50, 49))
 	assert_false(AIController.should_block(50, 50))
+
+func test_reverse_chance_scales_with_skill():
+	# chance = (skill/29) * reversal_skill; roll is 0..1
+	assert_true(AIController.should_reverse(29, 1.0, 0.5))    # chance 1.0 -> always
+	assert_false(AIController.should_reverse(0, 1.0, 0.01))   # chance 0 -> never
+	assert_false(AIController.should_reverse(29, 0.0, 0.01))  # reversal_skill 0 -> never
+
+func test_reverse_chance_midpoint():
+	# skill ~14.5 -> chance ~0.5; roll 0.4 reverses, 0.6 does not
+	assert_true(AIController.should_reverse(15, 1.0, 0.4))
+	assert_false(AIController.should_reverse(15, 1.0, 0.9))
