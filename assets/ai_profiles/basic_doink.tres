@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="AIProfile" format=3]
+[gd_resource type="Resource" script_class="AIProfile" format=3 uid="uid://do66jnqi1ly6w"]
 
-[ext_resource type="Script" path="res://scripts/combat/ai_profile.gd" id="1_0qb0v"]
+[ext_resource type="Script" uid="uid://cy8k6fmv8m3h0" path="res://scripts/combat/ai_profile.gd" id="1_0qb0v"]
 
 [resource]
 script = ExtResource("1_0qb0v")
