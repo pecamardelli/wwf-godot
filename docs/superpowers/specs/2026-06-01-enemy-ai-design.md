@@ -308,3 +308,13 @@ screen) one stood still. Root causes and fixes:
   on the first hit (`MODE_STATUS_BIT`). `AttackResolver` now hits only the **closest** overlapping
   fighter and the swing is spent once it connects. Friendly fire is preserved (any fighter can be
   the victim) — it's just limited to one victim per swing.
+- **Respect the hold + fewer headlocks + softer aggression (4th playtest).**
+  - *Respect the hold:* when the target is already caught in another fighter's grapple
+    (`HEADHELD`/`GRABBED` by someone else), every other enemy **stands off and waits** (no attack)
+    until it breaks or reverses — an arcade fairness rule, applied to all stances (unlike get-up
+    grace). Wired via a `target_held_by_other` perception flag and the shared stand-off path.
+  - *Fewer headlocks:* the AI grab was always `neck_grab` (the sustained head-hold). It now picks
+    mostly the quick `hip_toss` throw, only `HEADLOCK_SHARE` (~30%) head-holds; and grab frequency
+    dropped (`special_frequency 0.35→0.18`).
+  - *Softer:* SHORT-band attack rates eased (PRESSING 0.9→0.7 etc.), `reaction_delay (6,16)→(8,22)`,
+    `aggression 0.85→0.7`.
