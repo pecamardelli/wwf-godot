@@ -59,3 +59,8 @@ static func should_block(threshold: int, roll: int) -> bool:
 static func should_reverse(skill: int, reversal_skill: float, roll: float) -> bool:
 	var chance := (float(clampi(skill, 0, 29)) / 29.0) * reversal_skill
 	return roll < chance
+
+## Choose a strike button by the fighter's fists/legs bias. roll is 0..1.
+## (Low variants only for now; high-punch/high-kick selection is a later tuning pass.)
+static func pick_strike_button(limb_bias: float, roll: float) -> int:
+	return MoveTable.Btn.LOW_KICK if roll < limb_bias else MoveTable.Btn.LOW_PUNCH

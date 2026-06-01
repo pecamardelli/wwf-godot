@@ -53,3 +53,10 @@ func test_reverse_chance_midpoint():
 	# skill ~14.5 -> chance ~0.5; roll 0.4 reverses, 0.6 does not
 	assert_true(AIController.should_reverse(15, 1.0, 0.4))
 	assert_false(AIController.should_reverse(15, 1.0, 0.9))
+
+func test_limb_bias_picks_kick_vs_punch():
+	# roll < limb_bias -> kick family, else punch family
+	assert_eq(AIController.pick_strike_button(0.8, 0.1), MoveTable.Btn.LOW_KICK)
+	assert_eq(AIController.pick_strike_button(0.8, 0.9), MoveTable.Btn.LOW_PUNCH)
+	assert_eq(AIController.pick_strike_button(0.0, 0.5), MoveTable.Btn.LOW_PUNCH)  # always fists
+	assert_eq(AIController.pick_strike_button(1.0, 0.5), MoveTable.Btn.LOW_KICK)   # always legs
