@@ -200,9 +200,12 @@ the arcade reaction cadence. Steps:
 All randomness flows through an **injected roll source** (seed or an array of rolls) so unit tests
 are deterministic. Ported arcade tables/thresholds become named constants with source citations.
 
-**Crowd-scaling hook:** the `− 32 × (ally_count − 1)` block term and the `+22`-tick hold-delay term
-are implemented now. At this feature's single-enemy count `ally_count == 1`, so they are exact
-no-ops; they activate automatically when a future feature spawns multiple enemies.
+**Crowd-scaling hook:** the **block** term `− 32 × (ally_count − 1)` is implemented now (in
+`block_chance`, with `ally_count` plumbed through perception). At this feature's single-enemy
+count `ally_count == 1` it is an exact no-op; it activates automatically when a future feature
+spawns multiple enemies. The sibling arcade term — the `+22`-tick **hold/reversal-delay** scaling
+per extra teammate — is **deferred to the multi-enemy feature** (it has no effect at one enemy and
+the reversal-delay path is not yet ally-count-aware); it will be implemented and tested there.
 
 ---
 
