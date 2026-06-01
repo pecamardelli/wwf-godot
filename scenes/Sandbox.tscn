@@ -37,12 +37,11 @@ script = ExtResource("2")
 player_index = 0
 motions = ExtResource("4_motions")
 
-[node name="Player2" parent="." unique_id=1551463737 instance=ExtResource("1")]
-position = Vector2(800, 520)
-script = ExtResource("2")
-player_index = 1
-motions = null
+[node name="Enemy2" parent="." unique_id=1551463737 instance=ExtResource("1")]
+position = Vector2(900, 500)
+script = ExtResource("5_enemy")
 side = 1
+profile = ExtResource("6_profile")
 
 [node name="Enemy" parent="." unique_id=1478545216 instance=ExtResource("1")]
 position = Vector2(700, 470)
