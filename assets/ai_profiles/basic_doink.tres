@@ -5,15 +5,15 @@
 [resource]
 script = ExtResource("1_0qb0v")
 skill = 7
-aggression = 0.85
-run_tendency = 0.35
-special_frequency = 0.35
+aggression = 0.7
+run_tendency = 0.3
+special_frequency = 0.18
 limb_bias = 0.45
 block_skill = 0.7
 reversal_skill = 0.6
 backoff_tendency = 0.15
 patience = 0.15
-reaction_delay = Vector2i(6, 16)
+reaction_delay = Vector2i(8, 22)
 stance_weights = {
 0: 2.0,
 1: 6.0,

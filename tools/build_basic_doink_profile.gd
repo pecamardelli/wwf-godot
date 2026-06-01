@@ -6,16 +6,16 @@ extends SceneTree
 func _init() -> void:
 	var p := AIProfile.new()
 	p.skill = 7
-	p.aggression = 0.85                 # presses hard; rarely backs off
+	p.aggression = 0.7                  # presses, but not relentlessly
 	p.preferred_range = AIProfile.PreferredRange.CLOSE
-	p.run_tendency = 0.35               # closes the gap quickly when far
-	p.special_frequency = 0.35          # more grabs/throws, not just jabs
+	p.run_tendency = 0.3                # closes the gap when far
+	p.special_frequency = 0.18          # grabs are a garnish, not the main course
 	p.limb_bias = 0.45
 	p.block_skill = 0.7
 	p.reversal_skill = 0.6
 	p.backoff_tendency = 0.15
 	p.patience = 0.15
-	p.reaction_delay = Vector2i(6, 16)  # acts ~3x more often than before (was 16-44)
+	p.reaction_delay = Vector2i(8, 22)  # a bit more breathing room between actions
 	p.stance_duration_scale = 1.0
 	# Mood mix: PRESSING is the aggressive-but-fair default; an occasional SPACING breather; and
 	# KAMIKAZE only rarely — that's the "gone crazy" stance that won't let a downed foe up.
