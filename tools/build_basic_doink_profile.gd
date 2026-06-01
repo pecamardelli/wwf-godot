@@ -1,28 +1,29 @@
 @tool
 extends SceneTree
-## Builds assets/ai_profiles/basic_doink.tres — a beatable, PRESSING-heavy first opponent.
+## Builds assets/ai_profiles/basic_doink.tres — an aggressive, in-your-face first opponent.
 ## Run: godot --headless --path . --script res://tools/build_basic_doink_profile.gd
 
 func _init() -> void:
 	var p := AIProfile.new()
-	p.skill = 6
-	p.aggression = 0.65
+	p.skill = 7
+	p.aggression = 0.85                 # presses hard; rarely backs off
 	p.preferred_range = AIProfile.PreferredRange.CLOSE
-	p.run_tendency = 0.15
-	p.special_frequency = 0.2
-	p.limb_bias = 0.4
-	p.block_skill = 0.8
+	p.run_tendency = 0.35               # closes the gap quickly when far
+	p.special_frequency = 0.35          # more grabs/throws, not just jabs
+	p.limb_bias = 0.45
+	p.block_skill = 0.7
 	p.reversal_skill = 0.6
-	p.backoff_tendency = 0.3
-	p.patience = 0.25
-	p.reaction_delay = Vector2i(16, 44)
+	p.backoff_tendency = 0.15
+	p.patience = 0.15
+	p.reaction_delay = Vector2i(6, 16)  # acts ~3x more often than before (was 16-44)
 	p.stance_duration_scale = 1.0
-	p.enabled_stances = [AIController.Stance.PRESSING, AIController.Stance.SPACING,
-		AIController.Stance.KAMIKAZE]
+	# Aggression-forward mood mix: mostly PRESSING/KAMIKAZE, only an occasional SPACING breather.
+	p.enabled_stances = [AIController.Stance.PRESSING, AIController.Stance.KAMIKAZE,
+		AIController.Stance.SPACING]
 	p.stance_weights = {
 		AIController.Stance.PRESSING: 4.0,
-		AIController.Stance.SPACING: 2.0,
-		AIController.Stance.KAMIKAZE: 1.0,
+		AIController.Stance.KAMIKAZE: 3.0,
+		AIController.Stance.SPACING: 0.5,
 	}
 	var dir := "res://assets/ai_profiles"
 	if not DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(dir)):

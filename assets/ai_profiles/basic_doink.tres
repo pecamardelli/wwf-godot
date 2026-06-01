@@ -4,16 +4,19 @@
 
 [resource]
 script = ExtResource("1_0qb0v")
-aggression = 0.65
-run_tendency = 0.15
-special_frequency = 0.2
-block_skill = 0.8
+skill = 7
+aggression = 0.85
+run_tendency = 0.35
+special_frequency = 0.35
+limb_bias = 0.45
+block_skill = 0.7
 reversal_skill = 0.6
-patience = 0.25
-reaction_delay = Vector2i(16, 44)
+backoff_tendency = 0.15
+patience = 0.15
+reaction_delay = Vector2i(6, 16)
 stance_weights = {
-0: 2.0,
+0: 0.5,
 1: 4.0,
-2: 1.0
+2: 3.0
 }
-enabled_stances = Array[int]([1, 0, 2])
+enabled_stances = Array[int]([1, 2, 0])
