@@ -15,8 +15,8 @@ backoff_tendency = 0.15
 patience = 0.15
 reaction_delay = Vector2i(6, 16)
 stance_weights = {
-0: 0.5,
-1: 4.0,
-2: 3.0
+0: 2.0,
+1: 6.0,
+2: 1.0
 }
-enabled_stances = Array[int]([1, 2, 0])
+enabled_stances = Array[int]([1, 0, 2])

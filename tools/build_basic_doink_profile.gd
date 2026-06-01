@@ -17,13 +17,14 @@ func _init() -> void:
 	p.patience = 0.15
 	p.reaction_delay = Vector2i(6, 16)  # acts ~3x more often than before (was 16-44)
 	p.stance_duration_scale = 1.0
-	# Aggression-forward mood mix: mostly PRESSING/KAMIKAZE, only an occasional SPACING breather.
-	p.enabled_stances = [AIController.Stance.PRESSING, AIController.Stance.KAMIKAZE,
-		AIController.Stance.SPACING]
+	# Mood mix: PRESSING is the aggressive-but-fair default; an occasional SPACING breather; and
+	# KAMIKAZE only rarely — that's the "gone crazy" stance that won't let a downed foe up.
+	p.enabled_stances = [AIController.Stance.PRESSING, AIController.Stance.SPACING,
+		AIController.Stance.KAMIKAZE]
 	p.stance_weights = {
-		AIController.Stance.PRESSING: 4.0,
-		AIController.Stance.KAMIKAZE: 3.0,
-		AIController.Stance.SPACING: 0.5,
+		AIController.Stance.PRESSING: 6.0,
+		AIController.Stance.SPACING: 2.0,
+		AIController.Stance.KAMIKAZE: 1.0,
 	}
 	var dir := "res://assets/ai_profiles"
 	if not DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(dir)):
