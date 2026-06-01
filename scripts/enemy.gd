@@ -17,6 +17,7 @@ var _ai := AIController.new()
 var _intent := AIIntent.new()
 var _last_health: int = 0
 var _consecutive_incoming: int = 0
+var _target_was_attacking: bool = false
 
 func _ready() -> void:
 	super()
@@ -66,8 +67,11 @@ func _build_perception() -> Dictionary:
 	if target != null and is_instance_valid(target):
 		var dropped := _last_health - health
 		var attacking: bool = target.is_attacking()
-		if attacking:
-			_consecutive_incoming += 1
+		if attacking and not _target_was_attacking:
+			_consecutive_incoming += 1          # a new distinct swing (rising edge)
+		elif not attacking:
+			_consecutive_incoming = 0           # reset between swings
+		_target_was_attacking = attacking
 		# big-hit / low-health events drive early stance flips
 		if dropped >= 12:
 			event = AIController.Event.BIG_HIT
@@ -79,12 +83,13 @@ func _build_perception() -> Dictionary:
 			"dx": target.global_position.x - global_position.x,
 			"dz": target.global_position.y - global_position.y,
 			"target_attacking": attacking,
-			"target_grappling": target.mode == Mode.GRABBING or target.mode == Mode.HEADHOLD,
 			"ally_count": _ally_count(),
 			"repeat_count": _consecutive_incoming,
 			"event": event,
 		}
-	return {"dx": 9999.0, "dz": 0.0, "target_attacking": false, "target_grappling": false,
+	_consecutive_incoming = 0
+	_target_was_attacking = false
+	return {"dx": 9999.0, "dz": 0.0, "target_attacking": false,
 		"ally_count": 1, "repeat_count": 0, "event": event}
 
 ## Living fighters on my side (mobbing the player drives the crowd-difficulty hook).

@@ -64,6 +64,30 @@ func test_enemy_strikes_player_in_range():
 			break
 	assert_true(attacked, "kamikaze enemy throws a strike at close range")
 
+class _FakeFoe extends Fighter:
+	var faking := false
+	func is_attacking() -> bool:
+		return faking
+
+func test_consecutive_incoming_counts_distinct_swings_not_frames():
+	var e := _enemy(); e.global_position = Vector2(100, 400)
+	var foe := _FakeFoe.new(); add_child_autofree(foe)
+	foe.global_position = Vector2(130, 400); foe.separation_radii = Vector2.ZERO
+	foe.side = Fighter.Side.PLAYER
+	e.target = foe
+	# One sustained swing held for many frames must count as ONE, not saturate.
+	foe.faking = true
+	for _n in range(20):
+		var perc := e._build_perception()
+	assert_eq(e._build_perception()["repeat_count"], 1, "a single held swing counts once, not per-frame")
+	# Player stops attacking -> counter resets.
+	foe.faking = false
+	e._build_perception()
+	assert_eq(e._build_perception()["repeat_count"], 0, "counter resets when the foe stops attacking")
+	# A second distinct swing increments to 1 again.
+	foe.faking = true
+	assert_eq(e._build_perception()["repeat_count"], 1, "a new swing counts as one")
+
 func test_enemy_reverses_a_headhold_when_skill_roll_succeeds():
 	var captor := Player.new(); add_child_autofree(captor)
 	captor.global_position = Vector2(100, 400); captor.separation_radii = Vector2.ZERO
