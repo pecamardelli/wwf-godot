@@ -110,3 +110,41 @@ func test_seek_dir_backs_off_when_too_close():
 func test_seek_dir_holds_inside_deadzone():
 	var d := AIController.seek_dir(0, 0, 42, 0, 40.0)  # within deadzone of desired
 	assert_eq(d, Vector2.ZERO)
+
+func test_next_stance_weighted_pick_respects_enabled_and_weights():
+	var enabled := [AIController.Stance.PRESSING, AIController.Stance.SPACING]
+	var weights := {AIController.Stance.PRESSING: 3.0, AIController.Stance.SPACING: 1.0}
+	# total weight 4: roll 0.0..0.75 -> PRESSING, 0.75..1.0 -> SPACING
+	assert_eq(AIController.next_stance(AIController.Stance.KAMIKAZE, weights, enabled, 0.1),
+		AIController.Stance.PRESSING)
+	assert_eq(AIController.next_stance(AIController.Stance.KAMIKAZE, weights, enabled, 0.9),
+		AIController.Stance.SPACING)
+
+func test_next_stance_empty_enabled_keeps_current():
+	assert_eq(AIController.next_stance(AIController.Stance.CALCULATOR, {}, [], 0.5),
+		AIController.Stance.CALCULATOR)
+
+func test_event_stance_mobbed_goes_spacing():
+	var p := AIProfile.new()
+	p.enabled_stances = [AIController.Stance.PRESSING, AIController.Stance.SPACING]
+	assert_eq(AIController.event_stance(AIController.Stance.PRESSING, AIController.Event.MOBBED, p, 0.5),
+		AIController.Stance.SPACING)
+
+func test_event_stance_big_hit_aggressive_goes_kamikaze():
+	var p := AIProfile.new()
+	p.aggression = 0.9
+	p.enabled_stances = [AIController.Stance.KAMIKAZE, AIController.Stance.SPACING]
+	# high aggression -> KAMIKAZE on a big hit
+	assert_eq(AIController.event_stance(AIController.Stance.PRESSING, AIController.Event.BIG_HIT, p, 0.5),
+		AIController.Stance.KAMIKAZE)
+
+func test_event_stance_none_keeps_current():
+	var p := AIProfile.new()
+	assert_eq(AIController.event_stance(AIController.Stance.CALCULATOR, AIController.Event.NONE, p, 0.5),
+		AIController.Stance.CALCULATOR)
+
+func test_event_stance_falls_back_to_current_when_target_disabled():
+	var p := AIProfile.new()
+	p.enabled_stances = [AIController.Stance.PRESSING]   # SPACING not enabled
+	assert_eq(AIController.event_stance(AIController.Stance.PRESSING, AIController.Event.MOBBED, p, 0.5),
+		AIController.Stance.PRESSING)

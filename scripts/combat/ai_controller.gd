@@ -124,3 +124,36 @@ static func seek_dir(self_x: float, self_z: float, target_x: float, target_z: fl
 	if dist < desired - _SEEK_DEADZONE:
 		return -to_target / dist
 	return Vector2.ZERO
+
+## Weighted random stance among `enabled`, by `weights` (missing key = 0). roll is 0..1.
+## Empty/zero-weight -> keep `current`.
+static func next_stance(current: int, weights: Dictionary, enabled: Array, roll: float) -> int:
+	var total := 0.0
+	for st in enabled:
+		total += maxf(float(weights.get(st, 0.0)), 0.0)
+	if total <= 0.0:
+		return current
+	var target := clampf(roll, 0.0, 0.999999) * total
+	var acc := 0.0
+	for st in enabled:
+		acc += maxf(float(weights.get(st, 0.0)), 0.0)
+		if target < acc:
+			return st
+	return current
+
+## Apply an early stance flip from a fight event, falling back to `current` when the chosen
+## stance is not enabled. roll (0..1) breaks ties between two candidate moods.
+static func event_stance(current: int, event: int, profile: AIProfile, roll: float) -> int:
+	var want := current
+	match event:
+		Event.MOBBED:
+			want = Stance.SPACING
+		Event.BIG_HIT:
+			want = Stance.KAMIKAZE if roll < profile.aggression else Stance.SPACING
+		Event.LOW_HEALTH:
+			want = Stance.KAMIKAZE if roll < profile.aggression else Stance.CALCULATOR
+		_:
+			return current
+	if profile.enabled_stances.has(want):
+		return want
+	return current
