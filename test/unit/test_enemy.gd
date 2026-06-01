@@ -63,3 +63,23 @@ func test_enemy_strikes_player_in_range():
 			attacked = true
 			break
 	assert_true(attacked, "kamikaze enemy throws a strike at close range")
+
+func test_enemy_reverses_a_headhold_when_skill_roll_succeeds():
+	var captor := Player.new(); add_child_autofree(captor)
+	captor.global_position = Vector2(100, 400); captor.separation_radii = Vector2.ZERO
+	captor.side = Fighter.Side.PLAYER
+	var e := _enemy(); e.global_position = Vector2(150, 400)
+	e.profile.skill = 29; e.profile.reversal_skill = 2.0   # ~certain reversal
+	e._ai.rng.seed = 1
+	# put the enemy in the captor's head hold
+	captor._grappling = e
+	e._grappled_by = captor
+	e.mode = Fighter.Mode.HEADHELD
+	captor.mode = Fighter.Mode.HEADHOLD
+	var reversed := false
+	for _n in range(20):
+		e._physics_process(1.0 / 60.0)
+		if e._grappling == captor and captor._grappled_by == e:
+			reversed = true
+			break
+	assert_true(reversed, "high-skill enemy reverses the head hold")

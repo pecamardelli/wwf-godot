@@ -36,7 +36,14 @@ func wants_to_block() -> bool:
 
 func _physics_process(delta: float) -> void:
 	# Puppet victim (held/thrown): driven by the captor; no AI this frame.
-	if mode == Mode.GRABBED or mode == Mode.HEADHELD:
+	if mode == Mode.GRABBED:
+		super(delta)
+		return
+	if mode == Mode.HEADHELD:
+		if not is_immobilized() and not is_dead() and _grappled_by != null \
+				and is_instance_valid(_grappled_by) \
+				and AIController.should_reverse(profile.skill, profile.reversal_skill, _ai.rng.randf()):
+			reverse_into_grappler(_grappled_by, _GRABS["hip_toss"])
 		super(delta)
 		return
 	_intent = _ai.decide(_build_perception(), profile, delta)

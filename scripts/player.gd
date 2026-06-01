@@ -126,16 +126,7 @@ func scan_headhold_reversal() -> bool:
 		return false
 	for id in ["piledriver", "head_slam"]:
 		if MotionMatcher.matches(_FOLLOWUP_MOTIONS[id], motion_buffer, _input_tick):
-			var captor: Fighter = _grappled_by
-			# Swap roles: I become the holder driving the former captor.
-			captor._grappling = null
-			captor._grappled_by = self
-			captor.mode = Fighter.Mode.GRABBED
-			captor.set_immobilize_ticks(15)
-			_grappled_by = null
-			_grappling = captor
-			mode = Fighter.Mode.GRABBING
-			start_move(_FOLLOWUP_SEQUENCES[id])
+			reverse_into_grappler(_grappled_by, _FOLLOWUP_SEQUENCES[id])
 			motion_buffer.clear()
 			return true
 	return false

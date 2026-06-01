@@ -662,6 +662,18 @@ var _block_bouncing: bool = false
 func set_immobilize_ticks(ticks: int) -> void:
 	_immobilize_time = ArcadeUnits.ticks_to_seconds(ticks)
 
+## Swap grapple roles: this fighter becomes the grappler driving `captor`, who is immobilized
+## and GRABBED, and starts `seq`. Shared by Player counter-patterns and Enemy skill reversals.
+func reverse_into_grappler(captor: Fighter, seq: MoveSequence) -> void:
+	captor._grappling = null
+	captor._grappled_by = self
+	captor.mode = Mode.GRABBED
+	captor.set_immobilize_ticks(15)
+	_grappled_by = null
+	_grappling = captor
+	mode = Mode.GRABBING
+	start_move(seq)
+
 func _set_headhold_break_ticks(ticks: int) -> void:
 	_headhold_break_time = ArcadeUnits.ticks_to_seconds(ticks)
 
