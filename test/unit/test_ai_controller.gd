@@ -13,8 +13,10 @@ func test_enums_present():
 	assert_true(AIController.Event.NONE == 0)
 
 func test_distance_band_short_mid_long():
-	# metric = max(|dx|, 2*|dz|); short <= 100, mid <= 180, else long
+	# metric = max(|dx|, 2*|dz|); short <= 70 (our strike reach), mid <= 180, else long
 	assert_eq(AIController.distance_band(40, 0), AIController.Band.SHORT)
+	assert_eq(AIController.distance_band(70, 0), AIController.Band.SHORT)   # inclusive edge
+	assert_eq(AIController.distance_band(80, 0), AIController.Band.MID)     # past strike reach -> approach
 	assert_eq(AIController.distance_band(0, 60), AIController.Band.MID)   # 2*60=120
 	assert_eq(AIController.distance_band(150, 10), AIController.Band.MID)
 	assert_eq(AIController.distance_band(200, 0), AIController.Band.LONG)
@@ -55,11 +57,17 @@ func test_reverse_chance_midpoint():
 	assert_false(AIController.should_reverse(15, 1.0, 0.9))
 
 func test_limb_bias_picks_kick_vs_punch():
-	# roll < limb_bias -> kick family, else punch family
-	assert_eq(AIController.pick_strike_button(0.8, 0.1), MoveTable.Btn.LOW_KICK)
-	assert_eq(AIController.pick_strike_button(0.8, 0.9), MoveTable.Btn.LOW_PUNCH)
-	assert_eq(AIController.pick_strike_button(0.0, 0.5), MoveTable.Btn.LOW_PUNCH)  # always fists
-	assert_eq(AIController.pick_strike_button(1.0, 0.5), MoveTable.Btn.LOW_KICK)   # always legs
+	# roll < limb_bias -> kick family, else punch family. heavy_roll >= heavy_chance -> low variant.
+	assert_eq(AIController.pick_strike_button(0.8, 0.1, 0.99, 0.4), MoveTable.Btn.LOW_KICK)
+	assert_eq(AIController.pick_strike_button(0.8, 0.9, 0.99, 0.4), MoveTable.Btn.LOW_PUNCH)
+	assert_eq(AIController.pick_strike_button(0.0, 0.5, 0.99, 0.4), MoveTable.Btn.LOW_PUNCH)  # always fists
+	assert_eq(AIController.pick_strike_button(1.0, 0.5, 0.99, 0.4), MoveTable.Btn.LOW_KICK)   # always legs
+
+func test_heavy_roll_upgrades_to_heavy_strike_variant():
+	# heavy_roll < heavy_chance -> heavy variant of the chosen limb
+	assert_eq(AIController.pick_strike_button(1.0, 0.5, 0.1, 0.4), MoveTable.Btn.HIGH_KICK)   # legs + heavy
+	assert_eq(AIController.pick_strike_button(0.0, 0.5, 0.1, 0.4), MoveTable.Btn.HIGH_PUNCH)  # fists + heavy
+	assert_eq(AIController.pick_strike_button(0.0, 0.5, 0.9, 0.4), MoveTable.Btn.LOW_PUNCH)   # heavy_roll>=chance
 
 func test_attack_prob_long_band_never_attacks():
 	for st in [AIController.Stance.SPACING, AIController.Stance.PRESSING,
@@ -84,10 +92,12 @@ func test_choose_action_grab_vs_strike_by_special_frequency():
 	assert_eq(AIController.choose_action(AIController.Stance.PRESSING, 0.0, AIController.Band.SHORT, 0.0, 0.5),
 		AIIntent.Action.STRIKE)
 
-func test_choose_action_grab_only_in_short_band():
-	# grapples need to be close: MID band with special_frequency 1.0 still STRIKEs
-	assert_eq(AIController.choose_action(AIController.Stance.PRESSING, 1.0, AIController.Band.MID, 0.0, 0.0),
-		AIIntent.Action.STRIKE)
+func test_choose_action_no_attack_outside_short_band():
+	# arcade-faithful: MID/LONG bands never strike or grab — they approach (IDLE here)
+	assert_eq(AIController.choose_action(AIController.Stance.KAMIKAZE, 1.0, AIController.Band.MID, 0.0, 0.0),
+		AIIntent.Action.IDLE)
+	assert_eq(AIController.choose_action(AIController.Stance.KAMIKAZE, 1.0, AIController.Band.LONG, 0.0, 0.0),
+		AIIntent.Action.IDLE)
 
 func test_desired_distance_by_preferred_range_then_stance():
 	# CLOSE base small; SPACING/CALCULATOR push it out; KAMIKAZE rushes to ~0
@@ -181,7 +191,8 @@ func test_decide_strikes_when_in_short_range_and_off_cooldown():
 	for _n in range(20):
 		var i := c.decide(_perc(30, 0), p, 1.0 / 60.0)
 		if i.action == AIIntent.Action.STRIKE:
-			assert_eq(i.button, MoveTable.Btn.LOW_PUNCH)
+			# limb_bias 0 -> punch family; may be the heavy (slap) variant
+			assert_true(i.button == MoveTable.Btn.LOW_PUNCH or i.button == MoveTable.Btn.HIGH_PUNCH)
 			got_strike = true
 			break
 	assert_true(got_strike, "kamikaze in short range strikes within a few decisions")
