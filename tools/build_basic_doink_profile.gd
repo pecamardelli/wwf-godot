@@ -28,5 +28,7 @@ func _init() -> void:
 	if not DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(dir)):
 		DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(dir))
 	var err := ResourceSaver.save(p, dir + "/basic_doink.tres")
-	print("save basic_doink.tres -> ", err)
+	print("save basic_doink.tres -> ", error_string(err))
+	if err != OK:
+		quit(1)
 	quit()
