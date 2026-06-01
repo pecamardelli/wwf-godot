@@ -294,8 +294,12 @@ screen) one stood still. Root causes and fixes:
   without the passivity). The `event_stance` MOBBED branch is kept (still unit-tested) for a
   future deliberate use.
 - **Aggression + variety.** `basic_doink` retuned aggressive from the start: `reaction_delay
-  (16,44)→(6,16)`, `aggression 0.65→0.85`, `special_frequency 0.2→0.35`, stance mix
-  PRESSING 4 / KAMIKAZE 3 / SPACING 0.5. `pick_strike_button` now mixes in heavy variants
-  (slap / spin kick) via `HEAVY_STRIKE_CHANCE`, so it's not just basic jabs.
+  (16,44)→(6,16)`, `aggression 0.65→0.85`, `special_frequency 0.2→0.35`. `pick_strike_button`
+  now mixes in heavy variants (slap / spin kick) via `HEAVY_STRIKE_CHANCE`, so it's not just jabs.
+- **Get-up grace (2nd playtest).** First aggressive build never let a downed player rise — enemies
+  stomped them in a loop. Fix: while the target is downed, ordinary stances **hang back to a
+  wake-up gap (`GETUP_SPACE`) and don't attack**; only the **KAMIKAZE** stance keeps piling on. And
+  KAMIKAZE is made rare — stance mix is now **PRESSING 6 / SPACING 2 / KAMIKAZE 1** — so the
+  "won't let you up" behaviour only appears when an enemy occasionally "goes crazy."
 - **Sandbox.** The idle co-op-placeholder `Player2` (a scriptless `Player` on the enemy side) is
   replaced by a second AI `Enemy`, so the scene pits the player against two pressuring foes.
