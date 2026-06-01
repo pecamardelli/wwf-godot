@@ -171,8 +171,8 @@ func _profile_always_pressing() -> AIProfile:
 	p.stance_weights = {AIController.Stance.PRESSING: 1.0}
 	return p
 
-func _perc(dx: float, dz: float, attacking := false, allies := 1) -> Dictionary:
-	return {"dx": dx, "dz": dz, "target_attacking": attacking, "target_grappling": false,
+func _perc(dx: float, dz: float, attacking := false, allies := 1, downed := false) -> Dictionary:
+	return {"dx": dx, "dz": dz, "target_attacking": attacking, "target_downed": downed,
 		"ally_count": allies, "repeat_count": 0, "event": AIController.Event.NONE}
 
 func test_decide_moves_toward_far_target():
@@ -218,3 +218,25 @@ func test_decide_sets_event_stance():
 	var perc := _perc(30, 0); perc["event"] = AIController.Event.MOBBED
 	c.decide(perc, p, 1.0 / 60.0)
 	assert_eq(c.current_stance, AIController.Stance.SPACING)
+
+func test_decide_gives_downed_foe_room_to_get_up():
+	# PRESSING vs a downed, in-range target: no attack, and back off to the wake-up gap.
+	var c := AIController.new(); c.rng.seed = 1
+	var i := c.decide(_perc(30, 0, false, 1, true), _profile_always_pressing(), 1.0 / 60.0)
+	assert_ne(i.action, AIIntent.Action.STRIKE)
+	assert_ne(i.action, AIIntent.Action.GRAB)
+	assert_lt(i.move_dir.x, 0.0, "backs away from the downed foe to give getup space")
+
+func test_decide_kamikaze_still_attacks_a_downed_foe():
+	var c := AIController.new(); c.rng.seed = 1
+	var p := _profile_always_pressing()
+	p.enabled_stances = [AIController.Stance.KAMIKAZE]
+	p.stance_weights = {AIController.Stance.KAMIKAZE: 1.0}
+	c.current_stance = AIController.Stance.KAMIKAZE
+	var got_attack := false
+	for _n in range(20):
+		var i := c.decide(_perc(30, 0, false, 1, true), p, 1.0 / 60.0)
+		if i.action == AIIntent.Action.STRIKE or i.action == AIIntent.Action.GRAB:
+			got_attack = true
+			break
+	assert_true(got_attack, "the rare KAMIKAZE stance keeps piling on a downed foe")

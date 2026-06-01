@@ -85,6 +85,7 @@ func _build_perception() -> Dictionary:
 			"dx": target.global_position.x - global_position.x,
 			"dz": target.global_position.y - global_position.y,
 			"target_attacking": attacking,
+			"target_downed": target.mode == Mode.ONGROUND,
 			"ally_count": _ally_count(),
 			"repeat_count": _consecutive_incoming,
 			"event": event,

@@ -118,6 +118,10 @@ const _RANGE_BASE := {              # PreferredRange -> base hold distance (px)
 	AIProfile.PreferredRange.LONG: 200.0,
 }
 const _SEEK_DEADZONE := 12.0        # px tolerance around desired distance before moving
+## Distance a fighter hangs back to while the target is downed, giving them room to get up.
+## Just outside strike reach (BAND_SHORT_MAX) so the enemy looms but doesn't stomp. KAMIKAZE
+## ignores this — the rare "gone crazy" stance keeps piling on.
+const GETUP_SPACE := 100.0
 
 ## The distance this fighter wants to hold, from preferred_range shifted by the active stance.
 static func desired_distance(stance: int, preferred_range: int) -> float:
@@ -181,8 +185,16 @@ func decide(perception: Dictionary, profile: AIProfile, delta: float) -> AIInten
 
 	var intent := AIIntent.new()
 
+	# Get-up grace: when the target is downed, ordinary stances hang back and let them rise —
+	# only the rare KAMIKAZE ("gone crazy") keeps attacking a downed foe. This is what stops the
+	# beat-down loop where the player can never get up.
+	var giving_getup_space: bool = perception.get("target_downed", false) \
+		and current_stance != Stance.KAMIKAZE
+
 	# --- movement (every frame) ---
 	var desired := desired_distance(current_stance, profile.preferred_range)
+	if giving_getup_space:
+		desired = maxf(desired, GETUP_SPACE)   # back off to the wake-up gap
 	intent.move_dir = seek_dir(0.0, 0.0, dx, dz, desired)
 	intent.want_run = intent.move_dir != Vector2.ZERO and band == Band.LONG \
 		and rng.randf() < profile.run_tendency
@@ -197,6 +209,10 @@ func decide(perception: Dictionary, profile: AIProfile, delta: float) -> AIInten
 			return intent
 
 	# --- offense (cooldown-gated) ---
+	if giving_getup_space:
+		if delay > 0:
+			delay -= 1
+		return intent   # IDLE: give a downed foe room to get up (KAMIKAZE excepted above)
 	if delay > 0:
 		delay -= 1
 		return intent   # IDLE action, keep moving
