@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="AIProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/ai_profile.gd" id="1_0qb0v"]
+
+[resource]
+script = ExtResource("1_0qb0v")
+aggression = 0.65
+run_tendency = 0.15
+special_frequency = 0.2
+block_skill = 0.8
+reversal_skill = 0.6
+patience = 0.25
+reaction_delay = Vector2i(16, 44)
+stance_weights = {
+0: 2.0,
+1: 4.0,
+2: 1.0
+}
+enabled_stances = Array[int]([1, 0, 2])

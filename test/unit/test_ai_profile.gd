@@ -14,3 +14,14 @@ func test_stance_config_assignable():
 	p.stance_weights = {AIController.Stance.PRESSING: 3.0, AIController.Stance.SPACING: 1.0}
 	assert_eq(p.stance_weights[AIController.Stance.PRESSING], 3.0)
 	assert_eq(p.enabled_stances.size(), 2)
+
+func test_basic_doink_loads_with_expected_personality():
+	var p: AIProfile = load("res://assets/ai_profiles/basic_doink.tres")
+	assert_not_null(p)
+	assert_between(p.skill, 0, 12)                       # a beatable first opponent
+	assert_true(p.enabled_stances.has(AIController.Stance.PRESSING))
+	assert_true(p.enabled_stances.has(AIController.Stance.SPACING))
+	# PRESSING is the dominant mood
+	var press_w: float = p.stance_weights.get(AIController.Stance.PRESSING, 0.0)
+	for st in p.enabled_stances:
+		assert_true(press_w >= float(p.stance_weights.get(st, 0.0)))
