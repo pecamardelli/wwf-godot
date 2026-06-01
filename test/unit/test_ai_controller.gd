@@ -60,3 +60,31 @@ func test_limb_bias_picks_kick_vs_punch():
 	assert_eq(AIController.pick_strike_button(0.8, 0.9), MoveTable.Btn.LOW_PUNCH)
 	assert_eq(AIController.pick_strike_button(0.0, 0.5), MoveTable.Btn.LOW_PUNCH)  # always fists
 	assert_eq(AIController.pick_strike_button(1.0, 0.5), MoveTable.Btn.LOW_KICK)   # always legs
+
+func test_attack_prob_long_band_never_attacks():
+	for st in [AIController.Stance.SPACING, AIController.Stance.PRESSING,
+			AIController.Stance.KAMIKAZE, AIController.Stance.CALCULATOR]:
+		assert_eq(AIController.attack_prob(st, AIController.Band.LONG), 0.0)
+
+func test_attack_prob_kamikaze_higher_than_spacing_in_short():
+	var kam := AIController.attack_prob(AIController.Stance.KAMIKAZE, AIController.Band.SHORT)
+	var spc := AIController.attack_prob(AIController.Stance.SPACING, AIController.Band.SHORT)
+	assert_gt(kam, spc)
+
+func test_choose_action_idle_when_attack_roll_above_prob():
+	# PRESSING short prob < 1.0; roll_attack 1.0 -> never attacks -> IDLE
+	assert_eq(AIController.choose_action(AIController.Stance.PRESSING, 0.5, AIController.Band.SHORT, 1.0, 0.0),
+		AIIntent.Action.IDLE)
+
+func test_choose_action_grab_vs_strike_by_special_frequency():
+	# attack happens (roll_attack 0.0); special_frequency 1.0 + any roll_kind -> GRAB
+	assert_eq(AIController.choose_action(AIController.Stance.PRESSING, 1.0, AIController.Band.SHORT, 0.0, 0.5),
+		AIIntent.Action.GRAB)
+	# special_frequency 0.0 -> STRIKE
+	assert_eq(AIController.choose_action(AIController.Stance.PRESSING, 0.0, AIController.Band.SHORT, 0.0, 0.5),
+		AIIntent.Action.STRIKE)
+
+func test_choose_action_grab_only_in_short_band():
+	# grapples need to be close: MID band with special_frequency 1.0 still STRIKEs
+	assert_eq(AIController.choose_action(AIController.Stance.PRESSING, 1.0, AIController.Band.MID, 0.0, 0.0),
+		AIIntent.Action.STRIKE)

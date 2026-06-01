@@ -64,3 +64,33 @@ static func should_reverse(skill: int, reversal_skill: float, roll: float) -> bo
 ## (Low variants only for now; high-punch/high-kick selection is a later tuning pass.)
 static func pick_strike_button(limb_bias: float, roll: float) -> int:
 	return MoveTable.Btn.LOW_KICK if roll < limb_bias else MoveTable.Btn.LOW_PUNCH
+
+## Per-(stance,band) probability of committing to an attack this decision. LONG = 0 (must close
+## first). Tuned so KAMIKAZE > PRESSING > CALCULATOR > SPACING within a band.
+static func attack_prob(stance: int, band: int) -> float:
+	if band == Band.LONG:
+		return 0.0
+	var short_band := band == Band.SHORT
+	match stance:
+		Stance.KAMIKAZE:   return 0.95 if short_band else 0.7
+		Stance.PRESSING:   return 0.7 if short_band else 0.4
+		Stance.CALCULATOR: return 0.4 if short_band else 0.2
+		Stance.SPACING:    return 0.2 if short_band else 0.05
+	return 0.4
+
+## Stance multiplier on the profile's special_frequency (grab eagerness).
+static func _special_mult(stance: int) -> float:
+	match stance:
+		Stance.KAMIKAZE:   return 1.5
+		Stance.CALCULATOR: return 0.5
+	return 1.0
+
+## Decide this tick's offensive action. Two independent rolls (0..1): whether to attack, and
+## strike-vs-grab. Grapples only fire in the SHORT band (must be close to connect).
+static func choose_action(stance: int, special_frequency: float, band: int,
+		roll_attack: float, roll_kind: float) -> int:
+	if roll_attack >= attack_prob(stance, band):
+		return AIIntent.Action.IDLE
+	if band == Band.SHORT and roll_kind < clampf(special_frequency * _special_mult(stance), 0.0, 1.0):
+		return AIIntent.Action.GRAB
+	return AIIntent.Action.STRIKE
