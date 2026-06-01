@@ -115,3 +115,19 @@ func test_punch_auto_faces_then_hits_opponent_on_the_left():
 		victim._physics_process(FRAME)
 		resolver.resolve_tick()
 	assert_lt(victim.health, Damage.LIFE_MAX, "auto-facing makes the box project left and connect")
+
+func test_one_swing_hits_only_the_closest_of_two_stacked_victims():
+	# Arcade single-target: a punch landing on two overlapping foes damages only the nearer one.
+	var attacker := _fighter_at(100)
+	var near := _fighter_at(140)
+	var far := _fighter_at(150)
+	var resolver := AttackResolver.new()
+	add_child_autofree(resolver)
+	attacker.start_move(_punch())
+	for _i in range(40):
+		attacker._physics_process(FRAME)
+		near._physics_process(FRAME)
+		far._physics_process(FRAME)
+		resolver.resolve_tick()
+	assert_lt(near.health, Damage.LIFE_MAX, "the closest victim took the hit")
+	assert_eq(far.health, Damage.LIFE_MAX, "the farther victim was NOT hit by the same swing")

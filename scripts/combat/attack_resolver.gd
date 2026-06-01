@@ -1,7 +1,11 @@
 class_name AttackResolver
 extends Node
-## Each physics tick, match every live attack box against every other fighter's hurt box.
-## A given swing hits each victim at most once (Fighter tracks _hit_by_current_move).
+## Each physics tick, resolve every live attack box against the SINGLE best target.
+## Arcade COLLIS.ASM: a swing connects with one fighter and the collision loop exits on that
+## first hit (MODE_STATUS_BIT) — a strike never damages two stacked opponents. We mirror that:
+## a swing hits at most ONE fighter (the closest overlapping one), then is spent for its duration.
+## Friendly fire is intentionally preserved (any fighter can be the victim, not just opponents) —
+## it's just limited to one victim per swing.
 
 func _physics_process(_delta: float) -> void:
 	resolve_tick()
@@ -12,23 +16,42 @@ func resolve_tick() -> void:
 		var atk_box: Box3 = attacker.current_attack_box()
 		if atk_box == null:
 			continue
-		for victim in fighters:
-			if victim == attacker or attacker.already_hit(victim):
-				continue
-			var hb: Box3 = victim.hurt_box()
-			if not Hitbox.boxes_overlap(atk_box, attacker.global_position, attacker.facing(), 0.0,
-					hb, victim.global_position, victim.facing(), 0.0):
-				continue
-			var move: MoveSequence = attacker.current_move()
-			if move != null and move.is_grapple:
-				if victim._is_guarding():
-					attacker._hit_by_current_move.append(victim)   # resolve once
-					attacker._player.notify_grab_blocked()
-				elif _can_be_grabbed(victim):
-					attacker._hit_by_current_move.append(victim)
-					victim.receive_grab(attacker, move)
-			else:
-				victim.receive_hit(attacker, move)
+		# Once this swing has already connected with someone, it's spent — no second victim.
+		if not attacker._hit_by_current_move.is_empty():
+			continue
+		var victim: Fighter = _closest_overlapping(attacker, atk_box, fighters)
+		if victim == null:
+			continue
+		var move: MoveSequence = attacker.current_move()
+		if move != null and move.is_grapple:
+			if victim._is_guarding():
+				attacker._hit_by_current_move.append(victim)   # resolve once
+				attacker._player.notify_grab_blocked()
+			elif _can_be_grabbed(victim):
+				attacker._hit_by_current_move.append(victim)
+				victim.receive_grab(attacker, move)
+			# closest target isn't grab-eligible (downed/already grappled): whiff this frame
+		else:
+			victim.receive_hit(attacker, move)   # appends self to attacker._hit_by_current_move
+
+## The closest other fighter whose hurt box overlaps `attacker`'s live attack box, or null.
+## "Closest" mirrors the arcade's calc_closest targeting bias and keeps the choice deterministic
+## (instead of scene-tree order) when two victims are stacked.
+func _closest_overlapping(attacker: Fighter, atk_box: Box3, fighters: Array) -> Fighter:
+	var best: Fighter = null
+	var best_d := INF
+	for victim in fighters:
+		if victim == attacker:
+			continue
+		var hb: Box3 = victim.hurt_box()
+		if not Hitbox.boxes_overlap(atk_box, attacker.global_position, attacker.facing(), 0.0,
+				hb, victim.global_position, victim.facing(), 0.0):
+			continue
+		var d: float = attacker.global_position.distance_squared_to(victim.global_position)
+		if d < best_d:
+			best_d = d
+			best = victim
+	return best
 
 ## Grab eligibility (RESEARCH §A.4/§B.3): refuse dead / downed victims and anyone
 ## already inside the grapple FSM (already held, holding, or mid-throw).
