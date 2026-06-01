@@ -131,3 +131,32 @@ func test_one_swing_hits_only_the_closest_of_two_stacked_victims():
 		resolver.resolve_tick()
 	assert_lt(near.health, Damage.LIFE_MAX, "the closest victim took the hit")
 	assert_eq(far.health, Damage.LIFE_MAX, "the farther victim was NOT hit by the same swing")
+
+func _stomp() -> MoveSequence:
+	return load("res://assets/sequences/doink/stomp.tres")
+
+func test_stomp_misses_a_standing_fighter():
+	var attacker := _fighter_at(100)
+	var victim := _fighter_at(120)   # close, but on his feet
+	var resolver := AttackResolver.new()
+	add_child_autofree(resolver)
+	attacker.start_move(_stomp())
+	for _i in range(40):
+		attacker._physics_process(FRAME)
+		victim._physics_process(FRAME)
+		resolver.resolve_tick()
+	assert_eq(victim.health, Damage.LIFE_MAX, "a ground attack passes over a standing fighter")
+
+func test_stomp_hits_a_downed_fighter():
+	var attacker := _fighter_at(100)
+	var victim := _fighter_at(120)
+	victim.mode = Fighter.Mode.ONGROUND
+	victim._react_timer = 5.0        # stays lying down (not yet rising) through the stomp
+	var resolver := AttackResolver.new()
+	add_child_autofree(resolver)
+	attacker.start_move(_stomp())
+	for _i in range(40):
+		attacker._physics_process(FRAME)
+		victim._physics_process(FRAME)
+		resolver.resolve_tick()
+	assert_lt(victim.health, Damage.LIFE_MAX, "a ground attack connects with a downed fighter")
