@@ -92,11 +92,14 @@ func test_knockdown_puts_victim_onground():
 	var resolver := AttackResolver.new()
 	add_child_autofree(resolver)
 	attacker.start_move(load("res://assets/sequences/doink/big_boot.tres"))
+	var was_downed := false
 	for _i in range(40):
 		attacker._physics_process(FRAME)
 		victim._physics_process(FRAME)
 		resolver.resolve_tick()
-	assert_eq(victim.mode, Fighter.Mode.ONGROUND, "knocked down")
+		if victim.mode == Fighter.Mode.ONGROUND:
+			was_downed = true   # near-instant getup means they don't stay down long
+	assert_true(was_downed, "knocked down")
 
 func test_starting_a_move_faces_the_nearest_opponent():
 	var attacker := _fighter_at(140)   # attacker to the RIGHT of the victim
@@ -115,3 +118,48 @@ func test_punch_auto_faces_then_hits_opponent_on_the_left():
 		victim._physics_process(FRAME)
 		resolver.resolve_tick()
 	assert_lt(victim.health, Damage.LIFE_MAX, "auto-facing makes the box project left and connect")
+
+func test_one_swing_hits_only_the_closest_of_two_stacked_victims():
+	# Arcade single-target: a punch landing on two overlapping foes damages only the nearer one.
+	var attacker := _fighter_at(100)
+	var near := _fighter_at(140)
+	var far := _fighter_at(150)
+	var resolver := AttackResolver.new()
+	add_child_autofree(resolver)
+	attacker.start_move(_punch())
+	for _i in range(40):
+		attacker._physics_process(FRAME)
+		near._physics_process(FRAME)
+		far._physics_process(FRAME)
+		resolver.resolve_tick()
+	assert_lt(near.health, Damage.LIFE_MAX, "the closest victim took the hit")
+	assert_eq(far.health, Damage.LIFE_MAX, "the farther victim was NOT hit by the same swing")
+
+func _stomp() -> MoveSequence:
+	return load("res://assets/sequences/doink/stomp.tres")
+
+func test_stomp_misses_a_standing_fighter():
+	var attacker := _fighter_at(100)
+	var victim := _fighter_at(120)   # close, but on his feet
+	var resolver := AttackResolver.new()
+	add_child_autofree(resolver)
+	attacker.start_move(_stomp())
+	for _i in range(40):
+		attacker._physics_process(FRAME)
+		victim._physics_process(FRAME)
+		resolver.resolve_tick()
+	assert_eq(victim.health, Damage.LIFE_MAX, "a ground attack passes over a standing fighter")
+
+func test_stomp_hits_a_downed_fighter():
+	var attacker := _fighter_at(100)
+	var victim := _fighter_at(120)
+	victim.mode = Fighter.Mode.ONGROUND
+	victim._react_timer = 5.0        # stays lying down (not yet rising) through the stomp
+	var resolver := AttackResolver.new()
+	add_child_autofree(resolver)
+	attacker.start_move(_stomp())
+	for _i in range(40):
+		attacker._physics_process(FRAME)
+		victim._physics_process(FRAME)
+		resolver.resolve_tick()
+	assert_lt(victim.health, Damage.LIFE_MAX, "a ground attack connects with a downed fighter")

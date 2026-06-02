@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" path="res://scenes/Fighter.tscn" id="1"]
 [ext_resource type="Script" uid="uid://jvapegdi11vw" path="res://scripts/player.gd" id="2"]
 [ext_resource type="Script" uid="uid://ddix3t544ausd" path="res://scripts/combat/attack_resolver.gd" id="3"]
-[ext_resource type="Resource" path="res://assets/motions/doink_motions.tres" id="4_motions"]
+[ext_resource type="Resource" uid="uid://b2w0fwlf4fefa" path="res://assets/motions/doink_motions.tres" id="4_motions"]
 [ext_resource type="Script" uid="uid://dbmxtwh7dwqnn" path="res://scripts/enemy.gd" id="5_enemy"]
 [ext_resource type="Resource" path="res://assets/ai_profiles/basic_doink.tres" id="6_profile"]
 
@@ -18,6 +18,7 @@ offset_left = -1.0
 offset_right = 1279.0
 offset_bottom = 720.0
 color = Color(0.12, 0.12, 0.14, 1)
+metadata/_edit_group_ = true
 
 [node name="FloorBandTop" type="ColorRect" parent="BG" unique_id=1925448282]
 offset_top = 360.0
@@ -37,18 +38,17 @@ script = ExtResource("2")
 player_index = 0
 motions = ExtResource("4_motions")
 
-[node name="Player2" parent="." unique_id=1551463737 instance=ExtResource("1")]
-position = Vector2(800, 520)
-script = ExtResource("2")
-player_index = 1
-motions = null
+[node name="Enemy2" parent="." unique_id=1551463737 instance=ExtResource("1")]
+position = Vector2(900, 500)
+script = ExtResource("5_enemy")
+profile = ExtResource("6_profile")
 side = 1
 
 [node name="Enemy" parent="." unique_id=1478545216 instance=ExtResource("1")]
 position = Vector2(700, 470)
 script = ExtResource("5_enemy")
-side = 1
 profile = ExtResource("6_profile")
+side = 1
 
 [node name="AttackResolver" type="Node" parent="." unique_id=1909308380]
 script = ExtResource("3")

@@ -13,8 +13,10 @@ func test_enums_present():
 	assert_true(AIController.Event.NONE == 0)
 
 func test_distance_band_short_mid_long():
-	# metric = max(|dx|, 2*|dz|); short <= 100, mid <= 180, else long
+	# metric = max(|dx|, 2*|dz|); short <= 70 (our strike reach), mid <= 180, else long
 	assert_eq(AIController.distance_band(40, 0), AIController.Band.SHORT)
+	assert_eq(AIController.distance_band(70, 0), AIController.Band.SHORT)   # inclusive edge
+	assert_eq(AIController.distance_band(80, 0), AIController.Band.MID)     # past strike reach -> approach
 	assert_eq(AIController.distance_band(0, 60), AIController.Band.MID)   # 2*60=120
 	assert_eq(AIController.distance_band(150, 10), AIController.Band.MID)
 	assert_eq(AIController.distance_band(200, 0), AIController.Band.LONG)
@@ -55,11 +57,17 @@ func test_reverse_chance_midpoint():
 	assert_false(AIController.should_reverse(15, 1.0, 0.9))
 
 func test_limb_bias_picks_kick_vs_punch():
-	# roll < limb_bias -> kick family, else punch family
-	assert_eq(AIController.pick_strike_button(0.8, 0.1), MoveTable.Btn.LOW_KICK)
-	assert_eq(AIController.pick_strike_button(0.8, 0.9), MoveTable.Btn.LOW_PUNCH)
-	assert_eq(AIController.pick_strike_button(0.0, 0.5), MoveTable.Btn.LOW_PUNCH)  # always fists
-	assert_eq(AIController.pick_strike_button(1.0, 0.5), MoveTable.Btn.LOW_KICK)   # always legs
+	# roll < limb_bias -> kick family, else punch family. heavy_roll >= heavy_chance -> low variant.
+	assert_eq(AIController.pick_strike_button(0.8, 0.1, 0.99, 0.4), MoveTable.Btn.LOW_KICK)
+	assert_eq(AIController.pick_strike_button(0.8, 0.9, 0.99, 0.4), MoveTable.Btn.LOW_PUNCH)
+	assert_eq(AIController.pick_strike_button(0.0, 0.5, 0.99, 0.4), MoveTable.Btn.LOW_PUNCH)  # always fists
+	assert_eq(AIController.pick_strike_button(1.0, 0.5, 0.99, 0.4), MoveTable.Btn.LOW_KICK)   # always legs
+
+func test_heavy_roll_upgrades_to_heavy_strike_variant():
+	# heavy_roll < heavy_chance -> heavy variant of the chosen limb
+	assert_eq(AIController.pick_strike_button(1.0, 0.5, 0.1, 0.4), MoveTable.Btn.HIGH_KICK)   # legs + heavy
+	assert_eq(AIController.pick_strike_button(0.0, 0.5, 0.1, 0.4), MoveTable.Btn.HIGH_PUNCH)  # fists + heavy
+	assert_eq(AIController.pick_strike_button(0.0, 0.5, 0.9, 0.4), MoveTable.Btn.LOW_PUNCH)   # heavy_roll>=chance
 
 func test_attack_prob_long_band_never_attacks():
 	for st in [AIController.Stance.SPACING, AIController.Stance.PRESSING,
@@ -84,10 +92,12 @@ func test_choose_action_grab_vs_strike_by_special_frequency():
 	assert_eq(AIController.choose_action(AIController.Stance.PRESSING, 0.0, AIController.Band.SHORT, 0.0, 0.5),
 		AIIntent.Action.STRIKE)
 
-func test_choose_action_grab_only_in_short_band():
-	# grapples need to be close: MID band with special_frequency 1.0 still STRIKEs
-	assert_eq(AIController.choose_action(AIController.Stance.PRESSING, 1.0, AIController.Band.MID, 0.0, 0.0),
-		AIIntent.Action.STRIKE)
+func test_choose_action_no_attack_outside_short_band():
+	# arcade-faithful: MID/LONG bands never strike or grab — they approach (IDLE here)
+	assert_eq(AIController.choose_action(AIController.Stance.KAMIKAZE, 1.0, AIController.Band.MID, 0.0, 0.0),
+		AIIntent.Action.IDLE)
+	assert_eq(AIController.choose_action(AIController.Stance.KAMIKAZE, 1.0, AIController.Band.LONG, 0.0, 0.0),
+		AIIntent.Action.IDLE)
 
 func test_desired_distance_by_preferred_range_then_stance():
 	# CLOSE base small; SPACING/CALCULATOR push it out; KAMIKAZE rushes to ~0
@@ -130,13 +140,21 @@ func test_event_stance_mobbed_goes_spacing():
 	assert_eq(AIController.event_stance(AIController.Stance.PRESSING, AIController.Event.MOBBED, p, 0.5),
 		AIController.Stance.SPACING)
 
-func test_event_stance_big_hit_aggressive_goes_kamikaze():
+func test_event_stance_big_hit_no_longer_flips():
+	# BIG_HIT used to flip to KAMIKAZE — that churned aggression, so it now keeps the current stance.
 	var p := AIProfile.new()
-	p.aggression = 0.9
 	p.enabled_stances = [AIController.Stance.KAMIKAZE, AIController.Stance.SPACING]
-	# high aggression -> KAMIKAZE on a big hit
-	assert_eq(AIController.event_stance(AIController.Stance.PRESSING, AIController.Event.BIG_HIT, p, 0.5),
+	assert_eq(AIController.event_stance(AIController.Stance.PRESSING, AIController.Event.BIG_HIT, p, 0.1),
+		AIController.Stance.PRESSING)
+
+func test_event_stance_low_health_usually_calculator_rarely_kamikaze():
+	var p := AIProfile.new()
+	p.enabled_stances = [AIController.Stance.KAMIKAZE, AIController.Stance.CALCULATOR]
+	# roll below the rare berserk chance -> KAMIKAZE; above -> the cautious CALCULATOR
+	assert_eq(AIController.event_stance(AIController.Stance.PRESSING, AIController.Event.LOW_HEALTH, p, 0.1),
 		AIController.Stance.KAMIKAZE)
+	assert_eq(AIController.event_stance(AIController.Stance.PRESSING, AIController.Event.LOW_HEALTH, p, 0.9),
+		AIController.Stance.CALCULATOR)
 
 func test_event_stance_none_keeps_current():
 	var p := AIProfile.new()
@@ -161,8 +179,8 @@ func _profile_always_pressing() -> AIProfile:
 	p.stance_weights = {AIController.Stance.PRESSING: 1.0}
 	return p
 
-func _perc(dx: float, dz: float, attacking := false, allies := 1) -> Dictionary:
-	return {"dx": dx, "dz": dz, "target_attacking": attacking, "target_grappling": false,
+func _perc(dx: float, dz: float, attacking := false, allies := 1, downed := false) -> Dictionary:
+	return {"dx": dx, "dz": dz, "target_attacking": attacking, "target_downed": downed,
 		"ally_count": allies, "repeat_count": 0, "event": AIController.Event.NONE}
 
 func test_decide_moves_toward_far_target():
@@ -181,7 +199,8 @@ func test_decide_strikes_when_in_short_range_and_off_cooldown():
 	for _n in range(20):
 		var i := c.decide(_perc(30, 0), p, 1.0 / 60.0)
 		if i.action == AIIntent.Action.STRIKE:
-			assert_eq(i.button, MoveTable.Btn.LOW_PUNCH)
+			# limb_bias 0 -> punch family; may be the heavy (slap) variant
+			assert_true(i.button == MoveTable.Btn.LOW_PUNCH or i.button == MoveTable.Btn.HIGH_PUNCH)
 			got_strike = true
 			break
 	assert_true(got_strike, "kamikaze in short range strikes within a few decisions")
@@ -207,3 +226,63 @@ func test_decide_sets_event_stance():
 	var perc := _perc(30, 0); perc["event"] = AIController.Event.MOBBED
 	c.decide(perc, p, 1.0 / 60.0)
 	assert_eq(c.current_stance, AIController.Stance.SPACING)
+
+func test_decide_gives_downed_foe_room_to_get_up():
+	# PRESSING vs a downed, in-range target: no attack, and back off to the wake-up gap.
+	var c := AIController.new(); c.rng.seed = 1
+	var i := c.decide(_perc(30, 0, false, 1, true), _profile_always_pressing(), 1.0 / 60.0)
+	assert_ne(i.action, AIIntent.Action.STRIKE)
+	assert_ne(i.action, AIIntent.Action.GRAB)
+	assert_lt(i.move_dir.x, 0.0, "backs away from the downed foe to give getup space")
+
+func test_decide_kamikaze_still_attacks_a_downed_foe():
+	var c := AIController.new(); c.rng.seed = 1
+	var p := _profile_always_pressing()
+	p.enabled_stances = [AIController.Stance.KAMIKAZE]
+	p.stance_weights = {AIController.Stance.KAMIKAZE: 1.0}
+	c.current_stance = AIController.Stance.KAMIKAZE
+	var got_attack := false
+	for _n in range(20):
+		var i := c.decide(_perc(30, 0, false, 1, true), p, 1.0 / 60.0)
+		if i.action == AIIntent.Action.STRIKE or i.action == AIIntent.Action.GRAB:
+			got_attack = true
+			break
+	assert_true(got_attack, "the rare KAMIKAZE stance keeps piling on a downed foe")
+
+func test_decide_waits_out_a_hold_by_another_fighter():
+	# Target already held by someone else: stand off, don't attack, back away to the wait gap.
+	var c := AIController.new(); c.rng.seed = 1
+	var perc := _perc(30, 0); perc["target_held_by_other"] = true
+	var i := c.decide(perc, _profile_always_pressing(), 1.0 / 60.0)
+	assert_ne(i.action, AIIntent.Action.STRIKE)
+	assert_ne(i.action, AIIntent.Action.GRAB)
+	assert_lt(i.move_dir.x, 0.0, "backs off to wait out the hold")
+
+func test_decide_kamikaze_also_waits_out_a_hold():
+	# Unlike get-up grace, respecting a hold applies to EVERY stance — even KAMIKAZE.
+	var c := AIController.new(); c.rng.seed = 1
+	var p := _profile_always_pressing()
+	p.enabled_stances = [AIController.Stance.KAMIKAZE]
+	p.stance_weights = {AIController.Stance.KAMIKAZE: 1.0}
+	c.current_stance = AIController.Stance.KAMIKAZE
+	var perc := _perc(30, 0); perc["target_held_by_other"] = true
+	for _n in range(20):
+		var i := c.decide(perc, p, 1.0 / 60.0)
+		assert_ne(i.action, AIIntent.Action.STRIKE, "KAMIKAZE still waits out a hold")
+		assert_ne(i.action, AIIntent.Action.GRAB)
+
+func test_decide_grab_is_usually_a_throw_not_a_headlock():
+	# special_frequency 1.0 forces grabs; with HEADLOCK_SHARE ~0.3 most should be hip_toss.
+	var c := AIController.new(); c.rng.seed = 7
+	var p := _profile_always_pressing()
+	p.special_frequency = 1.0
+	p.reaction_delay = Vector2i(1, 1)
+	var headlocks := 0
+	var throws := 0
+	for _n in range(60):
+		c.delay = 0
+		var i := c.decide(_perc(30, 0), p, 1.0 / 60.0)
+		if i.action == AIIntent.Action.GRAB:
+			if i.move_id == "neck_grab": headlocks += 1
+			elif i.move_id == "hip_toss": throws += 1
+	assert_gt(throws, headlocks, "throws outnumber headlocks")

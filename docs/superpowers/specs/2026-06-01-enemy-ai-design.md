@@ -272,3 +272,65 @@ New `class_name`s require `godot --headless --path . --import` before the runner
   tests become flaky. This is a hard rule for `AIController`.
 - **Crowd hook is inert now** — verified by test at `ally_count = 1` (no-op) and `> 1` (penalty
   applied), so the future multi-enemy feature inherits correct behavior for free.
+
+---
+
+## 11. Tuning revision (2026-06-01, post-playtest)
+
+First playtest showed enemies that were too passive, swung from out of range, and (with two on
+screen) one stood still. Root causes and fixes:
+
+- **Out-of-range whiffs.** The arcade's distance bands select a move *category*, not an attack
+  probability: SHORT = standing strikes/grabs, MID/LONG = `drn_seek` approach moves (verified in
+  `DRONE.ASM` `wnshort_t`/`wnmed_t`/`wnlong_t`). The original AI let strikes fire in MID (≤180px)
+  while Doink's punch only reaches ~71px. Fix: strikes/grabs fire **only in the SHORT band**, and
+  `BAND_SHORT_MAX` is set to our real strike reach (**70px**, from the punch box + hurt-box half
+  width), not the arcade's 100px (different sprite scale). MID/LONG now just close the gap.
+- **Standstill / shyness with crowds.** `_build_perception` fired the `MOBBED` event every frame
+  whenever an enemy had an ally, locking it into SPACING (retreat). With the Sandbox's old idle
+  `Player2` sitting on the enemy side, even the lone real enemy saw `ally_count == 2` and backed
+  off. Fix: **`MOBBED` is no longer fired** — crowd difficulty is expressed solely as the
+  `block_chance` reduction (gangs stay aggressive but block less, the arcade's "easy when mobbed"
+  without the passivity). The `event_stance` MOBBED branch is kept (still unit-tested) for a
+  future deliberate use.
+- **Aggression + variety.** `basic_doink` retuned aggressive from the start: `reaction_delay
+  (16,44)→(6,16)`, `aggression 0.65→0.85`, `special_frequency 0.2→0.35`. `pick_strike_button`
+  now mixes in heavy variants (slap / spin kick) via `HEAVY_STRIKE_CHANCE`, so it's not just jabs.
+- **Get-up grace (2nd playtest).** First aggressive build never let a downed player rise — enemies
+  stomped them in a loop. Fix: while the target is downed, ordinary stances **hang back to a
+  wake-up gap (`GETUP_SPACE`) and don't attack**; only the **KAMIKAZE** stance keeps piling on. And
+  KAMIKAZE is made rare — stance mix is now **PRESSING 6 / SPACING 2 / KAMIKAZE 1** — so the
+  "won't let you up" behaviour only appears when an enemy occasionally "goes crazy."
+- **Sandbox.** The idle co-op-placeholder `Player2` (a scriptless `Player` on the enemy side) is
+  replaced by a second AI `Enemy`, so the scene pits the player against two pressuring foes.
+- **Single-target strikes (3rd playtest).** A punch was damaging two enemies at once when they
+  stacked. The arcade resolves a swing against ONE fighter — `COLLIS.ASM` exits its collision loop
+  on the first hit (`MODE_STATUS_BIT`). `AttackResolver` now hits only the **closest** overlapping
+  fighter and the swing is spent once it connects. Friendly fire is preserved (any fighter can be
+  the victim) — it's just limited to one victim per swing.
+- **Respect the hold + fewer headlocks + softer aggression (4th playtest).**
+  - *Respect the hold:* when the target is already caught in another fighter's grapple
+    (`HEADHELD`/`GRABBED` by someone else), every other enemy **stands off and waits** (no attack)
+    until it breaks or reverses — an arcade fairness rule, applied to all stances (unlike get-up
+    grace). Wired via a `target_held_by_other` perception flag and the shared stand-off path.
+  - *Fewer headlocks:* the AI grab was always `neck_grab` (the sustained head-hold). It now picks
+    mostly the quick `hip_toss` throw, only `HEADLOCK_SHARE` (~30%) head-holds; and grab frequency
+    dropped (`special_frequency 0.35→0.18`).
+  - *Softer:* SHORT-band attack rates eased (PRESSING 0.9→0.7 etc.), `reaction_delay (6,16)→(8,22)`,
+    `aggression 0.85→0.7`.
+- **KAMIKAZE lock + quick getup + ground-attack gating (5th playtest).**
+  - *KAMIKAZE was near-permanent:* the `LOW_HEALTH` event fired **every frame** below 30% health and
+    both it and `BIG_HIT` flipped to KAMIKAZE at `aggression` (~70%) odds, so a hurt enemy was
+    re-rolled into berserk constantly. Now `LOW_HEALTH` is **edge-triggered once** (on dropping below
+    30%) and only goes KAMIKAZE at `LOW_HEALTH_BERSERK` (~25%), else CALCULATOR; `BIG_HIT` no longer
+    flips stance at all. KAMIKAZE is now genuinely rare (the timed re-roll + the occasional
+    low-health berserk).
+  - *Quick getup (revised 6th playtest — Genesis override):* ~5 s down was still too long. Rather
+    than the auto-mash workaround, the knockdown **getup time itself is overridden** to near-instant
+    (`AMode` `KNOCKDOWN` 270 → **12 ticks**), matching the Sega/Genesis game where fighters pop up
+    almost instantly (the arcade's long STAY_TIME feeds a recovery system we are not porting). This
+    applies uniformly to all fighters; the enemy auto-mash was removed as redundant. Knockdown unit
+    tests now capture the brief down beat during their sim loop instead of asserting it afterwards.
+  - *Ground attacks gated:* stomp / elbow drop (`attack_mode` family `ONGROUND`) now only connect
+    with a foe that is actually **lying down** (`mode == ONGROUND and not _getup_rising`) — they pass
+    over a standing or already-rising fighter, matching the arcade's `MODE_ONGROUND` gating.

@@ -8,10 +8,17 @@ enum Stance { SPACING, PRESSING, KAMIKAZE, CALCULATOR }
 enum Band { SHORT, MID, LONG }
 enum Event { NONE, BIG_HIT, LOW_HEALTH, MOBBED }
 
-## Distance bands in world px (combat is authored in arcade-equivalent px; tune later).
-## Arcade DRONE.ASM: short <=100, medium <=180 on max(Xdist, 2*Zdist).
-const BAND_SHORT_MAX := 100.0
+## Engagement bands on max(Xdist, 2*Zdist). Arcade DRONE.ASM uses these to pick a move
+## CATEGORY, not an attack probability: SHORT = standing strikes/grabs, MEDIUM/LONG = approach
+## (drn_seek). We mirror that — strikes/grabs only fire in SHORT; MID/LONG just close the gap.
+## SHORT is OUR actual strike reach (Doink's far punch connects ~71px centre-to-centre: box
+## leading edge 22+55/2 ≈ 50, plus the 44-wide hurt box's 22 half-width), NOT the arcade's 100px
+## (different sprite scale) — otherwise the AI commits jabs from out of range and whiffs.
+const BAND_SHORT_MAX := 70.0
 const BAND_MID_MAX := 180.0
+## Chance an in-range strike is a heavy variant (slap / spin kick / uppercut) instead of a basic
+## jab/kick, so the enemy mixes up its offence rather than only throwing simple punches.
+const HEAVY_STRIKE_CHANCE := 0.4
 ## Arcade DRN_MODE re-rolls roughly every ~5.3 s.
 const STANCE_BASE_SECONDS := 5.3
 
@@ -60,23 +67,29 @@ static func should_reverse(skill: int, reversal_skill: float, roll: float) -> bo
 	var chance := (float(clampi(skill, 0, 29)) / 29.0) * reversal_skill
 	return roll < chance
 
-## Choose a strike button by the fighter's fists/legs bias. roll is 0..1.
-## (Low variants only for now; high-punch/high-kick selection is a later tuning pass.)
-static func pick_strike_button(limb_bias: float, roll: float) -> int:
-	return MoveTable.Btn.LOW_KICK if roll < limb_bias else MoveTable.Btn.LOW_PUNCH
+## Choose a strike button. `roll` (0..1) vs limb_bias picks legs-vs-fists; `heavy_roll` (0..1) vs
+## heavy_chance upgrades to the heavy variant of that limb (kick->spin kick / punch->slap), so the
+## offence isn't only basic jabs. All rolls injected for deterministic tests.
+static func pick_strike_button(limb_bias: float, roll: float, heavy_roll: float, heavy_chance: float) -> int:
+	var legs := roll < limb_bias
+	var heavy := heavy_roll < heavy_chance
+	if legs:
+		return MoveTable.Btn.HIGH_KICK if heavy else MoveTable.Btn.LOW_KICK
+	return MoveTable.Btn.HIGH_PUNCH if heavy else MoveTable.Btn.LOW_PUNCH
 
-## Per-(stance,band) probability of committing to an attack this decision. LONG = 0 (must close
-## first). Tuned so KAMIKAZE > PRESSING > CALCULATOR > SPACING within a band.
+## Probability of committing to an attack THIS decision while in strike range (SHORT band).
+## Only meaningful for SHORT — MID/LONG never strike (they approach), enforced in choose_action.
+## Tuned aggressive: KAMIKAZE > PRESSING > CALCULATOR > SPACING. (band kept in the signature so
+## callers stay explicit; non-SHORT returns 0.)
 static func attack_prob(stance: int, band: int) -> float:
-	if band == Band.LONG:
+	if band != Band.SHORT:
 		return 0.0
-	var short_band := band == Band.SHORT
 	match stance:
-		Stance.KAMIKAZE:   return 0.95 if short_band else 0.7
-		Stance.PRESSING:   return 0.7 if short_band else 0.4
-		Stance.CALCULATOR: return 0.4 if short_band else 0.2
-		Stance.SPACING:    return 0.2 if short_band else 0.05
-	return 0.4
+		Stance.KAMIKAZE:   return 0.95
+		Stance.PRESSING:   return 0.7
+		Stance.CALCULATOR: return 0.5
+		Stance.SPACING:    return 0.3
+	return 0.6
 
 ## Stance multiplier on the profile's special_frequency (grab eagerness).
 static func _special_mult(stance: int) -> float:
@@ -85,13 +98,17 @@ static func _special_mult(stance: int) -> float:
 		Stance.CALCULATOR: return 0.5
 	return 1.0
 
-## Decide this tick's offensive action. Two independent rolls (0..1): whether to attack, and
-## strike-vs-grab. Grapples only fire in the SHORT band (must be close to connect).
+## Decide this tick's offensive action. Strikes and grabs fire ONLY in the SHORT band (= within
+## strike reach), mirroring the arcade where MID/LONG bands select approach moves, not attacks —
+## this is what stops the AI swinging from out of range. Two independent rolls (0..1): whether to
+## attack, and strike-vs-grab.
 static func choose_action(stance: int, special_frequency: float, band: int,
 		roll_attack: float, roll_kind: float) -> int:
+	if band != Band.SHORT:
+		return AIIntent.Action.IDLE   # out of reach: approach (movement handles closing in)
 	if roll_attack >= attack_prob(stance, band):
 		return AIIntent.Action.IDLE
-	if band == Band.SHORT and roll_kind < clampf(special_frequency * _special_mult(stance), 0.0, 1.0):
+	if roll_kind < clampf(special_frequency * _special_mult(stance), 0.0, 1.0):
 		return AIIntent.Action.GRAB
 	return AIIntent.Action.STRIKE
 
@@ -101,6 +118,12 @@ const _RANGE_BASE := {              # PreferredRange -> base hold distance (px)
 	AIProfile.PreferredRange.LONG: 200.0,
 }
 const _SEEK_DEADZONE := 12.0        # px tolerance around desired distance before moving
+## Distance a fighter hangs back to while standing off (target downed, or already held by another
+## fighter). Just outside strike reach (BAND_SHORT_MAX) so it looms but doesn't pile on.
+const STANDOFF_SPACE := 100.0
+## Share of grabs that are the sustained head-hold (neck grab) vs a quick throw (hip toss). Kept
+## low so the enemy doesn't lock the player in a headlock constantly.
+const HEADLOCK_SHARE := 0.3
 
 ## The distance this fighter wants to hold, from preferred_range shifted by the active stance.
 static func desired_distance(stance: int, preferred_range: int) -> float:
@@ -164,8 +187,18 @@ func decide(perception: Dictionary, profile: AIProfile, delta: float) -> AIInten
 
 	var intent := AIIntent.new()
 
+	# Stand off (hang back, don't attack) in two cases:
+	#  - the target is already held by ANOTHER fighter — arcade rule: others wait out a hold until
+	#    it breaks or reverses; applies to every stance.
+	#  - the target is downed — give them room to get up; only the rare KAMIKAZE ignores this.
+	var target_held: bool = perception.get("target_held_by_other", false)
+	var stand_off: bool = target_held \
+		or (perception.get("target_downed", false) and current_stance != Stance.KAMIKAZE)
+
 	# --- movement (every frame) ---
 	var desired := desired_distance(current_stance, profile.preferred_range)
+	if stand_off:
+		desired = maxf(desired, STANDOFF_SPACE)   # back off to the wake-up / wait gap
 	intent.move_dir = seek_dir(0.0, 0.0, dx, dz, desired)
 	intent.want_run = intent.move_dir != Vector2.ZERO and band == Band.LONG \
 		and rng.randf() < profile.run_tendency
@@ -180,31 +213,40 @@ func decide(perception: Dictionary, profile: AIProfile, delta: float) -> AIInten
 			return intent
 
 	# --- offense (cooldown-gated) ---
+	if stand_off:
+		if delay > 0:
+			delay -= 1
+		return intent   # IDLE: respect a hold / give a downed foe room to get up
 	if delay > 0:
 		delay -= 1
 		return intent   # IDLE action, keep moving
 	var act := choose_action(current_stance, profile.special_frequency, band, rng.randf(), rng.randf())
 	intent.action = act
 	if act == AIIntent.Action.STRIKE:
-		intent.button = pick_strike_button(profile.limb_bias, rng.randf())
+		intent.button = pick_strike_button(profile.limb_bias, rng.randf(), rng.randf(), HEAVY_STRIKE_CHANCE)
 	elif act == AIIntent.Action.GRAB:
-		intent.move_id = "neck_grab"   # default grab; Enemy maps id -> sequence (later task)
+		# Mostly a quick throw; only occasionally the sustained head-hold (Enemy maps id -> sequence).
+		intent.move_id = "neck_grab" if rng.randf() < HEADLOCK_SHARE else "hip_toss"
 	delay = rng.randi_range(profile.reaction_delay.x, profile.reaction_delay.y)
 	return intent
 
+## Chance a fighter "goes crazy" (KAMIKAZE) the moment it drops to low health — kept low so the
+## relentless stance stays a rare, dramatic moment, not the norm.
+const LOW_HEALTH_BERSERK := 0.25
+
 ## Apply an early stance flip from a fight event, falling back to `current` when the chosen
-## stance is not enabled. roll (0..1) breaks ties between two candidate moods.
+## stance is not enabled. roll (0..1) breaks ties between two candidate moods. Events are meant to
+## be edge-triggered by the caller (once per transition), NOT fired every frame.
 static func event_stance(current: int, event: int, profile: AIProfile, roll: float) -> int:
 	var want := current
 	match event:
 		Event.MOBBED:
 			want = Stance.SPACING
-		Event.BIG_HIT:
-			want = Stance.KAMIKAZE if roll < profile.aggression else Stance.SPACING
 		Event.LOW_HEALTH:
-			want = Stance.KAMIKAZE if roll < profile.aggression else Stance.CALCULATOR
+			# Cornered: usually play careful, only rarely go berserk.
+			want = Stance.KAMIKAZE if roll < LOW_HEALTH_BERSERK else Stance.CALCULATOR
 		_:
-			return current
+			return current   # BIG_HIT and others no longer flip stance
 	if profile.enabled_stances.has(want):
 		return want
 	return current

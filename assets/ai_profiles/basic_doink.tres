@@ -1,19 +1,22 @@
-[gd_resource type="Resource" script_class="AIProfile" format=3]
+[gd_resource type="Resource" script_class="AIProfile" format=3 uid="uid://do66jnqi1ly6w"]
 
-[ext_resource type="Script" path="res://scripts/combat/ai_profile.gd" id="1_0qb0v"]
+[ext_resource type="Script" uid="uid://cy8k6fmv8m3h0" path="res://scripts/combat/ai_profile.gd" id="1_0qb0v"]
 
 [resource]
 script = ExtResource("1_0qb0v")
-aggression = 0.65
-run_tendency = 0.15
-special_frequency = 0.2
-block_skill = 0.8
+skill = 7
+aggression = 0.7
+run_tendency = 0.3
+special_frequency = 0.18
+limb_bias = 0.45
+block_skill = 0.7
 reversal_skill = 0.6
-patience = 0.25
-reaction_delay = Vector2i(16, 44)
+backoff_tendency = 0.15
+patience = 0.15
+reaction_delay = Vector2i(8, 22)
 stance_weights = {
 0: 2.0,
-1: 4.0,
+1: 6.0,
 2: 1.0
 }
 enabled_stances = Array[int]([1, 0, 2])
