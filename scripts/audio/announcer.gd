@@ -6,7 +6,10 @@ extends Node
 
 var table: SoundTable = null
 var enabled := true
-var muted := false                 # mirrors Sound.muted (no real playback under the headless test runner)
+var muted := false                 # set by the Sound autoload from its own muted state. While muted
+                                   # there is no real playback, so `_player.playing` is always false and
+                                   # the priority-preempt branch never fires — muted lines gate on cooldown
+                                   # alone. `_current_priority` is only meaningful while the player is busy.
 var cooldown_seconds := 3.5
 var rng := RandomNumberGenerator.new()
 
