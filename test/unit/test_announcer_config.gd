@@ -36,3 +36,14 @@ func test_disabled_announce_is_noop():
 	Sound.last_announced = {}
 	Sound.announce(SoundCategory.ANNC_KO, 3)
 	assert_eq(Sound.last_announced, {}, "disabled -> no announcement")
+
+func test_real_announcer_table_loaded_and_resolves():
+	# Load the real table directly (a prior test swaps Sound._announcer.table for a synthetic one).
+	assert_true(ResourceLoader.exists("res://assets/audio/announcer_table.tres"), "table built")
+	var table: SoundTable = load("res://assets/audio/announcer_table.tres")
+	assert_not_null(table, "announcer_table.tres loads")
+	var ko: SoundEntry = table.resolve(&"", SoundCategory.ANNC_KO)
+	assert_not_null(ko)
+	assert_eq(ko.bus, &"Announcer")
+	var imp: SoundEntry = table.resolve(&"", SoundCategory.ANNC_IMPRESSIVE)
+	assert_gt(imp.streams.size(), 1, "impressive pool has variants")
