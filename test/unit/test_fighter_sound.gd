@@ -10,6 +10,8 @@ func _move(amode: int, grapple := false) -> MoveSequence:
 	return m
 
 func before_each():
+	# The Sound autoload self-mutes under the headless test runner (no audio device); it still
+	# resolves + records the seams we assert on below.
 	Sound.last_sfx = {}
 	Sound.last_voice = {}
 

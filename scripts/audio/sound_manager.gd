@@ -13,11 +13,22 @@ var _sfx_pool: Array[AudioStreamPlayer2D] = []
 var _next_sfx := 0
 var _voice: Dictionary = {}   # fighter instance_id -> {player: AudioStreamPlayer2D, priority: int}
 
+## Silences actual playback while still resolving + recording the test seams. Useful as a global
+## mute, and set true by headless unit tests so the persistent autoload pool never starts real
+## playbacks (which the engine would flag as leaked resources at exit).
+var muted := false
+
 # --- Test seams: the last thing played (asserted in unit tests; ignored in the game). ---
 var last_sfx: Dictionary = {}
 var last_voice: Dictionary = {}
 
 func _ready() -> void:
+	# The autoload instance (named "Sound") runs headless only under the test runner, where there
+	# is no audio device — mute it so the persistent pool never starts playbacks the engine would
+	# report as leaked at exit. Locally-constructed managers (other names, e.g. in unit tests) are
+	# left audible so they can exercise real playback/channel creation.
+	if name == &"Sound" and DisplayServer.get_name() == "headless":
+		muted = true
 	if table == null and ResourceLoader.exists(TABLE_PATH):
 		table = load(TABLE_PATH)
 	for _i in range(POOL_SIZE):
@@ -59,6 +70,10 @@ func play_entry(entry: SoundEntry, fighter: Node) -> void:
 func play_voice(fighter: Node, entry: SoundEntry) -> void:
 	if entry == null:
 		return
+	if muted:
+		# Record the seam without touching the audio engine (no channel node, no playback).
+		last_voice = {"stream": pick_stream(entry), "fighter": fighter, "priority": entry.priority}
+		return
 	var id := fighter.get_instance_id()
 	var st: Dictionary = _voice.get(id, {})
 	# Recreate the channel if it's new OR if the cached player was freed with a prior fighter
@@ -86,6 +101,9 @@ func _play_sfx(entry: SoundEntry, at_pos: Vector2) -> void:
 	var s := pick_stream(entry)
 	if s == null:
 		return
+	last_sfx = {"stream": s, "bus": entry.bus, "position": at_pos}
+	if muted:
+		return
 	var p: AudioStreamPlayer2D = _sfx_pool[_next_sfx]
 	_next_sfx = (_next_sfx + 1) % _sfx_pool.size()
 	p.stream = s
@@ -94,4 +112,3 @@ func _play_sfx(entry: SoundEntry, at_pos: Vector2) -> void:
 	p.volume_db = entry.volume_db
 	p.pitch_scale = 1.0 + rng.randf_range(-entry.pitch_jitter, entry.pitch_jitter)
 	p.play()
-	last_sfx = {"stream": s, "bus": entry.bus, "position": at_pos}
