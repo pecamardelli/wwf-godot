@@ -1,0 +1,51 @@
+[gd_resource type="Resource" script_class="SoundTable" format=3]
+
+[ext_resource type="Script" path="res://scripts/audio/sound_entry.gd" id="1_r8g7n"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/impressive_01.wav" id="2_35t1c"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/impressive_02.wav" id="3_yvgbh"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/impressive_03.wav" id="4_o8nuf"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/impressive_04.wav" id="5_0y38b"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/impressive_05.wav" id="6_qekf2"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/impressive_06.wav" id="7_blnyk"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/impressive_07.wav" id="8_8nlkv"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/impressive_08.wav" id="9_p7n2f"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/impressive_09.wav" id="10_a45t2"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/impressive_10.wav" id="11_y4f5x"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/impressive_11.wav" id="12_ovtiy"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/impressive_12.wav" id="13_4ik3y"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/impressive_13.wav" id="14_6o6e2"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/impressive_14.wav" id="15_3i2y3"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/ko_01.wav" id="16_f0ew4"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/ko_02.wav" id="17_x1awj"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/ko_03.wav" id="18_g8ciu"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/ko_04.wav" id="19_lc3e5"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/near_ko_01.wav" id="20_635mh"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/near_ko_02.wav" id="21_6kp4k"]
+[ext_resource type="AudioStream" path="res://assets/audio/announcer/near_ko_03.wav" id="22_c3q0f"]
+[ext_resource type="Script" path="res://scripts/audio/sound_table.gd" id="23_lc67s"]
+
+[sub_resource type="Resource" id="Resource_wibly"]
+script = ExtResource("1_r8g7n")
+streams = Array[AudioStream]([ExtResource("2_35t1c"), ExtResource("3_yvgbh"), ExtResource("4_o8nuf"), ExtResource("5_0y38b"), ExtResource("6_qekf2"), ExtResource("7_blnyk"), ExtResource("8_8nlkv"), ExtResource("9_p7n2f"), ExtResource("10_a45t2"), ExtResource("11_y4f5x"), ExtResource("12_ovtiy"), ExtResource("13_4ik3y"), ExtResource("14_6o6e2"), ExtResource("15_3i2y3")])
+priority = 2
+bus = &"Announcer"
+
+[sub_resource type="Resource" id="Resource_vy20x"]
+script = ExtResource("1_r8g7n")
+streams = Array[AudioStream]([ExtResource("16_f0ew4"), ExtResource("17_x1awj"), ExtResource("18_g8ciu"), ExtResource("19_lc3e5")])
+priority = 3
+bus = &"Announcer"
+
+[sub_resource type="Resource" id="Resource_685ws"]
+script = ExtResource("1_r8g7n")
+streams = Array[AudioStream]([ExtResource("20_635mh"), ExtResource("21_6kp4k"), ExtResource("22_c3q0f")])
+priority = 1
+bus = &"Announcer"
+
+[resource]
+script = ExtResource("23_lc67s")
+default = {
+200: SubResource("Resource_wibly"),
+201: SubResource("Resource_vy20x"),
+202: SubResource("Resource_685ws")
+}

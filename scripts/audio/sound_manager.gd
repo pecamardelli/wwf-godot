@@ -5,6 +5,8 @@ extends Node
 
 const TABLE_PATH := "res://assets/audio/doink_sound_table.tres"
 const POOL_SIZE := 8
+const ANNOUNCER_TABLE_PATH := "res://assets/audio/announcer_table.tres"
+const ANNOUNCER_SETTING := "wwfmania/audio/announcer_enabled"
 
 var table: SoundTable = null
 var rng := RandomNumberGenerator.new()
@@ -21,6 +23,8 @@ var muted := false
 # --- Test seams: the last thing played (asserted in unit tests; ignored in the game). ---
 var last_sfx: Dictionary = {}
 var last_voice: Dictionary = {}
+var last_announced: Dictionary = {}
+var _announcer: Announcer = null
 
 func _ready() -> void:
 	# The autoload instance (named "Sound") runs headless only under the test runner, where there
@@ -36,6 +40,36 @@ func _ready() -> void:
 		p.bus = &"SFX"
 		add_child(p)
 		_sfx_pool.append(p)
+	_register_announcer_setting()
+	_announcer = Announcer.new()
+	_announcer.name = "Announcer"
+	_announcer.muted = muted
+	_announcer.enabled = bool(ProjectSettings.get_setting(ANNOUNCER_SETTING, true))
+	if ResourceLoader.exists(ANNOUNCER_TABLE_PATH):
+		_announcer.table = load(ANNOUNCER_TABLE_PATH)
+	add_child(_announcer)
+
+## Ensure the default-on config flag exists and is editor-visible (BOOL). No project-file save
+## at runtime — get_setting's default covers a project that never persisted it.
+func _register_announcer_setting() -> void:
+	if not ProjectSettings.has_setting(ANNOUNCER_SETTING):
+		ProjectSettings.set_setting(ANNOUNCER_SETTING, true)
+	ProjectSettings.set_initial_value(ANNOUNCER_SETTING, true)
+	ProjectSettings.add_property_info({"name": ANNOUNCER_SETTING, "type": TYPE_BOOL})
+
+## Fire a play-by-play line (front door for Fighter). No-op if the announcer is absent/disabled.
+func announce(category: int, priority: int) -> void:
+	if _announcer == null:
+		return
+	if _announcer.play(category, priority):
+		last_announced = _announcer.last_announced
+
+func is_announcer_enabled() -> bool:
+	return _announcer != null and _announcer.enabled
+
+func set_announcer_enabled(value: bool) -> void:
+	if _announcer != null:
+		_announcer.enabled = value
 
 ## Pick a random variant from an entry (deterministic under a seeded rng). Null-safe.
 func pick_stream(entry: SoundEntry) -> AudioStream:
