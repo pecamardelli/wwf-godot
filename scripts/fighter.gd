@@ -59,6 +59,8 @@ static func input_allowed(m: int) -> bool:
 
 ## Combat state.
 var health: int = Damage.LIFE_MAX
+## Below this (after a knockdown) the announcer calls the near-KO suspense line. 30% of full HP.
+const _LOW_HEALTH_THRESHOLD := Damage.LIFE_MAX * 3 / 10
 var _facing: float = 1.0   # +1 faces right, -1 faces left; the sprite mirrors this
 var _depth_facing: int = Facing.FRONT   # FRONT = toward camera, BACK = away (Y-depth facing)
 const _TURN_FRAME_TICKS := 4          # arcade rotate cadence (~4 ticks/frame)
@@ -563,6 +565,10 @@ func _drive_victim(_delta: float) -> void:
 		vic._last_damage_time = vic._sim_time
 		Sound.play_impact(vic.wrestler_id, SoundCategory.BODY_DROP, vic.global_position)
 		Sound.play_category(vic, SoundCategory.PAIN)
+		if vic.is_dead():
+			Sound.announce(SoundCategory.ANNC_KO, 3)
+		else:
+			Sound.announce(SoundCategory.ANNC_IMPRESSIVE, 2)
 	# DETACH: release the victim into a knockdown, clear both refs.
 	if _player.consume_detach():
 		_detach_victim()
@@ -761,6 +767,16 @@ func receive_hit(attacker: Fighter, move: MoveSequence) -> void:
 	Sound.play_category(self, SoundCategory.PAIN)
 	if family == AMode.Family.KNOCKDOWN:
 		Sound.play_category(self, SoundCategory.BODY_DROP)
+	# Play-by-play: KO on a lethal blow; otherwise a big (knockdown) move is impressive — unless the
+	# victim is on the ropes, where the near-KO suspense line fits better. Cooldown+priority collapse
+	# rapid events (the announcer self-gates).
+	if is_dead():
+		Sound.announce(SoundCategory.ANNC_KO, 3)
+	elif family == AMode.Family.KNOCKDOWN:
+		if health <= _LOW_HEALTH_THRESHOLD:
+			Sound.announce(SoundCategory.ANNC_NEAR_KO, 1)
+		else:
+			Sound.announce(SoundCategory.ANNC_IMPRESSIVE, 2)
 	_fall_orientation = Reaction.fall_orientation(family, move.id)
 	var r := Reaction.resolve(family, hit_dir, move.causes_dizzy)
 	_enter_reaction(r, hit_dir)
