@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="SoundEntry" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/audio/sound_entry.gd" id="1"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/doink_buzzer.wav" id="2"]
+
+[resource]
+script = ExtResource("1")
+streams = Array[AudioStream]([ExtResource("2")])
+priority = 3
+bus = &"Voice"
+volume_db = 0.0
+pitch_jitter = 0.0

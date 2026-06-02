@@ -187,6 +187,8 @@ func _physics_process(delta: float) -> void:
 			global_position.x += step_x
 			_leap_remaining -= absf(step_x)
 		_player.advance(delta)
+		for snd in _player.consume_sounds():
+			Sound.play_entry(snd, self)
 		# Drive the attached victim AFTER advance so current_frame() reflects this tick.
 		if _grappling != null and is_instance_valid(_grappling):
 			_drive_victim(delta)

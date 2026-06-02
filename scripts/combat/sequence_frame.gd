@@ -31,3 +31,5 @@ var command: int = Command.NONE
 @export var victim_amode: int = 0                  # DAMAGE_OPP payload: attack mode for the reaction
 @export var victim_dizzy: bool = false             # DAMAGE_OPP payload: force dizzy
 @export var wait_hit_max_ticks: int = 16           # WAIT_HIT_OPP whiff timeout
+## ANI_SOUND: a sound to play when this frame BEGINS (effort grunt, taunt, special). Null = silent.
+@export var sound: SoundEntry = null
