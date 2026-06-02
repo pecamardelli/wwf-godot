@@ -18,7 +18,9 @@ enum Side { PLAYER, ENEMY }
 @export var side: int = Side.PLAYER
 
 ## Which wrestler this fighter is (selects the per-wrestler SoundTable overrides; arcade
-## WRESTLERNUM). Empty falls back to the universal default sounds.
+## WRESTLERNUM). Defaults to "doink" because every current fighter uses Doink's art/voice; set
+## this per-fighter once other wrestlers exist. An unknown id resolves only the universal default
+## entries (impacts) — no per-wrestler voice — so don't leave it empty for a voiced character.
 @export var wrestler_id: StringName = &"doink"
 
 ## The opponent this fighter is currently targeting (drives facing + dispatch range).
