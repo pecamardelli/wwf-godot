@@ -5,6 +5,10 @@ extends "res://addons/gut/test.gd"
 func before_each():
 	Sound.last_announced = {}
 	Sound.set_announcer_enabled(true)
+	# Clear the gate so each test starts idle (else a prior test's cooldown could make the
+	# disabled-noop test pass for the wrong reason — drop-by-cooldown instead of drop-by-disabled).
+	Sound._announcer._cooldown_left = 0.0
+	Sound._announcer._current_priority = -1
 
 func after_all():
 	Sound.set_announcer_enabled(true)
