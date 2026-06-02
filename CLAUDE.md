@@ -38,3 +38,8 @@ but the game is about walking through a level and beating up enemies, not ring-b
   priority); SFX is a pooled `AudioStreamPlayer2D`. The autoload self-mutes under the headless
   test runner (no audio device). Table built by `tools/build_doink_sound_table.gd` from WAVs the
   `tools/import_sounds.gd` manifest copies out of `../WWF Sources/Sounds`.
+- Announcer (`scripts/audio/announcer.gd`, a child of `Sound` on the `Announcer` bus) reacts to
+  big-hit / KO / near-KO events via `Sound.announce(category, priority)`, picking a random line
+  from `announcer_table.tres`, gated by `AnnouncerPolicy` (cooldown + priority, arcade `sp_anncer`).
+  Toggled by the `wwfmania/audio/announcer_enabled` ProjectSettings flag (default true). Table built
+  by `tools/build_announcer_table.gd` from `tools/import_announcer_sounds.gd`'s WAV subset.
