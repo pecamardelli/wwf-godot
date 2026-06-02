@@ -325,9 +325,12 @@ screen) one stood still. Root causes and fixes:
     30%) and only goes KAMIKAZE at `LOW_HEALTH_BERSERK` (~25%), else CALCULATOR; `BIG_HIT` no longer
     flips stance at all. KAMIKAZE is now genuinely rare (the timed re-roll + the occasional
     low-health berserk).
-  - *Quick getup:* the arcade knockdown is ~270 ticks (~5 s) and AI fighters never mashed, so a
-    thrown enemy lay there. `Enemy` now **auto-mashes** (`mash_recover`) while ONGROUND, getting to
-    its feet briskly like a mashing player.
+  - *Quick getup (revised 6th playtest — Genesis override):* ~5 s down was still too long. Rather
+    than the auto-mash workaround, the knockdown **getup time itself is overridden** to near-instant
+    (`AMode` `KNOCKDOWN` 270 → **12 ticks**), matching the Sega/Genesis game where fighters pop up
+    almost instantly (the arcade's long STAY_TIME feeds a recovery system we are not porting). This
+    applies uniformly to all fighters; the enemy auto-mash was removed as redundant. Knockdown unit
+    tests now capture the brief down beat during their sim loop instead of asserting it afterwards.
   - *Ground attacks gated:* stomp / elbow drop (`attack_mode` family `ONGROUND`) now only connect
     with a foe that is actually **lying down** (`mode == ONGROUND and not _getup_rising`) — they pass
     over a standing or already-rising fighter, matching the arcade's `MODE_ONGROUND` gating.
