@@ -29,3 +29,12 @@ but the game is about walking through a level and beating up enemies, not ring-b
   `AnimSelector`, `MovementMath`, `AMode`, `Reaction`); stateful glue in `Fighter`/`Player`.
 - `Fighter` (`scripts/fighter.gd`) is the base: depth-plane movement, 2D facing (horizontal ×
   depth), walk/idle/turn/getup animation, combat state, grapple/puppet driving.
+- Audio (`scripts/audio/`): the `Sound` autoload plays through a `SoundTable` resource that maps a
+  move category → `SoundEntry` (random-variant pool) with per-wrestler overrides over a universal
+  default — the arcade `WRSND` model (`MASTER_SOUND_TABLE`/`DEFAULT_SOUND_TABLE`). Impacts key off
+  `move.attack_mode` (== the arcade move category, which `AMode` mirrors); fired at hit resolution
+  in `Fighter`. Per-frame sounds (arcade `ANI_SOUND`) ride `SequenceFrame.sound`, surfaced by
+  `SequencePlayer.consume_sounds()`. Voice is one positional channel per fighter (`VoicePolicy`
+  priority); SFX is a pooled `AudioStreamPlayer2D`. The autoload self-mutes under the headless
+  test runner (no audio device). Table built by `tools/build_doink_sound_table.gd` from WAVs the
+  `tools/import_sounds.gd` manifest copies out of `../WWF Sources/Sounds`.

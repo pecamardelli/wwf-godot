@@ -17,6 +17,12 @@ enum Fall { FACE_UP, FACE_DOWN, FACE_DOWN_ROLL }
 enum Side { PLAYER, ENEMY }
 @export var side: int = Side.PLAYER
 
+## Which wrestler this fighter is (selects the per-wrestler SoundTable overrides; arcade
+## WRESTLERNUM). Defaults to "doink" because every current fighter uses Doink's art/voice; set
+## this per-fighter once other wrestlers exist. An unknown id resolves only the universal default
+## entries (impacts) — no per-wrestler voice — so don't leave it empty for a voiced character.
+@export var wrestler_id: StringName = &"doink"
+
 ## The opponent this fighter is currently targeting (drives facing + dispatch range).
 var target: Fighter = null
 ## The fighter this one most recently landed a hit on (arcade WHOIHIT; targeting bias).
@@ -183,6 +189,8 @@ func _physics_process(delta: float) -> void:
 			global_position.x += step_x
 			_leap_remaining -= absf(step_x)
 		_player.advance(delta)
+		for snd in _player.consume_sounds():
+			Sound.play_entry(snd, self)
 		# Drive the attached victim AFTER advance so current_frame() reflects this tick.
 		if _grappling != null and is_instance_valid(_grappling):
 			_drive_victim(delta)
@@ -553,6 +561,8 @@ func _drive_victim(_delta: float) -> void:
 		var dmg: int = Damage.GRAPPLE_DAMAGE.get(key, 20)
 		vic.health = Damage.apply_health(vic.health, dmg)
 		vic._last_damage_time = vic._sim_time
+		Sound.play_impact(vic.wrestler_id, SoundCategory.BODY_DROP, vic.global_position)
+		Sound.play_category(vic, SoundCategory.PAIN)
 	# DETACH: release the victim into a knockdown, clear both refs.
 	if _player.consume_detach():
 		_detach_victim()
@@ -646,6 +656,8 @@ func _detach_victim() -> void:
 		vic._react_recover_mode = Mode.NORMAL
 		var mv_id: String = _player.sequence.id if _player.sequence != null else ""
 		vic._fall_orientation = Reaction.fall_orientation(AMode.Family.KNOCKDOWN, mv_id)
+		Sound.play_impact(vic.wrestler_id, SoundCategory.BODY_DROP, vic.global_position)
+		Sound.play_category(vic, SoundCategory.PAIN)
 		# Some throws (hip toss) flip the victim over: it lands facing opposite the attacker.
 		if _LAND_FACING_AWAY_MOVES.has(mv_id):
 			vic._facing = -_facing
@@ -743,6 +755,12 @@ func receive_hit(attacker: Fighter, move: MoveSequence) -> void:
 		_start_block_bounce()
 		return
 	var family := AMode.reaction_for(move.attack_mode)
+	# Arcade WRSND: impact SFX for the attacker's move category, at the victim. Plus the victim's
+	# pain grunt on its own voice channel (one-voice-per-fighter).
+	Sound.play_impact(attacker.wrestler_id, move.attack_mode, global_position)
+	Sound.play_category(self, SoundCategory.PAIN)
+	if family == AMode.Family.KNOCKDOWN:
+		Sound.play_category(self, SoundCategory.BODY_DROP)
 	_fall_orientation = Reaction.fall_orientation(family, move.id)
 	var r := Reaction.resolve(family, hit_dir, move.causes_dizzy)
 	_enter_reaction(r, hit_dir)

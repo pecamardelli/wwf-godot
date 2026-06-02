@@ -1,0 +1,69 @@
+[gd_resource type="Resource" script_class="SoundTable" format=3]
+
+[ext_resource type="Script" path="res://scripts/audio/sound_entry.gd" id="1_pyxd7"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/impact_01.wav" id="2_1m7cj"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/impact_02.wav" id="3_hxm3j"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/impact_03.wav" id="4_1o6ea"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/impact_04.wav" id="5_tfgm1"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/impact_05.wav" id="6_vtty0"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/impact_06.wav" id="7_iebd6"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/body_drop_01.wav" id="8_71dut"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/body_drop_02.wav" id="9_2vix7"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/doink_pain_01.wav" id="10_wkb3i"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/doink_pain_02.wav" id="11_dfsmp"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/doink_pain_03.wav" id="12_rjit0"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/doink_pain_04.wav" id="13_3uthp"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/doink_pain_05.wav" id="14_8gebd"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/doink_pain_06.wav" id="15_et5bk"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/doink_taunt_01.wav" id="16_wu48w"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/doink_taunt_02.wav" id="17_2vrtd"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/doink_taunt_03.wav" id="18_bw4o3"]
+[ext_resource type="Script" path="res://scripts/audio/sound_table.gd" id="19_1cles"]
+
+[sub_resource type="Resource" id="Resource_ypx5q"]
+script = ExtResource("1_pyxd7")
+streams = Array[AudioStream]([ExtResource("2_1m7cj"), ExtResource("3_hxm3j"), ExtResource("4_1o6ea"), ExtResource("5_tfgm1"), ExtResource("6_vtty0"), ExtResource("7_iebd6")])
+pitch_jitter = 0.06
+
+[sub_resource type="Resource" id="Resource_nb2xj"]
+script = ExtResource("1_pyxd7")
+streams = Array[AudioStream]([ExtResource("8_71dut"), ExtResource("9_2vix7")])
+pitch_jitter = 0.04
+
+[sub_resource type="Resource" id="Resource_nublm"]
+script = ExtResource("1_pyxd7")
+streams = Array[AudioStream]([ExtResource("10_wkb3i"), ExtResource("11_dfsmp"), ExtResource("12_rjit0"), ExtResource("13_3uthp"), ExtResource("14_8gebd"), ExtResource("15_et5bk")])
+priority = 2
+bus = &"Voice"
+pitch_jitter = 0.05
+
+[sub_resource type="Resource" id="Resource_nd8x6"]
+script = ExtResource("1_pyxd7")
+streams = Array[AudioStream]([ExtResource("16_wu48w"), ExtResource("17_2vrtd"), ExtResource("18_bw4o3")])
+priority = 1
+bus = &"Voice"
+
+[resource]
+script = ExtResource("19_1cles")
+default = {
+0: SubResource("Resource_ypx5q"),
+1: SubResource("Resource_ypx5q"),
+2: SubResource("Resource_ypx5q"),
+3: SubResource("Resource_ypx5q"),
+4: SubResource("Resource_ypx5q"),
+5: SubResource("Resource_ypx5q"),
+6: SubResource("Resource_ypx5q"),
+7: SubResource("Resource_ypx5q"),
+8: SubResource("Resource_ypx5q"),
+9: SubResource("Resource_ypx5q"),
+10: SubResource("Resource_ypx5q"),
+11: SubResource("Resource_ypx5q"),
+12: SubResource("Resource_ypx5q"),
+103: SubResource("Resource_nb2xj")
+}
+per_wrestler = {
+&"doink": {
+100: SubResource("Resource_nublm"),
+102: SubResource("Resource_nd8x6")
+}
+}

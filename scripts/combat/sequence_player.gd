@@ -22,6 +22,7 @@ var _pending_clr_opp_mode: bool = false
 var _damage_amode: int = 0
 var _damage_dizzy: bool = false
 var _opp_mode: int = 0
+var _pending_sounds: Array[SoundEntry] = []   # ANI_SOUND payloads queued this advance()
 
 var _index: int = -1
 var _time_left: float = 0.0
@@ -48,6 +49,7 @@ func play(seq: MoveSequence) -> void:
 	_pending_damage = false
 	_pending_set_opp_mode = false
 	_pending_clr_opp_mode = false
+	_pending_sounds.clear()
 	_waiting_for_hit = false
 	_wait_left = 0.0
 	_freeze_left = 0.0
@@ -91,6 +93,11 @@ func consume_set_opp_mode() -> bool:
 	var v := _pending_set_opp_mode; _pending_set_opp_mode = false; return v
 func consume_clr_opp_mode() -> bool:
 	var v := _pending_clr_opp_mode; _pending_clr_opp_mode = false; return v
+## Read-and-clear the ANI_SOUND payloads that fired since the last call (may be empty).
+func consume_sounds() -> Array[SoundEntry]:
+	var out := _pending_sounds.duplicate()
+	_pending_sounds.clear()
+	return out
 func damage_amode() -> int:
 	return _damage_amode
 func damage_dizzy() -> bool:
@@ -151,6 +158,8 @@ func current_frame() -> SequenceFrame:
 	return sequence.frames[idx]
 
 func _apply_command(f: SequenceFrame) -> void:
+	if f.sound != null:
+		_pending_sounds.append(f.sound)
 	match f.command:
 		SequenceFrame.Command.ATTACK_ON:
 			attack_live = true
