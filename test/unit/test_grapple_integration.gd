@@ -27,12 +27,15 @@ func test_hip_toss_full_flow():
 	assert_true(atk.scan_specials(), "hip toss fired")
 	assert_eq(atk.mode, Fighter.Mode.NORMAL, "not yet GRABBING until the box connects")
 	# Drive the sim through the full throw (~36-tick throw + contact freeze at 4 ticks/frame).
+	var was_downed := false
 	for _i in range(70):
 		atk._physics_process(1.0 / 60.0)
 		resolver.resolve_tick()
 		vic._physics_process(1.0 / 60.0)
+		if vic.mode == Fighter.Mode.ONGROUND:
+			was_downed = true   # near-instant getup: caught during the down beat, not after
 	assert_lt(vic.health, before, "victim took puppet damage")
-	assert_eq(vic.mode, Fighter.Mode.ONGROUND, "victim knocked down after detach")
+	assert_true(was_downed, "victim knocked down after detach")
 	assert_eq(atk.mode, Fighter.Mode.NORMAL, "attacker returns to NORMAL (not stuck in GRABBING)")
 
 func test_hip_toss_lifts_the_victim():

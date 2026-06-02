@@ -12,9 +12,10 @@ func test_bigboot_is_a_knockdown():
 func test_uppercut_falls_back():
 	assert_eq(AMode.reaction_for(AMode.UPRCUT), AMode.Family.FALL_BACK)
 
-func test_knockdown_getup_is_270_ticks():
-	# STAY_TIME = 270 ticks ~= 5.1s (GAME.EQU:14)
-	assert_eq(AMode.getup_ticks(AMode.Family.KNOCKDOWN), 270)
+func test_knockdown_getup_is_near_instant_genesis_override():
+	# Genesis override: arcade STAY_TIME (270) is NOT ported (no recovery system); fighters pop up
+	# almost instantly, with just a small beat before the getup rise.
+	assert_eq(AMode.getup_ticks(AMode.Family.KNOCKDOWN), 12)
 
 func test_most_moves_get_right_up():
 	assert_eq(AMode.getup_ticks(AMode.Family.HEAD_HIT), 0)

@@ -6,10 +6,10 @@ func test_head_hit_stays_standing_and_plays_facepunched():
 	assert_eq(r.mode, Fighter.Mode.NORMAL)
 	assert_eq(r.getup_ticks, 0)
 
-func test_knockdown_goes_onground_with_long_getup():
+func test_knockdown_goes_onground_with_near_instant_getup():
 	var r := Reaction.resolve(AMode.Family.KNOCKDOWN, 1, false)
 	assert_eq(r.mode, Fighter.Mode.ONGROUND)
-	assert_eq(r.getup_ticks, 270)
+	assert_eq(r.getup_ticks, 12)   # Genesis override: near-instant getup (arcade 270 not ported)
 	assert_eq(r.anim, "droped")
 
 func test_dizzy_overrides_to_stuned():

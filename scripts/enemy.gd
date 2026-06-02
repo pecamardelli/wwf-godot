@@ -37,9 +37,6 @@ func wants_to_block() -> bool:
 	return _intent.action == AIIntent.Action.BLOCK
 
 func _physics_process(delta: float) -> void:
-	# Knocked down: "mash" to our feet quickly, like a player would, instead of lying there for the
-	# full ~5 s arcade getup. (mash_recover no-ops unless we're actually ONGROUND with time left.)
-	mash_recover()
 	# Puppet victim (held/thrown): driven by the captor; no AI this frame.
 	if mode == Mode.GRABBED:
 		super(delta)

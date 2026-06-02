@@ -30,9 +30,13 @@ static func reaction_for(amode: int) -> int:
 	return _HIT_TABLE.get(amode, Family.BODY_HIT)
 
 ## Time the victim stays down before getup (set_getup_time, GETUP.ASM:32-184).
-## Knockdowns = STAY_TIME 270 ticks; fall-back is shorter; everything else = 0 (get right up).
+## GENESIS OVERRIDE (user-granted): the arcade's STAY_TIME for a knockdown is 270 ticks (~5.1 s) to
+## feed the arcade's recovery system. We are NOT porting recovery, so — like the Sega/Genesis game —
+## fighters pop back up almost instantly after a knockdown. A small beat (12 ticks ~= 0.23 s) keeps
+## the knockdown readable before the getup rise. Fall-back/dizzy keep their arcade values; everything
+## else = 0 (get right up).
 const _GETUP_TICKS := {
-	Family.KNOCKDOWN: 270,
+	Family.KNOCKDOWN: 12,
 	Family.FALL_BACK: 90,
 	Family.DIZZY: 120,
 }

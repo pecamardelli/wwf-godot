@@ -92,11 +92,14 @@ func test_knockdown_puts_victim_onground():
 	var resolver := AttackResolver.new()
 	add_child_autofree(resolver)
 	attacker.start_move(load("res://assets/sequences/doink/big_boot.tres"))
+	var was_downed := false
 	for _i in range(40):
 		attacker._physics_process(FRAME)
 		victim._physics_process(FRAME)
 		resolver.resolve_tick()
-	assert_eq(victim.mode, Fighter.Mode.ONGROUND, "knocked down")
+		if victim.mode == Fighter.Mode.ONGROUND:
+			was_downed = true   # near-instant getup means they don't stay down long
+	assert_true(was_downed, "knocked down")
 
 func test_starting_a_move_faces_the_nearest_opponent():
 	var attacker := _fighter_at(140)   # attacker to the RIGHT of the victim
