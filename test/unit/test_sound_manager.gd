@@ -93,3 +93,14 @@ func test_voice_channel_recreated_after_player_freed():
 	var second: AudioStreamPlayer2D = m._voice[fighter.get_instance_id()]["player"]
 	assert_true(is_instance_valid(second), "a fresh voice channel was created")
 	assert_ne(first, second)
+
+func test_real_table_loads_and_resolves_doink_pain_and_default_impact():
+	var m = _mgr()   # _ready loads res://assets/audio/doink_sound_table.tres
+	assert_not_null(m.table, "doink_sound_table.tres loaded")
+	var pain: SoundEntry = m.table.resolve(&"doink", SoundCategory.PAIN)
+	assert_not_null(pain)
+	assert_eq(pain.bus, &"Voice")
+	var punch: SoundEntry = m.table.resolve(&"doink", AMode.PUNCH)   # no override -> default impact pool
+	assert_not_null(punch)
+	assert_eq(punch.bus, &"SFX")
+	assert_gt(punch.streams.size(), 1, "impact pool has variants")
