@@ -6,10 +6,12 @@ func test_category_voice_constants_are_above_amode_range():
 	assert_gt(SoundCategory.EFFORT, AMode.BOXGLOVE)
 	assert_gt(SoundCategory.TAUNT, AMode.BOXGLOVE)
 	assert_gt(SoundCategory.BODY_DROP, AMode.BOXGLOVE)
-	# distinct
+	# distinct: no two voice/event categories share a value
 	var ids := [SoundCategory.PAIN, SoundCategory.EFFORT, SoundCategory.TAUNT, SoundCategory.BODY_DROP]
-	assert_eq(ids.size(), 4)
-	assert_eq(ids, [SoundCategory.PAIN, SoundCategory.EFFORT, SoundCategory.TAUNT, SoundCategory.BODY_DROP])
+	var unique := {}
+	for id in ids:
+		unique[id] = true
+	assert_eq(unique.size(), 4, "all SoundCategory voice constants must be distinct")
 
 func test_sound_entry_defaults():
 	var e := SoundEntry.new()
