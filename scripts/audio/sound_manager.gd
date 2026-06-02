@@ -61,7 +61,9 @@ func play_voice(fighter: Node, entry: SoundEntry) -> void:
 		return
 	var id := fighter.get_instance_id()
 	var st: Dictionary = _voice.get(id, {})
-	if st.is_empty():
+	# Recreate the channel if it's new OR if the cached player was freed with a prior fighter
+	# (instance_ids can be reused over a long session); this also self-prunes stale entries.
+	if st.is_empty() or not is_instance_valid(st.get("player")):
 		var pl := AudioStreamPlayer2D.new()
 		pl.bus = &"Voice"
 		fighter.add_child(pl)

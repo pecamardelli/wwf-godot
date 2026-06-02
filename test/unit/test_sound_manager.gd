@@ -78,3 +78,18 @@ func test_play_category_routes_voice_to_voice_channel():
 	add_child_autofree(fighter)
 	m.play_category(fighter, SoundCategory.PAIN)
 	assert_eq(m.last_voice.get("priority"), 2)
+
+func test_voice_channel_recreated_after_player_freed():
+	# A freed voice player (fighter gone) must not leave a dangling cached ref — the channel
+	# is recreated rather than touched while invalid.
+	var m = _mgr()
+	var fighter := Node2D.new()
+	add_child_autofree(fighter)
+	m.play_voice(fighter, _entry(&"Voice", 3, 1))
+	var first: AudioStreamPlayer2D = m._voice[fighter.get_instance_id()]["player"]
+	first.free()                       # simulate the player going away
+	assert_false(is_instance_valid(first))
+	m.play_voice(fighter, _entry(&"Voice", 3, 1))   # must not crash on the stale entry
+	var second: AudioStreamPlayer2D = m._voice[fighter.get_instance_id()]["player"]
+	assert_true(is_instance_valid(second), "a fresh voice channel was created")
+	assert_ne(first, second)
