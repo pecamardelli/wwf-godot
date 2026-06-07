@@ -56,3 +56,26 @@ func test_silent_voice_pool_plays_no_voice():
 	Sound.play_move_swing(atk, _move())
 	assert_eq(Sound.last_voice, {}, "sum-0 effort pool -> no grunt")
 	assert_ne(Sound.last_sfx, {}, "...but the swing SFX still plays")
+
+func test_mapped_strike_swings_at_move_start():
+	var atk := Fighter.new(); add_child_autofree(atk); atk.wrestler_id = &"doink"
+	atk.start_move(_move())
+	assert_ne(Sound.last_sfx, {}, "a mapped move plays a swing at start")
+
+func test_mapped_hit_uses_new_path_not_legacy():
+	# Legacy path plays via the SoundTable; the new path plays via move pools. With a move_table
+	# entry present, the hit SFX must come from the pool (we assert it fired at the victim).
+	var atk := Fighter.new(); add_child_autofree(atk); atk.wrestler_id = &"doink"
+	var vic := Fighter.new(); add_child_autofree(vic); vic.global_position = Vector2(700, 480)
+	vic.receive_hit(atk, _move())
+	assert_eq(Sound.last_sfx.get("position"), Vector2(700, 480), "hit SFX at the victim via the pool")
+	assert_eq(Sound.last_voice.get("fighter"), vic, "pain via the pool on the victim")
+
+func test_unmapped_move_still_uses_legacy_path():
+	var atk := Fighter.new(); add_child_autofree(atk); atk.wrestler_id = &"doink"
+	var vic := Fighter.new(); add_child_autofree(vic); vic.global_position = Vector2(120, 400)
+	var knee := MoveSequence.new(); knee.id = "knee"; knee.attack_mode = AMode.KNEE
+	vic.receive_hit(atk, knee)
+	# legacy play_impact still fires an SFX (the real doink table maps every AMode to an impact pool;
+	# under the synthetic move_table this move is unmapped, so the legacy branch runs).
+	assert_ne(Sound.last_sfx, {}, "unmapped move still makes an impact via the legacy path")
