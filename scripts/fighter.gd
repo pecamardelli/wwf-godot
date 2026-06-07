@@ -98,22 +98,6 @@ func _ready() -> void:
 	add_to_group("fighters")
 	if sprite != null:
 		sprite.speed_scale = anim_speed_scale
-	_ensure_shadow()
-
-## A simple elliptical ground shadow drawn at the body origin. Stays on the mat while the sprite
-## lifts, so an airborne fighter reads as off the ground (the arcade draws a separate shadow obj).
-func _ensure_shadow() -> void:
-	if get_node_or_null("Shadow") != null:
-		return
-	var sh := _Shadow.new()
-	sh.name = "Shadow"
-	sh.z_index = -1   # behind the body
-	add_child(sh)
-
-class _Shadow extends Node2D:
-	func _draw() -> void:
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.4))   # squash to an ellipse
-		draw_circle(Vector2.ZERO, 26.0, Color(0, 0, 0, 0.35))
 
 ## Subclasses override this to return an 8-way direction (each axis in -1..1).
 func get_input_direction() -> Vector2:
