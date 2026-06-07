@@ -1,0 +1,66 @@
+[gd_resource type="Resource" script_class="MoveSequence" format=3 uid="uid://cqha514p05y63"]
+
+[ext_resource type="Script" path="res://scripts/combat/sequence_frame.gd" id="1_unefm"]
+[ext_resource type="Script" path="res://scripts/combat/box3.gd" id="2_86eri"]
+[ext_resource type="Script" path="res://scripts/combat/move_sequence.gd" id="3_3kfcf"]
+
+[sub_resource type="Resource" id="Resource_lq6e2"]
+script = ExtResource("1_unefm")
+duration_ticks = 3
+
+[sub_resource type="Resource" id="Resource_q01fq"]
+script = ExtResource("1_unefm")
+duration_ticks = 3
+anim_frame = 1
+command = 11
+launch_yvel = 589824
+launch_homing = true
+leap_ticks = 11
+leap_cap_x = 327680
+leap_cap_z = 327680
+
+[sub_resource type="Resource" id="Resource_ei1oe"]
+script = ExtResource("1_unefm")
+duration_ticks = 3
+anim_frame = 2
+
+[sub_resource type="Resource" id="Resource_jjuyg"]
+script = ExtResource("2_86eri")
+offset = Vector3(46, 76, 0)
+size = Vector3(42, 42, 10)
+
+[sub_resource type="Resource" id="Resource_3gf2n"]
+script = ExtResource("1_unefm")
+duration_ticks = 3
+anim_frame = 3
+command = 2
+attack_box = SubResource("Resource_jjuyg")
+
+[sub_resource type="Resource" id="Resource_45xdl"]
+script = ExtResource("1_unefm")
+duration_ticks = 3
+anim_frame = 4
+
+[sub_resource type="Resource" id="Resource_b4u53"]
+script = ExtResource("1_unefm")
+duration_ticks = 3
+anim_frame = 5
+command = 3
+
+[sub_resource type="Resource" id="Resource_xtwi6"]
+script = ExtResource("1_unefm")
+duration_ticks = 3
+anim_frame = 6
+
+[sub_resource type="Resource" id="Resource_pqkpd"]
+script = ExtResource("1_unefm")
+duration_ticks = 3
+anim_frame = 7
+
+[resource]
+script = ExtResource("3_3kfcf")
+id = "flying_kick"
+anim_name = "power_kick_front"
+anim_name_back = "power_kick_back"
+attack_mode = 9
+frames = Array[ExtResource("1_unefm")]([SubResource("Resource_lq6e2"), SubResource("Resource_q01fq"), SubResource("Resource_ei1oe"), SubResource("Resource_3gf2n"), SubResource("Resource_45xdl"), SubResource("Resource_b4u53"), SubResource("Resource_xtwi6"), SubResource("Resource_pqkpd")])

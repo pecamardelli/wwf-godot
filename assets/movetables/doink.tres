@@ -1,34 +1,35 @@
 [gd_resource type="Resource" script_class="MoveTable" format=3 uid="uid://05fglhwpwa6h"]
 
-[ext_resource type="Resource" uid="uid://dey43nvtigpo5" path="res://assets/sequences/doink/punch.tres" id="1_gkspo"]
-[ext_resource type="Resource" uid="uid://do62hm4a1t6ig" path="res://assets/sequences/doink/headbutt.tres" id="2_koiq6"]
-[ext_resource type="Resource" uid="uid://o455hyl3c2jo" path="res://assets/sequences/doink/elbow_drop.tres" id="3_nke5g"]
-[ext_resource type="Resource" uid="uid://cqmpuvnygj51s" path="res://assets/sequences/doink/kick.tres" id="4_twive"]
-[ext_resource type="Resource" uid="uid://wnbgvkunaak1" path="res://assets/sequences/doink/knee.tres" id="5_4v5u3"]
-[ext_resource type="Resource" uid="uid://xjbd7ci6bujj" path="res://assets/sequences/doink/stomp.tres" id="6_pdd76"]
-[ext_resource type="Resource" uid="uid://1xyv2j4l7gsq" path="res://assets/sequences/doink/big_boot.tres" id="7_vekm7"]
-[ext_resource type="Resource" uid="uid://evq62agflvvx" path="res://assets/sequences/doink/slap.tres" id="8_tyxoa"]
-[ext_resource type="Resource" uid="uid://brasb7l8105pd" path="res://assets/sequences/doink/uppercut.tres" id="9_jqskd"]
-[ext_resource type="Resource" uid="uid://bvwcimkktbs1g" path="res://assets/sequences/doink/spin_kick.tres" id="10_oeoja"]
-[ext_resource type="Script" uid="uid://cwm15i4ivdcxg" path="res://scripts/combat/move_table.gd" id="11_8qa5h"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/punch.tres" id="1_koiq6"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/headbutt.tres" id="2_nke5g"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/elbow_drop.tres" id="3_twive"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/kick.tres" id="4_4v5u3"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/knee.tres" id="5_pdd76"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/stomp.tres" id="6_vekm7"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/big_boot.tres" id="7_tyxoa"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/slap.tres" id="8_jqskd"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/uppercut.tres" id="9_oeoja"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/flying_clothesline.tres" id="10_8qa5h"]
+[ext_resource type="Resource" path="res://assets/sequences/doink/spin_kick.tres" id="11_ay0i4"]
+[ext_resource type="Script" path="res://scripts/combat/move_table.gd" id="12_vpx0p"]
 
 [resource]
-script = ExtResource("11_8qa5h")
+script = ExtResource("12_vpx0p")
 entries = {
-"0|0|0": ExtResource("1_gkspo"),
-"0|0|1": ExtResource("8_tyxoa"),
-"0|0|2": ExtResource("4_twive"),
-"0|0|3": ExtResource("10_oeoja"),
-"1|0|0": ExtResource("2_koiq6"),
-"1|0|1": ExtResource("8_tyxoa"),
-"1|0|2": ExtResource("5_4v5u3"),
-"1|0|3": ExtResource("5_4v5u3"),
-"1|3|1": ExtResource("9_jqskd"),
-"2|0|1": ExtResource("7_vekm7"),
-"2|0|2": ExtResource("7_vekm7"),
-"2|0|3": ExtResource("7_vekm7"),
-"3|0|0": ExtResource("3_nke5g"),
-"3|0|1": ExtResource("3_nke5g"),
-"3|0|2": ExtResource("6_pdd76"),
-"3|0|3": ExtResource("6_pdd76")
+"0|0|0": ExtResource("1_koiq6"),
+"0|0|1": ExtResource("8_jqskd"),
+"0|0|2": ExtResource("4_4v5u3"),
+"0|0|3": ExtResource("11_ay0i4"),
+"1|0|0": ExtResource("2_nke5g"),
+"1|0|1": ExtResource("8_jqskd"),
+"1|0|2": ExtResource("5_pdd76"),
+"1|0|3": ExtResource("5_pdd76"),
+"1|3|1": ExtResource("9_oeoja"),
+"2|0|1": ExtResource("10_8qa5h"),
+"2|0|2": ExtResource("7_tyxoa"),
+"2|0|3": ExtResource("7_tyxoa"),
+"3|0|0": ExtResource("3_twive"),
+"3|0|1": ExtResource("3_twive"),
+"3|0|2": ExtResource("6_vekm7"),
+"3|0|3": ExtResource("6_vekm7")
 }
