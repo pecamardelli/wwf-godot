@@ -15,3 +15,12 @@ func test_sandbox_loads_with_player_and_two_enemies():
 		if child is Enemy:
 			enemies += 1
 	assert_eq(enemies, 2, "Sandbox pits the player against two AI enemies")
+	# The AI toggle exists and defaults unchecked, so enemies start idle (deferred apply runs
+	# after _ready). Flush the deferred call, then verify every enemy has AI off.
+	var toggle: Node = root.get_node_or_null("UI/AIToggle")
+	assert_true(toggle is CheckBox, "AI toggle checkbox exists")
+	assert_false(toggle.button_pressed, "AI toggle defaults unchecked")
+	await get_tree().process_frame   # let call_deferred("_apply", ...) fire
+	for child in root.get_children():
+		if child is Enemy:
+			assert_false(child.ai_enabled, "enemies start with AI off (idle) by default")

@@ -12,6 +12,9 @@ const _GRABS := {
 }
 
 @export var profile: AIProfile
+## When false, the AIController is bypassed and the enemy stands still (no movement/attacks).
+## Class default ON; the sandbox UI toggle drives this at runtime (default unchecked = idle).
+var ai_enabled: bool = true
 
 var _ai := AIController.new()
 var _intent := AIIntent.new()
@@ -48,7 +51,8 @@ func _physics_process(delta: float) -> void:
 			reverse_into_grappler(_grappled_by, _GRABS["hip_toss"])
 		super(delta)
 		return
-	_intent = _ai.decide(_build_perception(), profile, delta)
+	# AI gate: when disabled, feed a zero intent so the enemy stands still (no move, no attack).
+	_intent = _ai.decide(_build_perception(), profile, delta) if ai_enabled else AIIntent.new()
 	if Fighter.input_allowed(mode) and not is_attacking():
 		match _intent.action:
 			AIIntent.Action.STRIKE:
