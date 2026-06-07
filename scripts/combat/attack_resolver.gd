@@ -51,8 +51,8 @@ func _closest_overlapping(attacker: Fighter, atk_box: Box3, fighters: Array, gro
 		if grounded_only and (victim.mode != Fighter.Mode.ONGROUND or victim._getup_rising):
 			continue
 		var hb: Box3 = victim.hurt_box()
-		if not Hitbox.boxes_overlap(atk_box, attacker.global_position, attacker.facing(), 0.0,
-				hb, victim.global_position, victim.facing(), 0.0):
+		if not Hitbox.boxes_overlap(atk_box, attacker.global_position, attacker.facing(), attacker._height,
+				hb, victim.global_position, victim.facing(), victim._height):
 			continue
 		var d: float = attacker.global_position.distance_squared_to(victim.global_position)
 		if d < best_d:
