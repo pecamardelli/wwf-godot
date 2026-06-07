@@ -42,3 +42,20 @@ func test_ai_disabled_enemy_stands_still_and_does_not_attack():
 func test_ai_enabled_by_default():
 	var e := Enemy.new(); add_child_autofree(e)
 	assert_true(e.ai_enabled, "Enemy class default is AI ON (sandbox UI flips it off)")
+
+func test_disabling_ai_cancels_an_in_progress_run():
+	# Regression: a RUNNING enemy that gets AI disabled must STOP, not keep sprinting off-screen
+	# (the run latch persists on zero input). Put it in a run, disable AI, then tick.
+	var root := _world()
+	var e := Enemy.new(); root.add_child(e); autofree(e)
+	e.global_position = Vector2(100, 400); e.separation_radii = Vector2.ZERO
+	e.side = Fighter.Side.ENEMY; e.profile = _profile()
+	e.mode = Fighter.Mode.RUNNING
+	e._run_dir_x = 1.0
+	e.velocity = Vector2(ArcadeUnits.RUN_SPEED, 0)
+	e.ai_enabled = false
+	var start_x := e.global_position.x
+	for _n in range(120):       # ~2 s
+		e._physics_process(1.0 / 60.0)
+	assert_ne(e.mode, Fighter.Mode.RUNNING, "the run is cancelled when AI is disabled")
+	assert_lt(e.global_position.x - start_x, 5.0, "the enemy stops almost immediately (no sprint-off)")
