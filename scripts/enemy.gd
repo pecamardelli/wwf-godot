@@ -12,6 +12,9 @@ const _GRABS := {
 }
 
 @export var profile: AIProfile
+## When false, the AIController is bypassed and the enemy stands still (no movement/attacks).
+## Class default ON; the sandbox UI toggle drives this at runtime (default unchecked = idle).
+var ai_enabled: bool = true
 
 var _ai := AIController.new()
 var _intent := AIIntent.new()
@@ -47,6 +50,18 @@ func _physics_process(delta: float) -> void:
 				and AIController.should_reverse(profile.skill, profile.reversal_skill, _ai.rng.randf()):
 			reverse_into_grappler(_grappled_by, _GRABS["hip_toss"])
 		super(delta)
+		return
+	# AI gate: when disabled, the enemy is inert — no decision, no movement, no attacks. A zero
+	# intent alone is NOT enough: the run latch persists on zero input, so an enemy already RUNNING
+	# would keep sprinting off-screen. Cancel the run and hard-stop, then hand off to Fighter (which
+	# still processes reactions/being-hit so a disabled enemy can be used as a punching bag).
+	if not ai_enabled:
+		_intent = AIIntent.new()
+		if mode == Mode.RUNNING:
+			mode = Mode.NORMAL       # break the run latch...
+			velocity = Vector2.ZERO  # ...and kill the run momentum so it stops on the spot
+		super(delta)                 # still runs reactions/getup so it works as a punching bag
+		_last_health = health
 		return
 	_intent = _ai.decide(_build_perception(), profile, delta)
 	if Fighter.input_allowed(mode) and not is_attacking():

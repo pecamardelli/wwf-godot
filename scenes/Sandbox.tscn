@@ -6,6 +6,7 @@
 [ext_resource type="Resource" uid="uid://b2w0fwlf4fefa" path="res://assets/motions/doink_motions.tres" id="4_motions"]
 [ext_resource type="Script" uid="uid://dbmxtwh7dwqnn" path="res://scripts/enemy.gd" id="5_enemy"]
 [ext_resource type="Resource" path="res://assets/ai_profiles/basic_doink.tres" id="6_profile"]
+[ext_resource type="Script" path="res://scripts/ui/ai_toggle.gd" id="7_aitoggle"]
 
 [node name="Sandbox" type="Node2D" unique_id=788869202]
 y_sort_enabled = true
@@ -52,3 +53,14 @@ side = 1
 
 [node name="AttackResolver" type="Node" parent="." unique_id=1909308380]
 script = ExtResource("3")
+
+[node name="UI" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="AIToggle" type="CheckBox" parent="UI"]
+offset_left = 556.0
+offset_top = 6.0
+offset_right = 724.0
+offset_bottom = 37.0
+text = "Enemy AI"
+script = ExtResource("7_aitoggle")
