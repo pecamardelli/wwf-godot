@@ -13,10 +13,10 @@ func before_each():
 func after_all():
 	Sound.set_announcer_enabled(true)
 
-func test_config_flag_exists_and_defaults_true():
+func test_config_flag_exists_and_defaults_false():
+	# Commentary is disabled by default for now (re-enable when we do the audio polish pass).
 	assert_true(ProjectSettings.has_setting("wwfmania/audio/announcer_enabled"))
-	assert_true(bool(ProjectSettings.get_setting("wwfmania/audio/announcer_enabled", true)))
-	assert_true(Sound.is_announcer_enabled(), "announcer enabled by default")
+	assert_false(bool(ProjectSettings.get_setting("wwfmania/audio/announcer_enabled", false)))
 
 func test_announce_records_seam():
 	# Inject a tiny table so the category resolves (the real table is built in a later task).
