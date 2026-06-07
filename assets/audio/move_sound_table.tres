@@ -1,0 +1,106 @@
+[gd_resource type="Resource" script_class="MoveSoundTable" format=3 uid="uid://3punetgyi2i4"]
+
+[ext_resource type="Script" path="res://scripts/audio/sound_pool.gd" id="1_7krad"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/doinkattack8.wav" id="2_0x4g7"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/doinkattack9.wav" id="3_kcugu"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/doinkattack10.wav" id="4_4f2on"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/punch2.wav" id="5_ysrvc"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/punch6.wav" id="6_smtht"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/punch7.wav" id="7_hcn1m"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/punch8.wav" id="8_3lbgk"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/punch9.wav" id="9_jyk40"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/punch11.wav" id="10_pjhaq"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/doinkpain8.wav" id="11_e55x2"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/doinkpain11.wav" id="12_0uxpq"]
+[ext_resource type="Script" path="res://scripts/audio/move_sounds.gd" id="13_0oc0g"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/swing4.wav" id="14_6fljt"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/swing5.wav" id="15_qpj1r"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/swing7.wav" id="16_mnanh"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/punch5.wav" id="17_ivwcj"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/yokozunapain2.wav" id="18_hk2pk"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/hartpain4.wav" id="19_r7q1d"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/shawnpain.wav" id="20_txrmm"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/shawnpain3.wav" id="21_y63bl"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/doinkpain3.wav" id="22_og4ai"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/doinkpain6.wav" id="23_5kfha"]
+[ext_resource type="AudioStream" path="res://assets/audio/voice/doink/shawnpain5.wav" id="24_swty5"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/swing.wav" id="25_uykf7"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/swing6.wav" id="26_goupg"]
+[ext_resource type="Script" path="res://scripts/audio/move_sound_table.gd" id="27_3xat2"]
+
+[sub_resource type="Resource" id="Resource_m4hik"]
+script = ExtResource("1_7krad")
+streams = Array[AudioStream]([ExtResource("2_0x4g7"), ExtResource("3_kcugu"), ExtResource("4_4f2on")])
+weights = Array[float]([0.18, 0.18, 0.18])
+chance_gated = true
+bus = &"Voice"
+
+[sub_resource type="Resource" id="Resource_lhajd"]
+script = ExtResource("1_7krad")
+streams = Array[AudioStream]([ExtResource("5_ysrvc"), ExtResource("6_smtht"), ExtResource("7_hcn1m"), ExtResource("8_3lbgk"), ExtResource("9_jyk40"), ExtResource("10_pjhaq")])
+weights = Array[float]([50.0, 10.0, 55.0, 30.0, 45.0, 52.0])
+
+[sub_resource type="Resource" id="Resource_wvnd6"]
+script = ExtResource("1_7krad")
+streams = Array[AudioStream]([ExtResource("11_e55x2"), ExtResource("12_0uxpq")])
+weights = Array[float]([0.2, 0.2])
+chance_gated = true
+bus = &"Voice"
+
+[sub_resource type="Resource" id="Resource_4bif1"]
+script = ExtResource("1_7krad")
+streams = Array[AudioStream]([ExtResource("14_6fljt"), ExtResource("15_qpj1r"), ExtResource("16_mnanh")])
+weights = Array[float]([50.0, 50.0, 30.0])
+
+[sub_resource type="Resource" id="Resource_8rdb6"]
+script = ExtResource("13_0oc0g")
+swing = SubResource("Resource_4bif1")
+hit = SubResource("Resource_lhajd")
+attack = {
+&"doink": SubResource("Resource_m4hik")
+}
+pain = {
+&"doink": SubResource("Resource_wvnd6")
+}
+
+[sub_resource type="Resource" id="Resource_xq7lr"]
+script = ExtResource("1_7krad")
+streams = Array[AudioStream]([ExtResource("2_0x4g7"), ExtResource("3_kcugu"), ExtResource("4_4f2on")])
+weights = Array[float]([0.1, 0.15, 0.15])
+chance_gated = true
+bus = &"Voice"
+
+[sub_resource type="Resource" id="Resource_i2165"]
+script = ExtResource("1_7krad")
+streams = Array[AudioStream]([ExtResource("5_ysrvc"), ExtResource("17_ivwcj"), ExtResource("7_hcn1m"), ExtResource("9_jyk40"), ExtResource("10_pjhaq")])
+weights = Array[float]([50.0, 10.0, 30.0, 30.0, 30.0])
+
+[sub_resource type="Resource" id="Resource_ynswx"]
+script = ExtResource("1_7krad")
+streams = Array[AudioStream]([ExtResource("18_hk2pk"), ExtResource("12_0uxpq"), ExtResource("19_r7q1d"), ExtResource("20_txrmm"), ExtResource("21_y63bl"), ExtResource("22_og4ai"), ExtResource("23_5kfha"), ExtResource("24_swty5")])
+weights = Array[float]([0.3, 0.05, 0.05, 0.05, 0.02, 0.09, 0.09, 0.2])
+chance_gated = true
+bus = &"Voice"
+
+[sub_resource type="Resource" id="Resource_cnhyo"]
+script = ExtResource("1_7krad")
+streams = Array[AudioStream]([ExtResource("25_uykf7"), ExtResource("26_goupg")])
+weights = Array[float]([50.0, 50.0])
+
+[sub_resource type="Resource" id="Resource_s08w0"]
+script = ExtResource("13_0oc0g")
+swing = SubResource("Resource_cnhyo")
+hit = SubResource("Resource_i2165")
+attack = {
+&"doink": SubResource("Resource_xq7lr")
+}
+pain = {
+&"doink": SubResource("Resource_ynswx")
+}
+
+[resource]
+script = ExtResource("27_3xat2")
+moves = {
+"headbutt": SubResource("Resource_s08w0"),
+"punch": SubResource("Resource_8rdb6")
+}

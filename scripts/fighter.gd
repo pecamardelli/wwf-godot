@@ -538,6 +538,8 @@ func start_move(move: MoveSequence) -> void:
 		_recoil_remaining = 0.0
 		_block_recoiled = false
 	_player.play(move)
+	if Sound.has_move_sounds(move.id):
+		Sound.play_move_swing(self, move)
 	_hit_by_current_move.clear()
 	_play_sequence_anim()
 
@@ -812,8 +814,11 @@ func receive_hit(attacker: Fighter, move: MoveSequence) -> void:
 	var family := AMode.reaction_for(move.attack_mode)
 	# Arcade WRSND: impact SFX for the attacker's move category, at the victim. Plus the victim's
 	# pain grunt on its own voice channel (one-voice-per-fighter).
-	Sound.play_impact(attacker.wrestler_id, move.attack_mode, global_position)
-	Sound.play_category(self, SoundCategory.PAIN)
+	if Sound.has_move_sounds(move.id):
+		Sound.play_move_hit(attacker, self, move)   # per-move swing/hit/attack/pain model
+	else:
+		Sound.play_impact(attacker.wrestler_id, move.attack_mode, global_position)
+		Sound.play_category(self, SoundCategory.PAIN)
 	if family == AMode.Family.KNOCKDOWN:
 		Sound.play_category(self, SoundCategory.BODY_DROP)
 	# Play-by-play: KO on a lethal blow; otherwise a big (knockdown) move is impressive — unless the

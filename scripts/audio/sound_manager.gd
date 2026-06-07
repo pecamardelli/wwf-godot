@@ -7,8 +7,10 @@ const TABLE_PATH := "res://assets/audio/doink_sound_table.tres"
 const POOL_SIZE := 8
 const ANNOUNCER_TABLE_PATH := "res://assets/audio/announcer_table.tres"
 const ANNOUNCER_SETTING := "wwfmania/audio/announcer_enabled"
+const MOVE_TABLE_PATH := "res://assets/audio/move_sound_table.tres"
 
 var table: SoundTable = null
+var move_table: MoveSoundTable = null
 var rng := RandomNumberGenerator.new()
 
 var _sfx_pool: Array[AudioStreamPlayer2D] = []
@@ -35,6 +37,8 @@ func _ready() -> void:
 		muted = true
 	if table == null and ResourceLoader.exists(TABLE_PATH):
 		table = load(TABLE_PATH)
+	if move_table == null and ResourceLoader.exists(MOVE_TABLE_PATH):
+		move_table = load(MOVE_TABLE_PATH)
 	for _i in range(POOL_SIZE):
 		var p := AudioStreamPlayer2D.new()
 		p.bus = &"SFX"
@@ -147,3 +151,72 @@ func _play_sfx(entry: SoundEntry, at_pos: Vector2) -> void:
 	p.volume_db = entry.volume_db
 	p.pitch_scale = 1.0 + rng.randf_range(-entry.pitch_jitter, entry.pitch_jitter)
 	p.play()
+
+# --- Per-move sound mapping (swing/hit/attack/pain) — runs alongside the legacy SoundTable. ---
+
+## True when a move has a per-move sound mapping (so Fighter uses the new path + suppresses legacy).
+func has_move_sounds(move_id: String) -> bool:
+	return move_table != null and move_table.resolve(move_id) != null
+
+## Windup: the move's swing whoosh (SFX) + the attacker's effort grunt (Voice, may be silent).
+func play_move_swing(attacker: Node, move: MoveSequence) -> void:
+	var ms: MoveSounds = move_table.resolve(move.id) if move_table != null else null
+	if ms == null:
+		return
+	if ms.swing != null:
+		_play_pool_sfx(ms.swing, attacker.global_position)
+	var wid: StringName = attacker.wrestler_id
+	if ms.attack.has(wid):
+		_play_pool_voice(attacker, ms.attack[wid])
+
+## Contact: the move's impact (SFX at the victim) + the victim's pain (Voice, may be silent).
+func play_move_hit(attacker: Node, victim: Node, move: MoveSequence) -> void:
+	var ms: MoveSounds = move_table.resolve(move.id) if move_table != null else null
+	if ms == null:
+		return
+	if ms.hit != null:
+		_play_pool_sfx(ms.hit, victim.global_position)
+	var wid: StringName = attacker.wrestler_id
+	if ms.pain.has(wid):
+		_play_pool_voice(victim, ms.pain[wid])
+
+func _play_pool_sfx(pool: SoundPool, at_pos: Vector2) -> void:
+	var s := pool.pick_stream(rng)
+	if s == null:
+		return
+	last_sfx = {"stream": s, "bus": pool.bus, "position": at_pos}
+	if muted:
+		return
+	var p: AudioStreamPlayer2D = _sfx_pool[_next_sfx]
+	_next_sfx = (_next_sfx + 1) % _sfx_pool.size()
+	p.stream = s
+	p.bus = pool.bus
+	p.global_position = at_pos
+	p.volume_db = pool.volume_db
+	p.pitch_scale = 1.0 + rng.randf_range(-pool.pitch_jitter, pool.pitch_jitter)
+	p.play()
+
+func _play_pool_voice(fighter: Node, pool: SoundPool) -> void:
+	var s := pool.pick_stream(rng)
+	if s == null:
+		return   # silence (chance gate) — no voice this hit
+	if muted:
+		last_voice = {"stream": s, "fighter": fighter, "priority": pool.priority}
+		return
+	var id := fighter.get_instance_id()
+	var st: Dictionary = _voice.get(id, {})
+	if st.is_empty() or not is_instance_valid(st.get("player")):
+		var pl := AudioStreamPlayer2D.new()
+		pl.bus = &"Voice"
+		fighter.add_child(pl)
+		st = {"player": pl, "priority": -1}
+		_voice[id] = st
+	var pl2: AudioStreamPlayer2D = st["player"]
+	if not VoicePolicy.should_interrupt(st["priority"], pool.priority, pl2.playing):
+		return
+	pl2.stream = s
+	pl2.volume_db = pool.volume_db
+	pl2.pitch_scale = 1.0 + rng.randf_range(-pool.pitch_jitter, pool.pitch_jitter)
+	pl2.play()
+	st["priority"] = pool.priority
+	last_voice = {"stream": s, "fighter": fighter, "priority": pool.priority}

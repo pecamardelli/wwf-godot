@@ -289,7 +289,9 @@ func _table(attack_pool: SoundPool, pain_pool: SoundPool) -> MoveSoundTable:
 	var t := MoveSoundTable.new(); t.moves = {"punch": ms}; return t
 
 func _move() -> MoveSequence:
-	var m := MoveSequence.new(); m.id = "punch"; return m
+	# Real sequence (id "punch") so Task 4's start_move/_play_sequence_anim exercise the true path
+	# (real anim/frame data) rather than a frameless synthetic move.
+	return load("res://assets/sequences/doink/punch.tres")
 
 func before_each():
 	Sound.last_sfx = {}; Sound.last_voice = {}
@@ -487,6 +489,14 @@ In `scripts/fighter.gd`, in `start_move` (after `_player.play(move)` / before/af
 	_hit_by_current_move.clear()
 	_play_sequence_anim()
 ```
+
+> **Strike-guard note (forward-looking, not a change now):** This fires the swing whoosh for *any*
+> mapped move via `has_move_sounds(move.id)`, with no strike-vs-grapple check. That is correct for the
+> two seeded moves (`punch`, `headbutt`, both strikes). When grapples/throws are later added to
+> `sound_mapping.json` (per the SP-0 roadmap, Plan 2d), a swing whoosh would fire on a grapple windup,
+> which the design spec §5 scopes to "a striking move." At that point gate the swing on a non-grapple
+> move (e.g. `not move.is_grapple`) so grapples don't whoosh. Left unguarded here deliberately: no
+> mapped grapple exists yet, and adding a dead guard now would be untested code.
 
 - [ ] **Step 4: Route hit/pain through the new path + suppress legacy**
 
