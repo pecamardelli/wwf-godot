@@ -18,6 +18,7 @@ func _init() -> void:
 	var spin_kick: MoveSequence = load(SEQ + "spin_kick.tres")
 	var elbow: MoveSequence = load(SEQ + "elbow_drop.tres")
 	var big_boot: MoveSequence = load(SEQ + "big_boot.tres")
+	var flying_clothesline: MoveSequence = load(SEQ + "flying_clothesline.tres")
 	var R := MoveTable.Rng
 	var D := MoveTable.Dir
 	var B := MoveTable.Btn
@@ -35,12 +36,13 @@ func _init() -> void:
 	t.add(R.GROUNDED, D.NEUTRAL, B.LOW_KICK, stomp)
 	t.add(R.RUNNING,  D.NEUTRAL, B.LOW_KICK, big_boot)
 
-	# SPUNCH (high punch): far/close slap, close+DOWN uppercut, grounded elbow drop, running big boot.
+	# SPUNCH (high punch): far/close slap, close+DOWN uppercut, grounded elbow drop, running
+	# flying clothesline (arcade #super_punch -> #punch_clothesline).
 	t.add(R.NORMAL,   D.NEUTRAL, B.HIGH_PUNCH, slap)
 	t.add(R.CLOSE,    D.NEUTRAL, B.HIGH_PUNCH, slap)
 	t.add(R.CLOSE,    D.DOWN,    B.HIGH_PUNCH, uppercut)
 	t.add(R.GROUNDED, D.NEUTRAL, B.HIGH_PUNCH, elbow)
-	t.add(R.RUNNING,  D.NEUTRAL, B.HIGH_PUNCH, big_boot)
+	t.add(R.RUNNING,  D.NEUTRAL, B.HIGH_PUNCH, flying_clothesline)
 
 	# SKICK (high kick): far spin kick, close knee, grounded stomp, running big boot.
 	t.add(R.NORMAL,   D.NEUTRAL, B.HIGH_KICK, spin_kick)
@@ -48,7 +50,10 @@ func _init() -> void:
 	t.add(R.GROUNDED, D.NEUTRAL, B.HIGH_KICK, stomp)
 	t.add(R.RUNNING,  D.NEUTRAL, B.HIGH_KICK, big_boot)
 
+	var uid_text := Uid.preserve_or_mint(OUT)   # keep doink.tres's uid stable for scene refs
 	var err := ResourceSaver.save(t, OUT)
+	if err == OK:
+		Uid.stamp(OUT, uid_text)
 	print("doink movetable -> ", error_string(err))
 	if err != OK:
 		quit(1)

@@ -22,6 +22,13 @@ var _pending_clr_opp_mode: bool = false
 var _damage_amode: int = 0
 var _damage_dizzy: bool = false
 var _opp_mode: int = 0
+var _pending_launch: bool = false
+var _launch_yvel: int = 0
+var _launch_xvel: int = 0
+var _launch_homing: bool = false
+var _leap_ticks: int = 0
+var _leap_cap_x: int = 0
+var _leap_cap_z: int = 0
 var _pending_sounds: Array[SoundEntry] = []   # ANI_SOUND payloads queued this advance()
 
 var _index: int = -1
@@ -49,6 +56,7 @@ func play(seq: MoveSequence) -> void:
 	_pending_damage = false
 	_pending_set_opp_mode = false
 	_pending_clr_opp_mode = false
+	_pending_launch = false
 	_pending_sounds.clear()
 	_waiting_for_hit = false
 	_wait_left = 0.0
@@ -93,6 +101,14 @@ func consume_set_opp_mode() -> bool:
 	var v := _pending_set_opp_mode; _pending_set_opp_mode = false; return v
 func consume_clr_opp_mode() -> bool:
 	var v := _pending_clr_opp_mode; _pending_clr_opp_mode = false; return v
+func consume_launch() -> bool:
+	var v := _pending_launch; _pending_launch = false; return v
+func launch_yvel() -> int: return _launch_yvel
+func launch_xvel() -> int: return _launch_xvel
+func launch_homing() -> bool: return _launch_homing
+func leap_ticks() -> int: return _leap_ticks
+func leap_cap_x() -> int: return _leap_cap_x
+func leap_cap_z() -> int: return _leap_cap_z
 ## Read-and-clear the ANI_SOUND payloads that fired since the last call (may be empty).
 func consume_sounds() -> Array[SoundEntry]:
 	var out := _pending_sounds.duplicate()
@@ -195,6 +211,14 @@ func _apply_command(f: SequenceFrame) -> void:
 			_opp_mode = f.opp_mode
 		SequenceFrame.Command.CLR_OPP_MODE:
 			_pending_clr_opp_mode = true
+		SequenceFrame.Command.SET_LAUNCH:
+			_pending_launch = true
+			_launch_yvel = f.launch_yvel
+			_launch_xvel = f.launch_xvel
+			_launch_homing = f.launch_homing
+			_leap_ticks = f.leap_ticks
+			_leap_cap_x = f.leap_cap_x
+			_leap_cap_z = f.leap_cap_z
 		_:
 			pass   # NONE / STARTATTACK: no-op (hitbox opens on ATTACK_ON/WAIT_HIT_OPP)
 

@@ -44,17 +44,18 @@ func _ready() -> void:
 	_announcer = Announcer.new()
 	_announcer.name = "Announcer"
 	_announcer.muted = muted
-	_announcer.enabled = bool(ProjectSettings.get_setting(ANNOUNCER_SETTING, true))
+	_announcer.enabled = bool(ProjectSettings.get_setting(ANNOUNCER_SETTING, false))
 	if ResourceLoader.exists(ANNOUNCER_TABLE_PATH):
 		_announcer.table = load(ANNOUNCER_TABLE_PATH)
 	add_child(_announcer)
 
-## Ensure the default-on config flag exists and is editor-visible (BOOL). No project-file save
-## at runtime — get_setting's default covers a project that never persisted it.
+## Ensure the config flag exists and is editor-visible (BOOL). Default OFF for now (commentary is
+## disabled pending polish); flip to true to re-enable. No project-file save at runtime —
+## get_setting's default covers a project that never persisted it.
 func _register_announcer_setting() -> void:
 	if not ProjectSettings.has_setting(ANNOUNCER_SETTING):
-		ProjectSettings.set_setting(ANNOUNCER_SETTING, true)
-	ProjectSettings.set_initial_value(ANNOUNCER_SETTING, true)
+		ProjectSettings.set_setting(ANNOUNCER_SETTING, false)
+	ProjectSettings.set_initial_value(ANNOUNCER_SETTING, false)
 	ProjectSettings.add_property_info({"name": ANNOUNCER_SETTING, "type": TYPE_BOOL})
 
 ## Fire a play-by-play line (front door for Fighter). No-op if the announcer is absent/disabled.

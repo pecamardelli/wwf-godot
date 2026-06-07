@@ -14,12 +14,14 @@ enum Command {
 	DETACH = 8,         # release the victim -> ONGROUND
 	SET_OPP_MODE = 9,   # force the victim into opp_mode (e.g. INAIR during the airborne arc)
 	CLR_OPP_MODE = 10,  # restore the victim from opp_mode
+	SET_LAUNCH = 11,    # launch the attacker airborne (ANI_SET_YVEL / LEAPATOPP); enters INAIR
 }
 
 @export var duration_ticks: int = 4
 @export var anim_frame: int = 0
 @export_enum("NONE", "STARTATTACK", "ATTACK_ON", "ATTACK_OFF", "WAIT_HIT_OPP",
-	"SET_ATTACH", "SLAVE_ANIM", "DAMAGE_OPP", "DETACH", "SET_OPP_MODE", "CLR_OPP_MODE")
+	"SET_ATTACH", "SLAVE_ANIM", "DAMAGE_OPP", "DETACH", "SET_OPP_MODE", "CLR_OPP_MODE",
+	"SET_LAUNCH")
 var command: int = Command.NONE
 ## Attack box for ATTACK_ON / WAIT_HIT_OPP frames (ANI_ATTACK_ON x,y,w,h; Z depth default 10).
 @export var attack_box: Box3 = null
@@ -33,3 +35,11 @@ var command: int = Command.NONE
 @export var wait_hit_max_ticks: int = 16           # WAIT_HIT_OPP whiff timeout
 ## ANI_SOUND: a sound to play when this frame BEGINS (effort grunt, taunt, special). Null = silent.
 @export var sound: SoundEntry = null
+## --- SET_LAUNCH payload (arcade ANI_SET_YVEL / ANI_SET_XVEL / LEAPATOPP). Values are 16.16
+## px/tick hex, converted by ArcadeUnits.vel_to_px_per_sec when the launch fires. ---
+@export var launch_yvel: int = 0     # upward launch velocity (e.g. 0x90000 fly kick, 0x64000 cline)
+@export var launch_xvel: int = 0     # face-relative forward velocity (cline 0x5c000; 0 if homing)
+@export var launch_homing: bool = false   # true -> compute planar velocity toward the target (LEAPATOPP)
+@export var leap_ticks: int = 0      # LEAPATOPP arrival time (ticks); only used when homing
+@export var leap_cap_x: int = 0      # LEAPATOPP per-axis X cap (16.16 px/tick); only used when homing
+@export var leap_cap_z: int = 0      # LEAPATOPP per-axis Z cap (16.16 px/tick); only used when homing

@@ -1,0 +1,63 @@
+[gd_resource type="Resource" script_class="MoveSequence" format=3 uid="uid://ddc1281tuin0w"]
+
+[ext_resource type="Script" path="res://scripts/combat/sequence_frame.gd" id="1_mtdrq"]
+[ext_resource type="Script" path="res://scripts/combat/box3.gd" id="2_mq66j"]
+[ext_resource type="Script" path="res://scripts/combat/move_sequence.gd" id="3_p7nd0"]
+
+[sub_resource type="Resource" id="Resource_b6bkh"]
+script = ExtResource("1_mtdrq")
+duration_ticks = 3
+command = 11
+launch_yvel = 409600
+launch_xvel = 376832
+
+[sub_resource type="Resource" id="Resource_87c1r"]
+script = ExtResource("1_mtdrq")
+duration_ticks = 3
+anim_frame = 1
+
+[sub_resource type="Resource" id="Resource_ptjqf"]
+script = ExtResource("2_mq66j")
+offset = Vector3(25, 6, 0)
+size = Vector3(23, 37, 10)
+
+[sub_resource type="Resource" id="Resource_g8bmh"]
+script = ExtResource("1_mtdrq")
+duration_ticks = 3
+anim_frame = 2
+command = 2
+attack_box = SubResource("Resource_ptjqf")
+
+[sub_resource type="Resource" id="Resource_00mbr"]
+script = ExtResource("1_mtdrq")
+duration_ticks = 3
+anim_frame = 3
+
+[sub_resource type="Resource" id="Resource_1kh62"]
+script = ExtResource("1_mtdrq")
+duration_ticks = 3
+anim_frame = 4
+command = 3
+
+[sub_resource type="Resource" id="Resource_0vvdc"]
+script = ExtResource("1_mtdrq")
+duration_ticks = 3
+anim_frame = 5
+
+[sub_resource type="Resource" id="Resource_xhhoj"]
+script = ExtResource("1_mtdrq")
+duration_ticks = 3
+anim_frame = 6
+
+[sub_resource type="Resource" id="Resource_hre1x"]
+script = ExtResource("1_mtdrq")
+duration_ticks = 3
+anim_frame = 7
+
+[resource]
+script = ExtResource("3_p7nd0")
+id = "flying_clothesline"
+anim_name = "boxing_glove_smash_front"
+anim_name_back = "boxing_glove_smash_back"
+attack_mode = 5
+frames = Array[ExtResource("1_mtdrq")]([SubResource("Resource_b6bkh"), SubResource("Resource_87c1r"), SubResource("Resource_g8bmh"), SubResource("Resource_00mbr"), SubResource("Resource_1kh62"), SubResource("Resource_0vvdc"), SubResource("Resource_xhhoj"), SubResource("Resource_hre1x")])

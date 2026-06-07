@@ -46,6 +46,18 @@ func _init() -> void:
 	# Grapple throws (victim channel). DOINK.ASM:572 (hip toss), :504 (grab & fling).
 	_save(_throw("hip_toss",   "hip_toss", "hip_tossed", AMode.BIGBOOT, _HIPTOSS_VICTIM))
 	_save(_throw("grab_fling", "fling",    "flinged",    AMode.BIGBOOT))
+	# Aerials (arcade DNKSEQ2.ASM). Flying kick: homing LEAPATOPP (11 ticks, caps 0x50000),
+	# launch yvel 0x90000, box 46,76 / 42x42 (DNKSEQ2.ASM:902-909). Use the existing power-kick
+	# art; launch on an early frame, contact mid-clip.
+	_save(_aerial("flying_kick", "power_kick_front", AMode.SPINKICK,
+		_sf.get_frame_count("power_kick_front"), 1, 3, _ab(46, 76, 0, 42, 42, 10),
+		0x90000, 0, true, 11, 0x50000, 0x50000, 3, "power_kick_back"))
+	# Flying clothesline: fixed launch yvel 0x64000 + forward xvel 0x5c000, box 25,6 / 23x37
+	# (DNKSEQ2.ASM:2401-2405). Use the boxing-glove smash art as the body-check clip placeholder
+	# (tune the anim/box in playtest).
+	_save(_aerial("flying_clothesline", "boxing_glove_smash_front", AMode.BIGBOOT,
+		_sf.get_frame_count("boxing_glove_smash_front"), 0, 2, _ab(25, 6, 0, 23, 37, 10),
+		0x64000, 0x5c000, false, 0, 0, 0, 3, "boxing_glove_smash_back"))
 	# Head grab: connect -> HEADHOLD (no DAMAGE_OPP/DETACH here; head-hold drives follow-ups).
 	_save(_neck_grab())
 	_save(_hair_pickup())
@@ -93,6 +105,36 @@ func _gframe(dur: int, img: int, cmd: int, slave: String, voff: Vector3, vimg: i
 	f.duration_ticks = dur; f.anim_frame = img; f.command = cmd
 	f.slave_anim = slave; f.victim_offset = voff; f.victim_anim_frame = vimg
 	return f
+
+## An aerial strike: walks the whole clip; frame `launch` fires SET_LAUNCH (airborne), the box
+## is live from `contact` to `contact+2`. `homing` true -> LEAPATOPP toward the target (flying
+## kick); false -> a fixed face-relative forward launch (clothesline).
+func _aerial(id: String, anim_name: String, amode: int, frame_count: int, launch: int, contact: int, box: Box3,
+		yvel: int, xvel: int, homing: bool, leap_ticks: int, cap_x: int, cap_z: int, ticks_per_frame: int = 3, anim_back: String = "") -> MoveSequence:
+	var m := MoveSequence.new()
+	m.id = id; m.anim_name = anim_name; m.anim_name_back = anim_back; m.attack_mode = amode
+	var off_frame := mini(contact + 2, frame_count - 1)
+	var arr: Array[SequenceFrame] = []
+	for i in range(frame_count):
+		var f := SequenceFrame.new()
+		f.duration_ticks = ticks_per_frame
+		f.anim_frame = i
+		if i == launch:
+			f.command = SequenceFrame.Command.SET_LAUNCH
+			f.launch_yvel = yvel
+			f.launch_xvel = xvel
+			f.launch_homing = homing
+			f.leap_ticks = leap_ticks
+			f.leap_cap_x = cap_x
+			f.leap_cap_z = cap_z
+		elif i == contact:
+			f.command = SequenceFrame.Command.ATTACK_ON
+			f.attack_box = box
+		elif i == off_frame:
+			f.command = SequenceFrame.Command.ATTACK_OFF
+		arr.append(f)
+	m.frames = arr
+	return m
 
 ## Over-the-shoulder victim arc as a function of throw progress t in [0,1]: sweep from
 ## in-front to behind, rise to a peak then back to the mat by the slam frame (t_slam).
@@ -291,7 +333,11 @@ func _hair_pickup() -> MoveSequence:
 	return m
 
 func _save(m: MoveSequence) -> void:
-	var err := ResourceSaver.save(m, OUT + "/" + m.id + ".tres")
+	var path := OUT + "/" + m.id + ".tres"
+	var uid_text := Uid.preserve_or_mint(path)   # capture/mint BEFORE save (save strips the header)
+	var err := ResourceSaver.save(m, path)
+	if err == OK:
+		Uid.stamp(path, uid_text)                 # re-inject the stable uid into the header
 	print(m.id, " (", m.total_ticks(), " ticks) -> ", error_string(err))
 	if err != OK:
 		push_error("Failed to save %s: %s" % [m.id, error_string(err)])

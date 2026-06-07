@@ -16,6 +16,7 @@ static func hurt_box_for_mode(mode: int) -> Box3:
 	match mode:
 		Fighter.Mode.ONGROUND: depth = 30.0
 		Fighter.Mode.RUNNING: depth = 10.0
+		Fighter.Mode.INAIR: depth = 50.0   # airborne torso (arcade in-air hit volume, approximated)
 		_: depth = 60.0
 	var hb := Box3.new()
 	hb.size = Vector3(44.0, 120.0, depth)

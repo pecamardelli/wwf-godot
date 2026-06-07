@@ -5,6 +5,7 @@ extends Fighter
 
 const _MOVES := preload("res://assets/movetables/doink.tres")
 const _HAIR_PICKUP := preload("res://assets/sequences/doink/hair_pickup.tres")
+const _FLYING_KICK := preload("res://assets/sequences/doink/flying_kick.tres")
 
 ## Head-hold follow-ups, loaded by path (NOT in the main grab-initiator MotionTable).
 const _FOLLOWUP_MOTIONS := {
@@ -65,6 +66,16 @@ func _grounded_move_or_hair_pickup(seq: MoveSequence, btn: int) -> MoveSequence:
 		return _HAIR_PICKUP
 	return seq
 
+## Flying kick pre-empts the standing spin kick (HIGH_KICK) when the target stands beyond the
+## 60x60 close box (arcade #super_kick: within = close super, outside = jumping kick). Geometric
+## gate, not a MoveTable cell — so we intercept the resolved move here.
+func _normal_kick_or_flying_kick(seq: MoveSequence, btn: int) -> MoveSequence:
+	if seq != null and seq.id == "spin_kick" and btn == MoveTable.Btn.HIGH_KICK \
+			and target != null and is_instance_valid(target) \
+			and FlyingKick.gate(global_position, target.global_position, target.mode):
+		return _FLYING_KICK
+	return seq
+
 ## Normal-move dispatch (arcade action_table / mode_normal). Run from _physics_process
 ## ONLY after scan_specials returns false, so a buffered grab always wins over a normal
 ## attack on the same press (the arcade pre-empts the action table on a secret-move match).
@@ -74,6 +85,7 @@ func _dispatch_normal_move() -> void:
 		return
 	var seq: MoveSequence = _MOVES.lookup(_current_range(), _current_dir(), btn)
 	seq = _grounded_move_or_hair_pickup(seq, btn)   # hair pickup pre-empts elbow drop at the head
+	seq = _normal_kick_or_flying_kick(seq, btn)     # flying kick pre-empts the standing spin kick
 	if seq != null:
 		start_move(seq)
 	elif mode == Mode.RUNNING:
