@@ -78,6 +78,8 @@ var _run_dir_x: float = 0.0   # latched horizontal run direction (+1/-1) while R
 var _player: SequencePlayer = SequencePlayer.new()
 var _react_timer: float = 0.0          # seconds left in a reaction (hitstun/getup/dizzy)
 var _react_recover_mode: int = Mode.NORMAL
+var _height: float = 0.0   # altitude in px above the mat (0 = grounded). Render-up axis.
+var _vy: float = 0.0       # vertical velocity, px/s (+up). Arcade OBJ_YVEL (WRESTLE2.ASM:2282).
 var _last_damage_time: float = -999.0  # seconds; for the ⅔ repeat window
 var _hit_by_current_move: Array = []   # victims already hit by the swing in progress
 var _sim_time: float = 0.0             # accumulated per-fighter sim clock (fixed-tick determinism)
@@ -96,6 +98,22 @@ func _ready() -> void:
 	add_to_group("fighters")
 	if sprite != null:
 		sprite.speed_scale = anim_speed_scale
+	_ensure_shadow()
+
+## A simple elliptical ground shadow drawn at the body origin. Stays on the mat while the sprite
+## lifts, so an airborne fighter reads as off the ground (the arcade draws a separate shadow obj).
+func _ensure_shadow() -> void:
+	if get_node_or_null("Shadow") != null:
+		return
+	var sh := _Shadow.new()
+	sh.name = "Shadow"
+	sh.z_index = -1   # behind the body
+	add_child(sh)
+
+class _Shadow extends Node2D:
+	func _draw() -> void:
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.4))   # squash to an ellipse
+		draw_circle(Vector2.ZERO, 26.0, Color(0, 0, 0, 0.35))
 
 ## Subclasses override this to return an 8-way direction (each axis in -1..1).
 func get_input_direction() -> Vector2:
@@ -169,7 +187,10 @@ func _physics_process(delta: float) -> void:
 
 	# 2) Attacking: advance the sequence, hold position, no walk input.
 	if _player.is_playing():
-		velocity = Vector2.ZERO
+		if mode == Mode.INAIR:
+			_step_air(delta)
+		else:
+			velocity = Vector2.ZERO
 		# Block recoil: a blocked grab nudges the attacker back once, away from the victim.
 		if _player.blocked and not _block_recoiled:
 			_block_recoiled = true
@@ -191,6 +212,8 @@ func _physics_process(delta: float) -> void:
 			global_position.x += step_x
 			_leap_remaining -= absf(step_x)
 		_player.advance(delta)
+		if _player.consume_launch():
+			_begin_launch()
 		for snd in _player.consume_sounds():
 			Sound.play_entry(snd, self)
 		# Drive the attached victim AFTER advance so current_frame() reflects this tick.
@@ -240,6 +263,12 @@ func _physics_process(delta: float) -> void:
 	elif mode == Mode.BLOCK:
 		mode = Mode.NORMAL
 		_block_bouncing = false
+
+	# Airborne tail: the launching move ended but we're still descending. Finish the arc
+	# (no input, no walk) until we touch the mat, then recover to NORMAL.
+	if mode == Mode.INAIR:
+		_step_air(delta)
+		return
 
 	# 3) Normal movement (Plan 2a feel layer).
 	var dir: Vector2 = Vector2.ZERO
@@ -340,7 +369,7 @@ const _ANIM_FRAME_X_OFFSET := {
 func _refresh_flip() -> void:
 	if sprite != null:
 		sprite.flip_h = flip_h_for(sprite.animation, _facing)
-		sprite.offset.y = _ANIM_Y_OFFSET.get(sprite.animation, 0.0)
+		sprite.offset.y = _ANIM_Y_OFFSET.get(sprite.animation, 0.0) - _height
 		# Per-frame grip-anchor correction (kills frame-to-frame drift). Measured in source-art
 		# space; when the sprite is flipped the texture mirrors, so negate to keep the grip point
 		# fixed in world space. Flip is constant during a hold, so this removes the wobble.
@@ -527,6 +556,42 @@ func start_move(move: MoveSequence) -> void:
 	_player.play(move)
 	_hit_by_current_move.clear()
 	_play_sequence_anim()
+
+## Launch the fighter airborne (arcade ANI_SET_YVEL / LEAPATOPP). `planar` is the (X, depth)
+## velocity in px/s that carries the body across the ground plane during the arc.
+func apply_launch(yvel: float, planar: Vector2) -> void:
+	mode = Mode.INAIR
+	_vy = yvel
+	velocity = planar
+
+## Resolve a SequencePlayer SET_LAUNCH into a concrete launch. Homing computes the planar
+## velocity toward the current target (LEAPATOPP); otherwise a face-relative forward push.
+func _begin_launch() -> void:
+	var yvel := ArcadeUnits.vel_to_px_per_sec(_player.launch_yvel())
+	var planar := Vector2.ZERO
+	if _player.launch_homing() and target != null and is_instance_valid(target):
+		var seconds := ArcadeUnits.ticks_to_seconds(_player.leap_ticks())
+		var cap_x := ArcadeUnits.vel_to_px_per_sec(_player.leap_cap_x())
+		var cap_z := ArcadeUnits.vel_to_px_per_sec(_player.leap_cap_z())
+		planar = AerialLaunch.leap_velocity(global_position, target.global_position, seconds, cap_x, cap_z)
+	else:
+		planar = Vector2(ArcadeUnits.vel_to_px_per_sec(_player.launch_xvel()) * _facing, 0.0)
+	apply_launch(yvel, planar)
+
+## Integrate the vertical arc one tick (arcade wrestler_veladd). Carries the planar velocity
+## across the ground plane; on landing, zeroes vertical + planar velocity and recovers to NORMAL.
+func _step_air(delta: float) -> void:
+	_vy -= ArcadeUnits.GRAVITY * delta
+	_vy = maxf(_vy, ArcadeUnits.MAX_FALL)
+	_height += _vy * delta
+	if _height <= 0.0:
+		_height = 0.0
+		_vy = 0.0
+		velocity = Vector2.ZERO
+		mode = Mode.NORMAL
+		return
+	move_and_slide()
+	global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
 
 ## Drive the attached victim from the current SequenceFrame's slave track + intents.
 func _drive_victim(_delta: float) -> void:
