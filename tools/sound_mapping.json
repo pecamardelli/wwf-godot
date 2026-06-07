@@ -1,0 +1,158 @@
+{
+  "punch": {
+    "swing": [
+      {
+        "file": "swing4.wav",
+        "precedence": 50
+      },
+      {
+        "file": "swing5.wav",
+        "precedence": 50
+      },
+      {
+        "file": "swing7.wav",
+        "precedence": 30
+      }
+    ],
+    "hit": [
+      {
+        "file": "punch2.wav",
+        "precedence": 50
+      },
+      {
+        "file": "punch6.wav",
+        "precedence": 10
+      },
+      {
+        "file": "punch7.wav",
+        "precedence": 55
+      },
+      {
+        "file": "punch8.wav",
+        "precedence": 30
+      },
+      {
+        "file": "punch9.wav",
+        "precedence": 45
+      },
+      {
+        "file": "punch11.wav",
+        "precedence": 52
+      }
+    ],
+    "attack": {
+      "doink": [
+        {
+          "file": "Doink attack 8.wav",
+          "probability": 0.18
+        },
+        {
+          "file": "Doink attack 9.wav",
+          "probability": 0.18
+        },
+        {
+          "file": "Doink attack 10.wav",
+          "probability": 0.18
+        }
+      ]
+    },
+    "pain": {
+      "doink": [
+        {
+          "file": "Doink pain 8.wav",
+          "probability": 0.2
+        },
+        {
+          "file": "Doink pain 11.wav",
+          "probability": 0.2
+        }
+      ]
+    }
+  },
+  "headbutt": {
+    "swing": [
+      {
+        "file": "swing.wav",
+        "precedence": 50
+      },
+      {
+        "file": "swing6.wav",
+        "precedence": 50
+      }
+    ],
+    "hit": [
+      {
+        "file": "punch2.wav",
+        "precedence": 50
+      },
+      {
+        "file": "punch5.wav",
+        "precedence": 10
+      },
+      {
+        "file": "punch7.wav",
+        "precedence": 30
+      },
+      {
+        "file": "punch9.wav",
+        "precedence": 30
+      },
+      {
+        "file": "punch11.wav",
+        "precedence": 30
+      }
+    ],
+    "attack": {
+      "doink": [
+        {
+          "file": "Doink attack 8.wav",
+          "probability": 0.1
+        },
+        {
+          "file": "Doink attack 9.wav",
+          "probability": 0.15
+        },
+        {
+          "file": "Doink attack 10.wav",
+          "probability": 0.15
+        }
+      ]
+    },
+    "pain": {
+      "doink": [
+        {
+          "file": "Yokozuna pain 2.wav",
+          "probability": 0.3
+        },
+        {
+          "file": "Doink pain 11.wav",
+          "probability": 0.05
+        },
+        {
+          "file": "Hart pain 4.wav",
+          "probability": 0.05
+        },
+        {
+          "file": "Shawn pain.wav",
+          "probability": 0.05
+        },
+        {
+          "file": "Shawn pain 3.wav",
+          "probability": 0.02
+        },
+        {
+          "file": "Doink pain 3.wav",
+          "probability": 0.09
+        },
+        {
+          "file": "Doink pain 6.wav",
+          "probability": 0.09
+        },
+        {
+          "file": "Shawn pain 5.wav",
+          "probability": 0.2
+        }
+      ]
+    }
+  }
+}
