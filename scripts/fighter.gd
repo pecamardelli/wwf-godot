@@ -727,6 +727,51 @@ func _anim_length_seconds(anim: String) -> float:
 ## keeping the puppet's attacker-facing orientation (e.g. a hip toss sends them over and down).
 const _LAND_FACING_AWAY_MOVES := {"hip_toss": true}
 
+## Time a defeated body lies on the ground before it fades out (tune in playtest).
+const _DEATH_LIE_TICKS := 40
+## Seconds the fade-out takes once it begins.
+const _DEATH_FADE_SECONDS := 0.5
+
+## Defeat this fighter (HP-zero now; a future pit/hole trigger calls this too). Idempotent.
+## Releases any grapple in both directions, cancels the current action, collapses, then lies for
+## a beat, fades out, and frees itself.
+func die() -> void:
+	if mode == Mode.DEAD:
+		return
+	_release_grapple_on_death()
+	_player.play(null)
+	_hit_by_current_move.clear()
+	_react_timer = 0.0
+	_getup_rising = false
+	_getup_rise_time = 0.0
+	_vy = 0.0
+	_height = 0.0
+	velocity = Vector2.ZERO
+	mode = Mode.DEAD
+	_fall_orientation = Fall.FACE_UP
+	if sprite != null and sprite.sprite_frames != null and sprite.sprite_frames.has_animation("droped"):
+		sprite.play("droped")   # reuse the knockdown collapse; settles to its lying frame
+		_refresh_flip()
+	if is_inside_tree():
+		var tw := create_tween()
+		tw.tween_interval(ArcadeUnits.ticks_to_seconds(_DEATH_LIE_TICKS))
+		tw.tween_property(self, "modulate:a", 0.0, _DEATH_FADE_SECONDS)
+		tw.tween_callback(queue_free)
+
+## Cut both ends of any grapple this fighter is part of, so dying never leaves a dangling puppet
+## or a captor stuck driving a corpse.
+func _release_grapple_on_death() -> void:
+	if _grappling != null and is_instance_valid(_grappling):
+		_grappling._grappled_by = null
+		if not _grappling.is_dead():
+			_grappling.mode = Mode.NORMAL
+	_grappling = null
+	if _grappled_by != null and is_instance_valid(_grappled_by):
+		_grappled_by._grappling = null
+		if _grappled_by.mode == Mode.GRABBING or _grappled_by.mode == Mode.HEADHOLD:
+			_grappled_by.mode = Mode.NORMAL
+	_grappled_by = null
+
 func _detach_victim() -> void:
 	var vic: Fighter = _grappling
 	_grappling = null
