@@ -6,6 +6,7 @@ extends Fighter
 const _MOVES := preload("res://assets/movetables/doink.tres")
 const _HAIR_PICKUP := preload("res://assets/sequences/doink/hair_pickup.tres")
 const _FLYING_KICK := preload("res://assets/sequences/doink/flying_kick.tres")
+const _HEADBUTT_BURST := preload("res://assets/sequences/doink/headbutt_burst.tres")
 
 ## Head-hold follow-ups, loaded by path (NOT in the main grab-initiator MotionTable).
 const _FOLLOWUP_MOTIONS := {
@@ -19,6 +20,9 @@ const _FOLLOWUP_SEQUENCES := {
 }
 
 @export var player_index: int = 0
+
+## Mash-to-extend headbutt burst (CLOSE + high-punch). See BurstState + _service_burst_end.
+var _burst := BurstState.new()
 
 ## Motion-input state (arcade wrest_joystat). Filled each frame by feed_input().
 var motion_buffer := MotionBuffer.new()
@@ -76,6 +80,30 @@ func _normal_kick_or_flying_kick(seq: MoveSequence, btn: int) -> MoveSequence:
 		return _FLYING_KICK
 	return seq
 
+## True only while a fresh burst hit could still connect: a valid, standing, CLOSE target.
+func _burst_close_to_target() -> bool:
+	return target != null and is_instance_valid(target) and target.mode == Mode.NORMAL \
+		and _current_range() == MoveTable.Rng.CLOSE
+
+## Called once a burst hit's move has ended (not is_attacking()). Either chains the next hit
+## (buffered re-press, under the cap, still close) or ENDS the burst — popping whoever the last
+## hit landed on. Returns true when it consumed the frame (always, while a burst is active).
+func _service_burst_end(close: bool) -> bool:
+	var victim: Fighter = null
+	if not _hit_by_current_move.is_empty():
+		var v: Variant = _hit_by_current_move.back()
+		if v is Fighter:
+			victim = v
+	var victim_ok := victim != null and is_instance_valid(victim) and not victim.is_dead()
+	if close and victim_ok and _burst.can_chain():
+		_burst.advance()
+		start_move(_HEADBUTT_BURST)
+		return true
+	if victim_ok:
+		victim.pop_from_headbutt(self)
+	_burst.reset()
+	return true
+
 ## Normal-move dispatch (arcade action_table / mode_normal). Run from _physics_process
 ## ONLY after scan_specials returns false, so a buffered grab always wins over a normal
 ## attack on the same press (the arcade pre-empts the action table on a secret-move match).
@@ -87,6 +115,8 @@ func _dispatch_normal_move() -> void:
 	seq = _grounded_move_or_hair_pickup(seq, btn)   # hair pickup pre-empts elbow drop at the head
 	seq = _normal_kick_or_flying_kick(seq, btn)     # flying kick pre-empts the standing spin kick
 	if seq != null:
+		if seq.id == "headbutt_burst" and not _burst.is_active():
+			_burst.start()   # first hit of a fresh burst chain
 		start_move(seq)
 	elif mode == Mode.RUNNING:
 		mode = Mode.NORMAL   # an attack press with no running variant still ends the run
@@ -145,6 +175,12 @@ func scan_headhold_reversal() -> bool:
 
 func _physics_process(delta: float) -> void:
 	feed_input(get_input_direction(), _buttons_held_mask(), facing())
+	# Headbutt burst: a re-press during a hit buffers the next; a fresh reaction on US ends it.
+	if _burst.is_active():
+		if not Fighter.input_allowed(mode) or _react_timer > 0.0:
+			_burst.reset()                                   # we got hit/knocked -> burst broken
+		elif _pressed(_action_prefix() + "high_punch"):
+			_burst.note_continue()
 	# If both fighters buffer a counter on the same frame, the first to _physics_process
 	# (scene-tree order) wins; the loser is already GRABBED and skips its own scan.
 	if mode == Fighter.Mode.HEADHELD and not is_attacking():
@@ -158,7 +194,11 @@ func _physics_process(delta: float) -> void:
 	# Specials are checked before normal-move dispatch (arcade move_doink runs
 	# check_secret_moves before mode_normal, every frame). A fired grab pre-empts the
 	# normal attack on the same press.
-	if Fighter.input_allowed(mode) and not is_attacking():
+	if Fighter.input_allowed(mode) and not is_attacking() and _react_timer <= 0.0:
+		if _burst.is_active():
+			if _service_burst_end(_burst_close_to_target()):
+				super(delta)
+				return
 		if scan_specials():
 			super(delta)
 			return
