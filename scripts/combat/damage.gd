@@ -18,11 +18,16 @@ const GRAPPLE_DAMAGE := {
 	"joy_buzzer": 25,   # D_BUZZ (NOT pre-scaled in the arcade)
 }
 
-## Damage a hit deals. `repeat` picks the ⅔ column; `blocked` overrides to 1px.
-static func resolve(amode: int, repeat: bool, blocked: bool) -> int:
+## Damage a hit deals. `repeat` picks the ⅔ column; `blocked` overrides to 1px. `base_override`
+## (> 0) replaces the attack_mode base (still offense-scaled, and not reduced by `repeat`).
+static func resolve(amode: int, repeat: bool, blocked: bool, base_override: int = 0) -> int:
 	if blocked:
 		return BLOCK_DAMAGE
-	var base_dmg := DamageTable.repeat(amode) if repeat else DamageTable.base(amode)
+	var base_dmg: int
+	if base_override > 0:
+		base_dmg = base_override
+	else:
+		base_dmg = DamageTable.repeat(amode) if repeat else DamageTable.base(amode)
 	return (base_dmg * (256 + OFFENSE_MOD)) / 256   # ×1.348, integer
 
 ## Subtract `dmg` from `life`, clamped [0, LIFE_MAX], with the lethal fudge:

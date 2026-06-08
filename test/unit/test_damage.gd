@@ -37,3 +37,18 @@ func test_new_strike_modes_have_base_damage():
 	assert_gt(DamageTable.base(AMode.EARSLAP), 0)
 	assert_gt(DamageTable.base(AMode.HAMMER), 0)
 	assert_gt(DamageTable.base(AMode.BOXGLOVE), 0)
+
+func test_base_override_replaces_amode_base():
+	# 17 * 345 / 256 = 22 (overrides HDBUTT's base of 12)
+	assert_eq(Damage.resolve(AMode.HDBUTT, false, false, 17), 22)
+
+func test_base_override_ignores_repeat_column():
+	# override is a fixed base; repeat does NOT drop it to 2/3 -> still 22
+	assert_eq(Damage.resolve(AMode.HDBUTT, true, false, 17), 22)
+
+func test_base_override_still_blocked_is_one():
+	assert_eq(Damage.resolve(AMode.HDBUTT, false, true, 17), 1)
+
+func test_zero_override_uses_amode_base():
+	# 12 * 345 / 256 = 16 (HDBUTT default, unchanged)
+	assert_eq(Damage.resolve(AMode.HDBUTT, false, false, 0), 16)
