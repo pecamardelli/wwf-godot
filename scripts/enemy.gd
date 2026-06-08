@@ -40,6 +40,9 @@ func wants_to_block() -> bool:
 	return _intent.action == AIIntent.Action.BLOCK
 
 func _physics_process(delta: float) -> void:
+	if mode == Mode.DEAD:
+		super(delta)
+		return
 	# Puppet victim (held/thrown): driven by the captor; no AI this frame.
 	if mode == Mode.GRABBED:
 		super(delta)

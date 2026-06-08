@@ -45,6 +45,15 @@ func test_die_while_holding_a_victim_releases_it():
 	assert_null(vic._grappled_by, "victim is no longer held")
 	assert_eq(vic.mode, Fighter.Mode.NORMAL, "released victim returns to NORMAL")
 
+const _FRAME := 1.0 / 60.0
+
+func test_dead_fighter_does_not_move():
+	var f := _fighter()
+	f.mode = Fighter.Mode.DEAD
+	f.velocity = Vector2(500, 0)   # would drift if the physics step ran
+	f._physics_process(_FRAME)
+	assert_eq(f.global_position, Vector2(100, 400), "a DEAD fighter is frozen in place")
+
 func test_die_while_held_releases_the_captor():
 	var captor := _fighter()
 	var vic := _fighter()

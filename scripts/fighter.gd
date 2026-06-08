@@ -138,8 +138,8 @@ func _physics_process(delta: float) -> void:
 	_sim_time += delta
 	if _immobilize_time > 0.0:
 		_immobilize_time = maxf(_immobilize_time - delta, 0.0)
-	# Puppet victim: driven entirely by the captor; skip own simulation.
-	if mode == Mode.GRABBED or mode == Mode.HEADHELD:
+	# Puppet victim (driven by the captor) or a defeated body: skip own simulation.
+	if mode == Mode.GRABBED or mode == Mode.HEADHELD or mode == Mode.DEAD:
 		return
 	_update_target()
 	# Orientation snap: face the target ONLY while actively striking. The arcade sets facing at

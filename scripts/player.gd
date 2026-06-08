@@ -174,6 +174,9 @@ func scan_headhold_reversal() -> bool:
 	return false
 
 func _physics_process(delta: float) -> void:
+	if mode == Mode.DEAD:
+		super(delta)
+		return
 	feed_input(get_input_direction(), _buttons_held_mask(), facing())
 	# Headbutt burst: a re-press during a hit buffers the next; a fresh reaction on US ends it.
 	if _burst.is_active():
