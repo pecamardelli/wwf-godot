@@ -49,3 +49,4 @@ anim_name_back = "headbutt_back"
 attack_mode = 1
 frames = Array[ExtResource("1_x681u")]([SubResource("Resource_hwsme"), SubResource("Resource_x6scx"), SubResource("Resource_yjxvg"), SubResource("Resource_tli7x"), SubResource("Resource_8v45i"), SubResource("Resource_futwv")])
 causes_dizzy = true
+locks_victim = true

@@ -26,7 +26,17 @@ func _init() -> void:
 	_sf = load(FRAMES)
 	# Punch-family strikes run at 2 ticks/frame (snappier); kicks stay at the default 3.
 	_save(_strike("punch",    "mid_punch_front", AMode.PUNCH,   8, 4, _ab(22, 86, 0, 55, 9, 10), false, 2, "mid_punch_back"))
-	_save(_strike("headbutt", "headbutt_front",  AMode.HDBUTT,  6, 3, _ab(18, 92, 0, 40, 12, 10), true, 2, "headbutt_back"))
+	# Close LOW_PUNCH: single slower (3 ticks/frame), stronger (override 17 > 12) headbutt that POPS.
+	var hb := _strike("headbutt", "headbutt_front", AMode.HDBUTT, 6, 3, _ab(18, 92, 0, 40, 12, 10), true, 3, "headbutt_back")
+	hb.victim_pop = true
+	hb.damage_override = 17
+	_save(hb)
+	# Close HIGH_PUNCH: fast (2 ticks/frame) burst hit. Dizzy STUN, NO pop (the burst chain applies
+	# the ender pop). Reuses the same headbutt art; mapped CLOSE+NEUTRAL+HIGH_PUNCH in the move table.
+	var hbb := _strike("headbutt_burst", "headbutt_front", AMode.HDBUTT, 6, 3, _ab(18, 92, 0, 40, 12, 10), true, 2, "headbutt_back")
+	hbb.victim_pop = false
+	hbb.locks_victim = true   # pin both fighters in place during the burst (arcade combo lock)
+	_save(hbb)
 	_save(_strike("kick",     "mid_kick_front",  AMode.KICK,    9, 5, _ab(26, 50, 0, 60, 14, 10), false, 3, "mid_kick_back"))
 	_save(_strike("uppercut", "uppercut",        AMode.UPRCUT,  6, 3, _ab(28, 66, 0, 60, 36, 10), false, 2))
 	_save(_strike("big_boot", "big_boot",        AMode.BIGBOOT, 8, 4, _ab(34, 60, 0, 70, 20, 10)))

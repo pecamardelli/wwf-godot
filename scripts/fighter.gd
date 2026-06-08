@@ -859,14 +859,18 @@ func receive_hit(attacker: Fighter, move: MoveSequence) -> void:
 			Sound.announce(SoundCategory.ANNC_IMPRESSIVE, 2)
 	_fall_orientation = Reaction.fall_orientation(family, move.id)
 	var r := Reaction.resolve(family, hit_dir, move.causes_dizzy, move.victim_pop)
+	if move.locks_victim:
+		r.knockback = 0.0   # burst hit: pin the victim in place (arcade combo lock)
 	_enter_reaction(r, hit_dir)
 
 ## Apply the headbutt pop to this victim with no strike landing — the burst chain (Player) pops
 ## whoever it last hit the moment the burst ends. Reuses the dizzy + hop reaction; the shipped
-## re-hit restart makes the hand-off from the last intermediate stun smooth.
+## re-hit restart makes the hand-off from the last intermediate stun smooth. The pop is vertical
+## only — no horizontal knockback, so the victim stays pinned through the whole burst.
 func pop_from_headbutt(attacker: Fighter) -> void:
 	var hit_dir := Hitbox.hit_side(attacker.global_position, global_position)
 	var r := Reaction.resolve(AMode.Family.HEAD_HIT, hit_dir, true, true)
+	r.knockback = 0.0
 	_enter_reaction(r, hit_dir)
 
 ## Bind `attacker` as my captor. A neck grab enters the persistent HEAD HOLD
