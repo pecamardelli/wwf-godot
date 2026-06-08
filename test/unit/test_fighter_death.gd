@@ -64,6 +64,33 @@ func test_a_dead_fighter_cannot_be_hit():
 		resolver.resolve_tick()
 	assert_true(attacker._hit_by_current_move.is_empty(), "a strike never connects with a dead body")
 
+func test_lethal_strike_kills_the_victim():
+	var attacker := _fighter()
+	var victim := _fighter()
+	victim.health = 5                  # punch does 10 -> lethal
+	victim.receive_hit(attacker, _punch())
+	assert_true(victim.is_dead())
+	assert_eq(victim.mode, Fighter.Mode.DEAD, "killing blow collapses, not a normal reaction")
+
+func test_non_lethal_strike_does_not_kill():
+	var attacker := _fighter()
+	var victim := _fighter()
+	victim.health = 100
+	victim.receive_hit(attacker, _punch())
+	assert_false(victim.is_dead())
+	assert_ne(victim.mode, Fighter.Mode.DEAD)
+
+func test_lethal_throw_collapses_on_release():
+	var captor := _fighter()
+	var vic := _fighter()
+	captor._grappling = vic
+	vic._grappled_by = captor
+	vic.mode = Fighter.Mode.GRABBED
+	vic.health = 0                     # the throw's damage already killed it
+	captor._player.play(load("res://assets/sequences/doink/hip_toss.tres"))
+	captor._detach_victim()
+	assert_eq(vic.mode, Fighter.Mode.DEAD, "a lethal throw collapses the victim instead of getting up")
+
 func test_dead_fighter_does_not_move():
 	var f := _fighter()
 	f.mode = Fighter.Mode.DEAD

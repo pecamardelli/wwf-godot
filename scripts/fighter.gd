@@ -777,6 +777,14 @@ func _detach_victim() -> void:
 	_grappling = null
 	if vic != null and is_instance_valid(vic):
 		vic._grappled_by = null
+		if vic.is_dead():
+			# the throw was lethal: collapse + fade on landing instead of getting up.
+			if not _throw_impact_played:
+				Sound.play_body_drop(vic)
+				Sound.play_throw_pain(vic, _player.sequence)
+				_throw_impact_played = true
+			vic.die()
+			return
 		vic.mode = Mode.ONGROUND
 		vic._react_recover_mode = Mode.NORMAL
 		var mv_id: String = _player.sequence.id if _player.sequence != null else ""
@@ -897,6 +905,8 @@ func receive_hit(attacker: Fighter, move: MoveSequence) -> void:
 	# rapid events (the announcer self-gates).
 	if is_dead():
 		Sound.announce(SoundCategory.ANNC_KO, 3)
+		die()   # killing blow: collapse + fade instead of a normal reaction
+		return
 	elif family == AMode.Family.KNOCKDOWN:
 		if health <= _LOW_HEALTH_THRESHOLD:
 			Sound.announce(SoundCategory.ANNC_NEAR_KO, 1)
