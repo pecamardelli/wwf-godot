@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="MoveSequence" format=3 uid="uid://wnbgvkunaak1"]
 
-[ext_resource type="Script" uid="uid://c61ucv4r2ha6x" path="res://scripts/combat/sequence_frame.gd" id="1_yq2l7"]
-[ext_resource type="Script" uid="uid://brsta1ihitooi" path="res://scripts/combat/box3.gd" id="2_gmmwc"]
-[ext_resource type="Script" uid="uid://cphnka8o5uy2p" path="res://scripts/combat/move_sequence.gd" id="3_uohoo"]
+[ext_resource type="Script" path="res://scripts/combat/sequence_frame.gd" id="1_yq2l7"]
+[ext_resource type="Script" path="res://scripts/combat/box3.gd" id="2_gmmwc"]
+[ext_resource type="Script" path="res://scripts/combat/move_sequence.gd" id="3_uohoo"]
 
 [sub_resource type="Resource" id="Resource_3wted"]
 script = ExtResource("1_yq2l7")

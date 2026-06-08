@@ -1,0 +1,51 @@
+[gd_resource type="Resource" script_class="MoveSequence" format=3 uid="uid://dl3ivdy641hqh"]
+
+[ext_resource type="Script" path="res://scripts/combat/sequence_frame.gd" id="1_x681u"]
+[ext_resource type="Script" path="res://scripts/combat/box3.gd" id="2_vqo3y"]
+[ext_resource type="Script" path="res://scripts/combat/move_sequence.gd" id="3_k6pb2"]
+
+[sub_resource type="Resource" id="Resource_hwsme"]
+script = ExtResource("1_x681u")
+duration_ticks = 2
+
+[sub_resource type="Resource" id="Resource_x6scx"]
+script = ExtResource("1_x681u")
+duration_ticks = 2
+anim_frame = 1
+
+[sub_resource type="Resource" id="Resource_yjxvg"]
+script = ExtResource("1_x681u")
+duration_ticks = 2
+anim_frame = 2
+
+[sub_resource type="Resource" id="Resource_0jblo"]
+script = ExtResource("2_vqo3y")
+offset = Vector3(18, 92, 0)
+size = Vector3(40, 12, 10)
+
+[sub_resource type="Resource" id="Resource_tli7x"]
+script = ExtResource("1_x681u")
+duration_ticks = 2
+anim_frame = 3
+command = 2
+attack_box = SubResource("Resource_0jblo")
+
+[sub_resource type="Resource" id="Resource_8v45i"]
+script = ExtResource("1_x681u")
+duration_ticks = 2
+anim_frame = 4
+
+[sub_resource type="Resource" id="Resource_futwv"]
+script = ExtResource("1_x681u")
+duration_ticks = 2
+anim_frame = 5
+command = 3
+
+[resource]
+script = ExtResource("3_k6pb2")
+id = "headbutt_burst"
+anim_name = "headbutt_front"
+anim_name_back = "headbutt_back"
+attack_mode = 1
+frames = Array[ExtResource("1_x681u")]([SubResource("Resource_hwsme"), SubResource("Resource_x6scx"), SubResource("Resource_yjxvg"), SubResource("Resource_tli7x"), SubResource("Resource_8v45i"), SubResource("Resource_futwv")])
+causes_dizzy = true

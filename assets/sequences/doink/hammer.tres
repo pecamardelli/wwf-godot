@@ -1,9 +1,8 @@
 [gd_resource type="Resource" script_class="MoveSequence" format=3 uid="uid://cpl3hcs2hownl"]
 
-[ext_resource type="Script" uid="uid://c61ucv4r2ha6x" path="res://scripts/combat/sequence_frame.gd" id="1_dxklo"]
-[ext_resource type="Script" uid="uid://brsta1ihitooi" path="res://scripts/combat/box3.gd" id="2_68rw6"]
-[ext_resource type="Script" uid="uid://cphnka8o5uy2p" path="res://scripts/combat/move_sequence.gd" id="3_61cwt"]
-[ext_resource type="Resource" path="res://assets/audio/entries/doink_hammer.tres" id="snd_hammer"]
+[ext_resource type="Script" path="res://scripts/combat/sequence_frame.gd" id="1_dxklo"]
+[ext_resource type="Script" path="res://scripts/combat/box3.gd" id="2_68rw6"]
+[ext_resource type="Script" path="res://scripts/combat/move_sequence.gd" id="3_61cwt"]
 
 [sub_resource type="Resource" id="Resource_23gnv"]
 script = ExtResource("1_dxklo")
@@ -30,7 +29,6 @@ duration_ticks = 3
 anim_frame = 3
 command = 2
 attack_box = SubResource("Resource_0ol4g")
-sound = ExtResource("snd_hammer")
 
 [sub_resource type="Resource" id="Resource_ffidv"]
 script = ExtResource("1_dxklo")
