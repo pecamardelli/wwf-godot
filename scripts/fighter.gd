@@ -5,7 +5,7 @@ extends CharacterBody2D
 
 ## PLYRMODE-style state (arcade PLYR.EQU MODE_*). Helpless modes never read input —
 ## that is exactly how the arcade disables control while stunned/down.
-enum Mode { NORMAL, RUNNING, INAIR, ONGROUND, BLOCK, DIZZY, GRABBING, GRABBED, HEADHOLD, HEADHELD }
+enum Mode { NORMAL, RUNNING, INAIR, ONGROUND, BLOCK, DIZZY, GRABBING, GRABBED, HEADHOLD, HEADHELD, DEAD }
 var mode: int = Mode.NORMAL
 
 ## How a wrestler landed when knocked down — selects the getup clip (wired in the getup
@@ -123,7 +123,7 @@ func is_attacking() -> bool:
 	return _player.is_playing()
 
 func is_dead() -> bool:
-	return health <= 0
+	return mode == Mode.DEAD or health <= 0
 
 ## Refresh `target` from the "fighters" group. Recompute immediately when we have
 ## no live target; otherwise only every 4th tick, staggered per fighter.
