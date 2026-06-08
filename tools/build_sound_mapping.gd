@@ -27,6 +27,8 @@ func _init() -> void:
 	for move_id in json:
 		if move_id == SHARED_HIT_GROUND:
 			continue   # reserved shared bucket, handled above
+		if json[move_id] is String:
+			continue   # alias (move_id -> other move_id); resolved in pass 2, stages no files
 		var buckets: Dictionary = json[move_id]
 		for kind in ["swing", "hit"]:
 			for v in buckets.get(kind, []):
@@ -57,6 +59,8 @@ func _init() -> void:
 	for move_id in json:
 		if move_id == SHARED_HIT_GROUND:
 			continue
+		if json[move_id] is String:
+			continue   # alias; resolved after every real move is built (below)
 		var buckets: Dictionary = json[move_id]
 		var ms := MoveSounds.new()
 		ms.swing = _sfx_pool(buckets.get("swing", []), dest_of)
@@ -66,6 +70,15 @@ func _init() -> void:
 		t.moves[move_id] = ms
 		print("%s: swing %d, hit %d, attack %s, pain %s" % [move_id,
 			ms.swing.streams.size(), ms.hit.streams.size(), ms.attack.keys(), ms.pain.keys()])
+	# Aliases: point an alias move_id at the SAME MoveSounds as its target (no duplicated data).
+	for move_id in json:
+		if move_id == SHARED_HIT_GROUND or not (json[move_id] is String):
+			continue
+		var target: String = json[move_id]
+		if not t.moves.has(target):
+			push_error("alias %s -> unknown move %s" % [move_id, target]); quit(1); return
+		t.moves[move_id] = t.moves[target]
+		print("%s -> alias of %s" % [move_id, target])
 	var uid_text := Uid.preserve_or_mint(OUT)
 	var err := ResourceSaver.save(t, OUT)
 	if err == OK:

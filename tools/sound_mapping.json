@@ -144,7 +144,7 @@
       "doink": [
         {
           "file": "Yokozuna pain 2.wav",
-          "probability": 0.3
+          "probability": 0.5
         },
         {
           "file": "Doink pain 11.wav",
@@ -177,6 +177,7 @@
       ]
     }
   },
+  "headbutt_burst": "headbutt",
   "hip_toss": {
     "attack": {
       "doink": [

@@ -15,6 +15,12 @@ func test_real_table_has_punch_and_headbutt():
 	assert_true(Sound.has_move_sounds("headbutt"), "headbutt is mapped")
 	assert_false(Sound.has_move_sounds("knee"), "knee is not mapped")
 
+func test_headbutt_burst_aliases_the_headbutt_sounds():
+	# The burst hit shares the single headbutt's exact sound mapping (same MoveSounds instance).
+	assert_true(Sound.has_move_sounds("headbutt_burst"), "headbutt_burst is mapped (alias)")
+	assert_same(Sound.move_table.resolve("headbutt_burst"), Sound.move_table.resolve("headbutt"),
+		"burst resolves to the SAME MoveSounds as the single headbutt")
+
 func test_shared_hit_ground_pool_built():
 	# hit_ground is a single shared pool on the table, not duplicated per move.
 	assert_true(Sound.has_shared_hit_ground(), "shared body-drop pool is built")

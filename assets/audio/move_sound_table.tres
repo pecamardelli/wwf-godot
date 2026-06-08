@@ -96,7 +96,7 @@ weights = Array[float]([50.0, 10.0, 30.0, 30.0, 30.0])
 [sub_resource type="Resource" id="Resource_m3gsb"]
 script = ExtResource("1_6fljt")
 streams = Array[AudioStream]([ExtResource("23_cnhyo"), ExtResource("17_wvnd6"), ExtResource("24_s08w0"), ExtResource("25_rp673"), ExtResource("26_duiya"), ExtResource("27_ef8hw"), ExtResource("28_vproj"), ExtResource("29_o3q25")])
-weights = Array[float]([0.3, 0.05, 0.05, 0.05, 0.02, 0.09, 0.09, 0.2])
+weights = Array[float]([0.5, 0.05, 0.05, 0.05, 0.02, 0.09, 0.09, 0.2])
 chance_gated = true
 bus = &"Voice"
 
@@ -151,6 +151,7 @@ pain = {
 script = ExtResource("40_3qehk")
 moves = {
 "headbutt": SubResource("Resource_jwp83"),
+"headbutt_burst": SubResource("Resource_jwp83"),
 "hip_toss": SubResource("Resource_hj7rd"),
 "punch": SubResource("Resource_sjc2p")
 }
