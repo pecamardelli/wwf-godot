@@ -1,4 +1,26 @@
 {
+  "hit_ground": [
+    {
+      "file": "Ring body drop.wav",
+      "precedence": 100
+    },
+    {
+      "file": "Ring impact.wav",
+      "precedence": 50
+    },
+    {
+      "file": "Ring impact hard.wav",
+      "precedence": 50
+    },
+    {
+      "file": "Ring impact hard 2.wav",
+      "precedence": 50
+    },
+    {
+      "file": "Ring impact hard 3.wav",
+      "precedence": 50
+    }
+  ],
   "punch": {
     "swing": [
       {
@@ -151,6 +173,60 @@
         {
           "file": "Shawn pain 5.wav",
           "probability": 0.2
+        }
+      ]
+    }
+  },
+  "hip_toss": {
+    "attack": {
+      "doink": [
+        {
+          "file": "Doink attack.wav",
+          "probability": 0.05
+        },
+        {
+          "file": "Doink attack 3.wav",
+          "probability": 0.05
+        },
+        {
+          "file": "Doink attack 4.wav",
+          "probability": 0.05
+        },
+        {
+          "file": "Doink attack 10.wav",
+          "probability": 0.04
+        },
+        {
+          "file": "Doink attack 12.wav",
+          "probability": 0.04
+        }
+      ]
+    },
+    "pain": {
+      "doink": [
+        {
+          "file": "Doink pain.wav",
+          "probability": 0.03
+        },
+        {
+          "file": "Doink pain 3.wav",
+          "probability": 0.1
+        },
+        {
+          "file": "Doink pain 6.wav",
+          "probability": 0.1
+        },
+        {
+          "file": "Doink pain 9.wav",
+          "probability": 0.03
+        },
+        {
+          "file": "Doink pain 10.wav",
+          "probability": 0.09
+        },
+        {
+          "file": "Doink pain 12.wav",
+          "probability": 0.09
         }
       ]
     }

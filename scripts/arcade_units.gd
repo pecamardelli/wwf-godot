@@ -44,3 +44,4 @@ const MAX_FALL: float = -13568.0     # MAX_YVEL -0x1000000 (WRESTLE2.ASM:2280): 
 const FLYKICK_YVEL: float = 477.0    # 0x90000 launch (DNKSEQ2.ASM:902 spin/flying kick LEAPATOPP)
 const CLINE_YVEL: float = 331.25     # 0x64000 launch (DNKSEQ2.ASM:2401 flying clothesline)
 const CLINE_XVEL: float = 304.75     # 0x5c000 forward (DNKSEQ2.ASM:2402 flying clothesline)
+const HDBUTT_HOP_YVEL: float = 198.75  # 0x3c000 pop (REACT1.ASM:1171 headbutt OBJ_YVEL): small hop

@@ -85,6 +85,10 @@ var _hit_by_current_move: Array = []   # victims already hit by the swing in pro
 var _sim_time: float = 0.0             # accumulated per-fighter sim clock (fixed-tick determinism)
 var _grappling: Fighter = null     # the victim I am driving (puppet)
 var _grappled_by: Fighter = null   # the attacker driving me
+## Latches the throw's landing impact (body-drop thud + victim pain) to ONE play per throw: the
+## hip-toss sequence hits both a DAMAGE_OPP and a DETACH frame, but the victim should thud/grunt
+## once (else a chance-gated pain would roll twice). Reset when a grapple move starts.
+var _throw_impact_played: bool = false
 var _immobilize_time: float = 0.0   # seconds of generic stun (gates buffer specials/reversals)
 var _last_headhold_time: float = -999.0   # _sim_time when last head-grabbed (2s re-grab cooldown)
 var _headhold_break_time: float = 0.0   # seconds until the hold auto-releases
@@ -152,6 +156,7 @@ func _physics_process(delta: float) -> void:
 	# off to the RISE phase when it expires; other reactions recover straight to NORMAL.
 	if _react_timer > 0.0:
 		_react_timer -= delta
+		_step_react_hop(delta)   # integrate any reaction pop-up (headbutt); no-op when grounded
 		_hold_in_place()
 		if _react_timer <= 0.0:
 			if mode == Mode.ONGROUND:
@@ -311,7 +316,7 @@ func _apply_separation() -> void:
 const _LEFT_DRAWN := {
 	"defence": true,
 	"facepunched_front": true, "facepunched_back": true,
-	"shoved": true, "droped": true, "damage_lying": true, "stuned": true,
+	"shoved": true, "droped": true, "damage_lying": true, "headbutted_salted": true,
 	"get_up_front": true, "get_up_back": true, "get_up_back_2": true,
 }
 
@@ -537,6 +542,7 @@ func start_move(move: MoveSequence) -> void:
 		_leap_vel = 0.0
 		_recoil_remaining = 0.0
 		_block_recoiled = false
+		_throw_impact_played = false   # fresh landing-impact roll for this throw
 	_player.play(move)
 	if Sound.has_move_sounds(move.id):
 		Sound.play_move_swing(self, move)
@@ -579,6 +585,21 @@ func _step_air(delta: float) -> void:
 	move_and_slide()
 	global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
 
+## Integrate a reaction's vertical pop-up (e.g. the headbutt hop) while a hitstun/dizzy timer
+## runs. Same gravity arc as _step_air but altitude-only: the planar position is held by the
+## caller's _hold_in_place(), and landing does NOT change mode (the reaction timer owns recovery).
+## No-op once grounded, so non-popping reactions pay nothing.
+func _step_react_hop(delta: float) -> void:
+	if _vy == 0.0 and _height <= 0.0:
+		return
+	_vy -= ArcadeUnits.GRAVITY * delta
+	_vy = maxf(_vy, ArcadeUnits.MAX_FALL)
+	_height += _vy * delta
+	if _height <= 0.0:
+		_height = 0.0
+		_vy = 0.0
+	_refresh_flip()   # re-apply sprite.offset.y for the new altitude
+
 ## Drive the attached victim from the current SequenceFrame's slave track + intents.
 func _drive_victim(_delta: float) -> void:
 	var vic: Fighter = _grappling
@@ -614,8 +635,10 @@ func _drive_victim(_delta: float) -> void:
 		var dmg: int = Damage.GRAPPLE_DAMAGE.get(key, 20)
 		vic.health = Damage.apply_health(vic.health, dmg)
 		vic._last_damage_time = vic._sim_time
-		Sound.play_impact(vic.wrestler_id, SoundCategory.BODY_DROP, vic.global_position)
-		Sound.play_category(vic, SoundCategory.PAIN)
+		if not _throw_impact_played:
+			Sound.play_body_drop(vic)
+			Sound.play_throw_pain(vic, _player.sequence)
+			_throw_impact_played = true
 		if vic.is_dead():
 			Sound.announce(SoundCategory.ANNC_KO, 3)
 		else:
@@ -713,8 +736,11 @@ func _detach_victim() -> void:
 		vic._react_recover_mode = Mode.NORMAL
 		var mv_id: String = _player.sequence.id if _player.sequence != null else ""
 		vic._fall_orientation = Reaction.fall_orientation(AMode.Family.KNOCKDOWN, mv_id)
-		Sound.play_impact(vic.wrestler_id, SoundCategory.BODY_DROP, vic.global_position)
-		Sound.play_category(vic, SoundCategory.PAIN)
+		# Skip if DAMAGE_OPP already played this throw's landing impact (hip toss hits both frames).
+		if not _throw_impact_played:
+			Sound.play_body_drop(vic)
+			Sound.play_throw_pain(vic, _player.sequence)
+			_throw_impact_played = true
 		# Some throws (hip toss) flip the victim over: it lands facing opposite the attacker.
 		if _LAND_FACING_AWAY_MOVES.has(mv_id):
 			vic._facing = -_facing
@@ -820,7 +846,7 @@ func receive_hit(attacker: Fighter, move: MoveSequence) -> void:
 		Sound.play_impact(attacker.wrestler_id, move.attack_mode, global_position)
 		Sound.play_category(self, SoundCategory.PAIN)
 	if family == AMode.Family.KNOCKDOWN:
-		Sound.play_category(self, SoundCategory.BODY_DROP)
+		Sound.play_body_drop(self)   # shared body-drop thud (or legacy BODY_DROP fallback)
 	# Play-by-play: KO on a lethal blow; otherwise a big (knockdown) move is impressive — unless the
 	# victim is on the ropes, where the near-KO suspense line fits better. Cooldown+priority collapse
 	# rapid events (the announcer self-gates).
@@ -897,8 +923,26 @@ func _enter_reaction(r: Dictionary, hit_dir: int) -> void:
 	mode = r.mode
 	global_position.x += hit_dir * r.knockback  # push the victim AWAY from the attacker
 	_react_recover_mode = Mode.NORMAL
-	_react_timer = ArcadeUnits.ticks_to_seconds(maxi(r.hitstun_ticks, r.getup_ticks))
+	# A small upward pop on some reactions (headbutt). Integrated during the countdown below,
+	# rendered through sprite.offset.y; purely vertical, the planar position stays held.
+	var hop: float = r.get("hop", 0.0)
+	if hop > 0.0:
+		_height = 0.0
+		_vy = hop
+	# anim_timed reactions recover the instant their clip finishes (arcade head_hit2 -> NORMAL),
+	# so the victim never freezes on the last frame; fall back to the tick timer if the clip is
+	# missing/unmeasurable.
+	if r.get("anim_timed", false):
+		_react_timer = _anim_length_seconds(r.anim)
+	if not r.get("anim_timed", false) or _react_timer <= 0.0:
+		_react_timer = ArcadeUnits.ticks_to_seconds(maxi(r.hitstun_ticks, r.getup_ticks))
 	if sprite != null and sprite.sprite_frames != null and sprite.sprite_frames.has_animation(r.anim):
+		# Restart from frame 0 even if this clip is already current: a re-hit during the reaction
+		# must replay the WHOLE animation (and re-pop), staying in sync with the reset _react_timer.
+		# Without this, play() resumes mid-clip, the anim ends early, and the victim freezes on the
+		# last frame for the timer's remainder. The arcade plays each head_hit2 reaction in full.
+		sprite.animation = r.anim
+		sprite.set_frame_and_progress(0, 0.0)
 		sprite.play(r.anim)
 		_refresh_flip()
 

@@ -28,15 +28,20 @@ static func resolve(family: int, side: int, dizzy: bool) -> Dictionary:
 		AMode.Family.BLOCK:
 			return _r("defence", Fighter.Mode.BLOCK, 6, 2.0, 0)
 		AMode.Family.DIZZY:
-			return _r("stuned", Fighter.Mode.DIZZY, 0, 6.0,
-				AMode.getup_ticks(AMode.Family.DIZZY))
+			# Headbutt: a small upward pop (arcade REACT1.ASM:1171 OBJ_YVEL 0x3c000) and recovery
+			# the moment the reaction clip ends (arcade head_hit2 anim -> MODE_NORMAL), not a long
+			# fixed timer. getup_ticks is kept only as a fallback if the clip can't be measured.
+			return _r("headbutted_salted", Fighter.Mode.DIZZY, 0, 6.0,
+				AMode.getup_ticks(AMode.Family.DIZZY), ArcadeUnits.HDBUTT_HOP_YVEL, true)
 		_:
 			return _r("shoved", Fighter.Mode.NORMAL, 12, 10.0, 0)
 
-static func _r(anim: String, mode: int, hitstun: int, knockback: float, getup: int) -> Dictionary:
+static func _r(anim: String, mode: int, hitstun: int, knockback: float, getup: int,
+		hop: float = 0.0, anim_timed: bool = false) -> Dictionary:
 	return {
 		"anim": anim, "mode": mode, "hitstun_ticks": hitstun,
 		"knockback": knockback, "getup_ticks": getup,
+		"hop": hop, "anim_timed": anim_timed,
 	}
 
 ## Moves that drop the victim face-first (slam / roll) -> get_up_back_2. Everything else is

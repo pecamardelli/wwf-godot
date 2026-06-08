@@ -170,15 +170,42 @@ func play_move_swing(attacker: Node, move: MoveSequence) -> void:
 		_play_pool_voice(attacker, ms.attack[wid])
 
 ## Contact: the move's impact (SFX at the victim) + the victim's pain (Voice, may be silent).
+## Pain is keyed by the VICTIM's wrestler id (it's the hurt fighter's own grunt), unlike the
+## attacker-keyed swing/effort above.
 func play_move_hit(attacker: Node, victim: Node, move: MoveSequence) -> void:
 	var ms: MoveSounds = move_table.resolve(move.id) if move_table != null else null
 	if ms == null:
 		return
 	if ms.hit != null:
 		_play_pool_sfx(ms.hit, victim.global_position)
-	var wid: StringName = attacker.wrestler_id
-	if ms.pain.has(wid):
-		_play_pool_voice(victim, ms.pain[wid])
+	var vid: StringName = victim.wrestler_id
+	if ms.pain.has(vid):
+		_play_pool_voice(victim, ms.pain[vid])
+
+## True when the shared body-drop (hit_ground) pool is built and non-empty.
+func has_shared_hit_ground() -> bool:
+	return move_table != null and move_table.hit_ground != null \
+		and not move_table.hit_ground.streams.is_empty()
+
+## The victim's pain when a throw lands. Prefer the move's per-move pain pool (chance-gated, keyed
+## by the VICTIM's wrestler id — its own pain grunt — so the summed probability is honored, e.g. a
+## 0.30 sum means a ~30% chance the victim grunts); fall back to the legacy always-on PAIN
+## category. `move` may be null (legacy only).
+func play_throw_pain(victim: Node, move: MoveSequence) -> void:
+	var ms: MoveSounds = move_table.resolve(move.id) if (move != null and move_table != null) else null
+	var vid: StringName = victim.get("wrestler_id")
+	if ms != null and ms.pain.has(vid):
+		_play_pool_voice(victim, ms.pain[vid])
+	else:
+		play_category(victim, SoundCategory.PAIN)
+
+## The thud of `victim` hitting the floor — universal across every throw landing and knockdown.
+## Prefer the shared hit_ground pool (SFX at the victim); fall back to the legacy BODY_DROP category.
+func play_body_drop(victim: Node) -> void:
+	if has_shared_hit_ground():
+		_play_pool_sfx(move_table.hit_ground, victim.global_position)
+	else:
+		play_impact(victim.get("wrestler_id"), SoundCategory.BODY_DROP, victim.global_position)
 
 func _play_pool_sfx(pool: SoundPool, at_pos: Vector2) -> void:
 	var s := pool.pick_stream(rng)

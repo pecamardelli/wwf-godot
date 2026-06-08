@@ -15,6 +15,31 @@ func test_real_table_has_punch_and_headbutt():
 	assert_true(Sound.has_move_sounds("headbutt"), "headbutt is mapped")
 	assert_false(Sound.has_move_sounds("knee"), "knee is not mapped")
 
+func test_shared_hit_ground_pool_built():
+	# hit_ground is a single shared pool on the table, not duplicated per move.
+	assert_true(Sound.has_shared_hit_ground(), "shared body-drop pool is built")
+	assert_eq(Sound.move_table.hit_ground.streams.size(), 5, "all five ring-impact variants resolved")
+	# It is NOT nested under any move.
+	assert_true(Sound.has_move_sounds("hip_toss"), "hip_toss is still mapped (attack/pain)")
+
+func test_hip_toss_doink_pain_pool_matches_the_mapping():
+	var ms: MoveSounds = Sound.move_table.resolve("hip_toss")
+	assert_true(ms.pain.has(&"doink"), "Doink has a hip-toss pain pool")
+	var pool: SoundPool = ms.pain[&"doink"]
+	assert_true(pool.chance_gated, "pain is chance-gated (probability), not always-on precedence")
+	# The built pool must mirror the mapping's variant count and summed probability (robust to tuning).
+	var json: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://tools/sound_mapping.json"))
+	var variants: Array = json["hip_toss"]["pain"]["doink"]
+	var expected := 0.0
+	for v in variants:
+		expected += float(v["probability"])
+	assert_eq(pool.streams.size(), variants.size(), "every mapped pain variant resolved")
+	var total := 0.0
+	for w in pool.weights:
+		total += w
+	assert_almost_eq(total, expected, 0.0001, "summed pain probability honors the mapping")
+	assert_lt(total, 1.0, "a chance gate leaves room for silence (the victim isn't always vocal)")
+
 func test_punch_swings_then_hits():
 	var punch: MoveSequence = load("res://assets/sequences/doink/punch.tres")
 	var atk := Fighter.new(); add_child_autofree(atk); atk.wrestler_id = &"doink"

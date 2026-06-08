@@ -6,6 +6,7 @@ extends SceneTree
 ## Run: godot --headless --path . -s tools/build_sound_mapping.gd  (then --import, then re-run)
 
 const JSON_PATH := "res://tools/sound_mapping.json"
+const SHARED_HIT_GROUND := "hit_ground"   # reserved top-level key: shared body-drop SFX (not a move)
 const SRC_ROOT := "/media/pablin/DATOS/JUEGOS/Wrestlemania/WWF Sources/Sounds"
 const OUT := "res://assets/audio/move_sound_table.tres"
 const SFX_DIR := "res://assets/audio/sfx"          # swing + hit
@@ -20,7 +21,12 @@ func _init() -> void:
 	var missing: Array[String] = []
 	# Pass 1: resolve + copy every referenced file; collect dest res:// paths.
 	var dest_of := {}   # original filename -> res:// dest path
+	# Shared, move-independent SFX bucket (top-level array, NOT a move): the body-drop thud.
+	for v in json.get(SHARED_HIT_GROUND, []):
+		copied += _stage(v["file"], SFX_DIR, index, dest_of, missing)
 	for move_id in json:
+		if move_id == SHARED_HIT_GROUND:
+			continue   # reserved shared bucket, handled above
 		var buckets: Dictionary = json[move_id]
 		for kind in ["swing", "hit"]:
 			for v in buckets.get(kind, []):
@@ -43,7 +49,14 @@ func _init() -> void:
 		quit(2); return
 	# Pass 2: build the table.
 	var t := MoveSoundTable.new()
+	# Shared body-drop pool (optional: left null when absent -> play_body_drop falls back to BODY_DROP).
+	var shared_hg: Array = json.get(SHARED_HIT_GROUND, [])
+	if not shared_hg.is_empty():
+		t.hit_ground = _sfx_pool(shared_hg, dest_of)
+	print("shared hit_ground: %d" % (t.hit_ground.streams.size() if t.hit_ground != null else 0))
 	for move_id in json:
+		if move_id == SHARED_HIT_GROUND:
+			continue
 		var buckets: Dictionary = json[move_id]
 		var ms := MoveSounds.new()
 		ms.swing = _sfx_pool(buckets.get("swing", []), dest_of)

@@ -38,6 +38,42 @@ func test_hip_toss_full_flow():
 	assert_true(was_downed, "victim knocked down after detach")
 	assert_eq(atk.mode, Fighter.Mode.NORMAL, "attacker returns to NORMAL (not stuck in GRABBING)")
 
+func test_hip_toss_rolls_pain_and_body_drop_once():
+	# The hip-toss sequence has BOTH a DAMAGE_OPP and a DETACH frame; the victim's pain must roll
+	# only ONCE per toss (else the 30% probability would be double-counted), and the body-drop thud
+	# must play once. Inject an always-on per-move pain + shared hit_ground so counts are deterministic.
+	var pain := SoundPool.new(); pain.streams = [AudioStreamWAV.new()]; pain.weights = [1.0]
+	pain.chance_gated = true; pain.bus = &"Voice"
+	var hg := SoundPool.new(); hg.streams = [AudioStreamWAV.new()]; hg.weights = [1.0]
+	hg.chance_gated = false; hg.bus = &"SFX"
+	var ms := MoveSounds.new(); ms.pain = {&"doink": pain}
+	var t := MoveSoundTable.new(); t.moves = {"hip_toss": ms}; t.hit_ground = hg
+	var prev = Sound.move_table
+	Sound.move_table = t
+
+	var atk := _player(Vector2(100, 400), Fighter.Side.PLAYER); atk._set_facing(1.0)
+	atk.wrestler_id = &"doink"
+	var vic := _player(Vector2(150, 400), Fighter.Side.ENEMY); vic.wrestler_id = &"doink"
+	atk.motion_buffer.push(MotionBuffer.J_AWAY | MotionBuffer.J_LEFT, 1)
+	atk.motion_buffer.push(MotionBuffer.J_AWAY | MotionBuffer.J_LEFT, 2)
+	atk.motion_buffer.push(MotionBuffer.B_PUNCH | MotionBuffer.J_AWAY | MotionBuffer.J_LEFT, 3)
+	atk._input_tick = 3
+	atk.scan_specials()
+	var pain_fires := 0
+	var drop_fires := 0
+	for _i in range(70):
+		Sound.last_voice = {}; Sound.last_sfx = {}
+		atk._physics_process(1.0 / 60.0)
+		resolver.resolve_tick()
+		vic._physics_process(1.0 / 60.0)
+		if Sound.last_voice.get("fighter") == vic:
+			pain_fires += 1
+		if not Sound.last_sfx.is_empty():
+			drop_fires += 1
+	Sound.move_table = prev
+	assert_eq(pain_fires, 1, "victim pain rolls exactly once per hip toss")
+	assert_eq(drop_fires, 1, "body-drop thud plays exactly once per hip toss")
+
 func test_hip_toss_lifts_the_victim():
 	var atk := _player(Vector2(100, 400), Fighter.Side.PLAYER); atk._set_facing(1.0)
 	var vic := _player(Vector2(150, 400), Fighter.Side.ENEMY)

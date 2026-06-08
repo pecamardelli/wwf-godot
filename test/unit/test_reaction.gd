@@ -12,11 +12,23 @@ func test_knockdown_goes_onground_with_near_instant_getup():
 	assert_eq(r.getup_ticks, 12)   # Genesis override: near-instant getup (arcade 270 not ported)
 	assert_eq(r.anim, "droped")
 
-func test_dizzy_overrides_to_stuned():
-	var r := Reaction.resolve(AMode.Family.HEAD_HIT, 1, true)   # causes_dizzy = true
+func test_dizzy_overrides_to_headbutted():
+	var r := Reaction.resolve(AMode.Family.HEAD_HIT, 1, true)   # causes_dizzy = true (headbutt)
 	assert_eq(r.mode, Fighter.Mode.DIZZY)
-	assert_eq(r.anim, "stuned")
+	assert_eq(r.anim, "headbutted_salted")
 	assert_eq(r.getup_ticks, 120)
+
+func test_headbutt_reaction_pops_up_and_is_anim_timed():
+	# Headbutt: recover when the reaction clip finishes (anim_timed), and a small upward hop
+	# (arcade REACT1.ASM:1171 OBJ_YVEL 0x3C000).
+	var r := Reaction.resolve(AMode.Family.HEAD_HIT, 1, true)
+	assert_true(r.anim_timed, "headbutt recovers on animation end")
+	assert_almost_eq(r.hop, ArcadeUnits.HDBUTT_HOP_YVEL, 0.01)
+
+func test_non_dizzy_reactions_do_not_hop_or_anim_time():
+	var r := Reaction.resolve(AMode.Family.HEAD_HIT, 1, false)
+	assert_false(r.anim_timed)
+	assert_eq(r.hop, 0.0)
 
 func test_back_side_uses_back_anim():
 	var r := Reaction.resolve(AMode.Family.HEAD_HIT, -1, false)
