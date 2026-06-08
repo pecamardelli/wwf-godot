@@ -15,6 +15,12 @@ extends Resource
 @export var uninterruptable: bool = true
 ## Some moves daze the victim (dizzy family) regardless of the base reaction.
 @export var causes_dizzy: bool = false
+## When this move's hit causes the dizzy reaction, ALSO apply the upward pop (hop). Separates a
+## "dizzy stun" (burst intermediate, false) from a "dizzy + pop" (single headbutt / burst ender, true).
+@export var victim_pop: bool = false
+## Base damage to use instead of the attack_mode default (DamageTable.base) when > 0. Still runs
+## through the offense scaling in Damage.resolve. Lets two same-amode moves differ in power.
+@export var damage_override: int = 0
 ## Grapple moves route their connect to attach (victim channel) rather than damage.
 @export var is_grapple: bool = false
 ## A whiffed/blocked grab retracts the reach (plays the reach frames in reverse) instead of
