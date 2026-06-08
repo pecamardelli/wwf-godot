@@ -47,6 +47,9 @@ func _closest_overlapping(attacker: Fighter, atk_box: Box3, fighters: Array, gro
 	for victim in fighters:
 		if victim == attacker:
 			continue
+		# A defeated fighter is inert — no attack box (strike OR grab) ever selects it.
+		if victim.is_dead():
+			continue
 		# A ground attack passes over a standing or rising foe — only a foe still lying down is hit.
 		if grounded_only and (victim.mode != Fighter.Mode.ONGROUND or victim._getup_rising):
 			continue

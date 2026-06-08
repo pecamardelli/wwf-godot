@@ -47,6 +47,23 @@ func test_die_while_holding_a_victim_releases_it():
 
 const _FRAME := 1.0 / 60.0
 
+func _punch() -> MoveSequence:
+	return load("res://assets/sequences/doink/punch.tres")
+
+func test_a_dead_fighter_cannot_be_hit():
+	var attacker := _fighter()
+	attacker.global_position = Vector2(100, 400)
+	var victim := _fighter()
+	victim.global_position = Vector2(140, 400)
+	victim.die()                       # defeated and in range
+	var resolver := AttackResolver.new()
+	add_child_autofree(resolver)
+	attacker.start_move(_punch())
+	for _i in range(40):
+		attacker._physics_process(_FRAME)
+		resolver.resolve_tick()
+	assert_true(attacker._hit_by_current_move.is_empty(), "a strike never connects with a dead body")
+
 func test_dead_fighter_does_not_move():
 	var f := _fighter()
 	f.mode = Fighter.Mode.DEAD
