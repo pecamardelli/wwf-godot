@@ -5,7 +5,7 @@ class_name Reaction
 
 ## Resolve to { anim:String, mode:int (Fighter.Mode), hitstun_ticks:int,
 ##              knockback:float, getup_ticks:int }. `dizzy` overrides to the DIZZY family.
-static func resolve(family: int, side: int, dizzy: bool) -> Dictionary:
+static func resolve(family: int, side: int, dizzy: bool, pop: bool = false) -> Dictionary:
 	if dizzy:
 		family = AMode.Family.DIZZY
 	var back := side < 0
@@ -28,11 +28,13 @@ static func resolve(family: int, side: int, dizzy: bool) -> Dictionary:
 		AMode.Family.BLOCK:
 			return _r("defence", Fighter.Mode.BLOCK, 6, 2.0, 0)
 		AMode.Family.DIZZY:
-			# Headbutt: a small upward pop (arcade REACT1.ASM:1171 OBJ_YVEL 0x3c000) and recovery
-			# the moment the reaction clip ends (arcade head_hit2 anim -> MODE_NORMAL), not a long
-			# fixed timer. getup_ticks is kept only as a fallback if the clip can't be measured.
+			# Headbutt: dizzy stun on `headbutted_salted`, recovery on clip-end (anim_timed; arcade
+			# head_hit2 -> MODE_NORMAL), getup_ticks only a fallback if the clip can't be measured.
+			# The upward pop (arcade REACT1.ASM:1171 OBJ_YVEL 0x3c000) is applied ONLY when `pop` is
+			# set — burst intermediates stun without it; the single headbutt / burst ender pop.
+			var hop := ArcadeUnits.HDBUTT_HOP_YVEL if pop else 0.0
 			return _r("headbutted_salted", Fighter.Mode.DIZZY, 0, 6.0,
-				AMode.getup_ticks(AMode.Family.DIZZY), ArcadeUnits.HDBUTT_HOP_YVEL, true)
+				AMode.getup_ticks(AMode.Family.DIZZY), hop, true)
 		_:
 			return _r("shoved", Fighter.Mode.NORMAL, 12, 10.0, 0)
 
