@@ -18,6 +18,7 @@ func _init() -> void:
 	var spin_kick: MoveSequence = load(SEQ + "spin_kick.tres")
 	var elbow: MoveSequence = load(SEQ + "elbow_drop.tres")
 	var big_boot: MoveSequence = load(SEQ + "big_boot.tres")
+	var headbutt_burst: MoveSequence = load(SEQ + "headbutt_burst.tres")
 	var flying_clothesline: MoveSequence = load(SEQ + "flying_clothesline.tres")
 	var R := MoveTable.Rng
 	var D := MoveTable.Dir
@@ -39,7 +40,7 @@ func _init() -> void:
 	# SPUNCH (high punch): far/close slap, close+DOWN uppercut, grounded elbow drop, running
 	# flying clothesline (arcade #super_punch -> #punch_clothesline).
 	t.add(R.NORMAL,   D.NEUTRAL, B.HIGH_PUNCH, slap)
-	t.add(R.CLOSE,    D.NEUTRAL, B.HIGH_PUNCH, slap)
+	t.add(R.CLOSE,    D.NEUTRAL, B.HIGH_PUNCH, headbutt_burst)   # close high-punch = headbutt burst
 	t.add(R.CLOSE,    D.DOWN,    B.HIGH_PUNCH, uppercut)
 	t.add(R.GROUNDED, D.NEUTRAL, B.HIGH_PUNCH, elbow)
 	t.add(R.RUNNING,  D.NEUTRAL, B.HIGH_PUNCH, flying_clothesline)
