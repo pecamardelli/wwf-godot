@@ -7,9 +7,9 @@ class_name FlyingKick
 const LEAP_MIN_DX := 60.0   # arcade #super_kick close-box DX
 const LEAP_MIN_DZ := 60.0   # arcade #super_kick close-box DZ
 
-## True iff a NORMAL-range HIGH_KICK press should become a flying kick rather than the standing kick.
-static func gate(attacker_pos: Vector2, target_pos: Vector2, target_mode: int) -> bool:
-	if target_mode == Fighter.Mode.ONGROUND:
-		return false
-	# Within the 60x60 box -> close super (skip). Outside (either axis beyond) -> flying kick.
-	return not Proximity.is_within(attacker_pos, target_pos, LEAP_MIN_DX, LEAP_MIN_DZ)
+## True iff a HIGH_KICK press against a STANDING foe should leap. The arcade dnk_2_spin_kick ALWAYS
+## LEAPATOPPs — close is the short "close super" hop, far is the full flying kick; there is no grounded
+## spin kick. So any standing foe leaps; only a downed foe (stomp branch) stays grounded. positions are
+## kept in the signature for a future close-vs-far variant split (arcade #super_kick 60x60 box).
+static func gate(_attacker_pos: Vector2, _target_pos: Vector2, target_mode: int) -> bool:
+	return target_mode != Fighter.Mode.ONGROUND

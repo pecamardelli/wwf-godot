@@ -27,6 +27,10 @@ extends Resource
 @export var locks_victim: bool = false
 ## Grapple moves route their connect to attach (victim channel) rather than damage.
 @export var is_grapple: bool = false
+## Airborne move that lands FLAT on the mat (flying clothesline): on touchdown the fighter goes
+## ONGROUND and plays a getup, instead of recovering on its feet to a standing idle (arcade
+## dnk_fly_cline ANI_WAITHITGND -> ONGROUND -> getup).
+@export var lands_prone: bool = false
 ## A whiffed/blocked grab retracts the reach (plays the reach frames in reverse) instead of
 ## ending instantly. True only for the standing neck grab (arcade #missed/#missedb).
 @export var reverse_reach_on_whiff: bool = false

@@ -109,3 +109,20 @@ func test_die_while_held_releases_the_captor():
 	assert_null(vic._grappled_by)
 	assert_null(captor._grappling, "captor no longer drives the dead victim")
 	assert_eq(captor.mode, Fighter.Mode.NORMAL, "captor returns to NORMAL")
+
+# --- Bug fix: a lethal hip toss must not mirror the body at the moment of death ---
+# The hip toss flips the victim over so it lands facing AWAY from the attacker (the non-lethal
+# path does this). The lethal path skipped the compensation, so the corpse's `droped` clip
+# (left-drawn) mirrored against the throw's `hip_tossed` clip -> a visible horizontal flip on death.
+func test_lethal_hip_toss_lands_facing_away_no_death_flip():
+	var captor := _fighter()
+	captor._facing = 1.0
+	var vic := _fighter()
+	captor._grappling = vic
+	vic._grappled_by = captor
+	vic.mode = Fighter.Mode.GRABBED
+	vic.health = 0   # the throw's damage already killed it
+	captor._player.play(load("res://assets/sequences/doink/hip_toss.tres"))
+	captor._detach_victim()
+	assert_eq(vic.mode, Fighter.Mode.DEAD, "lethal hip toss collapses the victim")
+	assert_eq(vic._facing, -captor._facing, "hip-tossed corpse lands facing away (matches the live landing; no mid-death mirror)")

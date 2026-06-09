@@ -10,3 +10,12 @@ static func leap_velocity(from: Vector2, to: Vector2, seconds: float, cap_x: flo
 	var vx := clampf((to.x - from.x) / seconds, -cap_x, cap_x)
 	var vz := clampf((to.y - from.y) / seconds, -cap_z, cap_z)
 	return Vector2(vx, vz)
+
+## Airtime (seconds) of a launch at `yvel` (px/s, up) under `gravity` (px/s^2): the time to rise
+## and fall back to the launch height. The homing planar velocity is sized to THIS so the leap
+## covers the distance to the target over the whole arc and lands on it — instead of being sized
+## to an unrelated fixed window and sailing far past (the old overshoot bug). Returns 0 on bad input.
+static func airtime_seconds(yvel: float, gravity: float) -> float:
+	if yvel <= 0.0 or gravity <= 0.0:
+		return 0.0
+	return 2.0 * yvel / gravity

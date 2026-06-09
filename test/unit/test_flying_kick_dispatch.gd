@@ -15,7 +15,7 @@ func test_far_target_swaps_to_flying_kick():
 	var out := p._normal_kick_or_flying_kick(_spin_kick(), MoveTable.Btn.HIGH_KICK)
 	assert_eq(out.id, "flying_kick", "far HIGH_KICK -> flying kick")
 
-func test_close_target_keeps_spin_kick():
+func test_close_target_also_leaps():
 	var p := Player.new()
 	add_child_autofree(p)
 	var foe := Fighter.new()
@@ -24,7 +24,7 @@ func test_close_target_keeps_spin_kick():
 	foe.global_position = Vector2(30, 400); foe.mode = Fighter.Mode.NORMAL
 	p.target = foe
 	var out := p._normal_kick_or_flying_kick(_spin_kick(), MoveTable.Btn.HIGH_KICK)
-	assert_eq(out.id, "spin_kick", "within 60px -> standing spin kick stays")
+	assert_eq(out.id, "flying_kick", "close HIGH_KICK still leaps (arcade always LEAPATOPPs) -> a little jump")
 
 func test_low_kick_is_untouched():
 	var p := Player.new()

@@ -80,6 +80,16 @@ var _react_timer: float = 0.0          # seconds left in a reaction (hitstun/get
 var _react_recover_mode: int = Mode.NORMAL
 var _height: float = 0.0   # altitude in px above the mat (0 = grounded). Render-up axis.
 var _vy: float = 0.0       # vertical velocity, px/s (+up). Arcade OBJ_YVEL (WRESTLE2.ASM:2282).
+var _land_prone: bool = false   # this airborne move lands FLAT (clothesline): on touchdown the
+                                # fighter goes ONGROUND and gets up, not straight to a standing idle.
+var _prone_land_stage: int = 0  # 0 = still in the launch arc; 1 = bounced, now sliding to a stop.
+## Flat-landing recovery feel (arcade dnk_fly_cline ANI_BOUNCE/ANI_FRICTION). The body bounces once,
+## keeps its forward momentum, and decelerates to a stop before getting up. Seeded — tune in playtest.
+const _PRONE_BOUNCE_VY := 150.0      # px/s upward rebound on first touchdown (small hop)
+const _PRONE_SLIDE_SPEED := 265.0    # px/s forward slide ON landing (arcade SET_XVEL 0x50000): the
+                                     # impact sheds the faster launch speed, then it coasts to a stop
+const _PRONE_SLIDE_FRICTION := 700.0 # px/s^2 deceleration of the ground slide
+const _PRONE_SETTLE_SPEED := 14.0    # px/s; below this the slide stops and the getup begins
 var _last_damage_time: float = -999.0  # seconds; for the ⅔ repeat window
 var _hit_by_current_move: Array = []   # victims already hit by the swing in progress
 var _sim_time: float = 0.0             # accumulated per-fighter sim clock (fixed-tick determinism)
@@ -142,16 +152,10 @@ func _physics_process(delta: float) -> void:
 	if mode == Mode.GRABBED or mode == Mode.HEADHELD or mode == Mode.DEAD:
 		return
 	_update_target()
-	# Orientation snap: face the target ONLY while actively striking. The arcade sets facing at
-	# move start and holds it; helpless/down states (onground, dizzy, in-air, mid-reaction) never
-	# re-face — their move_xxx handlers are rets, so a downed wrestler does NOT track the mover.
-	# Idle/walk facing is animated by the turn-around pivot below; a grapple drives facing from
-	# its own sequence, so skip the snap while a victim is attached.
-	if _player.is_playing() and _grappling == null and not _is_guarding() \
-			and target != null and is_instance_valid(target):
-		_set_facing(target.global_position.x - global_position.x)
-		# Same hysteresis as the pivot path: keep current depth when roughly level (no jitter).
-		_depth_facing = Facing.desired_depth(global_position.y, target.global_position.y, _depth_facing, _DEPTH_DEADZONE)
+	# Facing is set ONCE at move start (start_move, arcade ANI_SETFACING) and HELD for the whole move
+	# (arcade MODE_NOAUTOFLIP): no per-frame re-facing while attacking, so a traveling attack (flying
+	# kick / clothesline) never flips when it crosses the foe's vertical line. Idle/walk facing is
+	# animated by the turn-around pivot below; a grapple drives facing from its own sequence.
 	# 1) Reaction / down-time countdown: no control, no walk. A knockdown (ONGROUND) hands
 	# off to the RISE phase when it expires; other reactions recover straight to NORMAL.
 	if _react_timer > 0.0:
@@ -533,10 +537,16 @@ func start_move(move: MoveSequence) -> void:
 		return
 	if mode == Mode.RUNNING:
 		mode = Mode.NORMAL   # starting an attack ends a run (arcade/GMS)
-	# Continuous target-facing is authoritative; only snap-face when untargeted.
-	# Grapple sequences skip the snap: the attacker already faces the victim at grab time.
-	if not move.is_grapple and (target == null or not is_instance_valid(target)):
-		_face_nearest_opponent()
+	# Face the opponent ONCE here (arcade ANI_SETFACING) and HOLD it for the whole move — no per-frame
+	# re-facing (arcade MODE_NOAUTOFLIP), so a traveling attack doesn't flip when it passes the foe.
+	# Grapple sequences skip this: the attacker already faces the victim at grab time, and the sequence
+	# drives facing from there.
+	if not move.is_grapple:
+		if target != null and is_instance_valid(target):
+			_set_facing(target.global_position.x - global_position.x)
+			_depth_facing = Facing.desired_depth(global_position.y, target.global_position.y, _depth_facing, _DEPTH_DEADZONE)
+		else:
+			_face_nearest_opponent()
 	if move.is_grapple:
 		_leap_remaining = _GRAPPLE_LEAP_MAX   # fresh short step-in budget for this grab
 		_leap_vel = 0.0
@@ -559,10 +569,15 @@ func apply_launch(yvel: float, planar: Vector2) -> void:
 ## Resolve a SequencePlayer SET_LAUNCH into a concrete launch. Homing computes the planar
 ## velocity toward the current target (LEAPATOPP); otherwise a face-relative forward push.
 func _begin_launch() -> void:
+	_land_prone = _player.sequence != null and _player.sequence.lands_prone
+	_prone_land_stage = 0
 	var yvel := ArcadeUnits.vel_to_px_per_sec(_player.launch_yvel())
 	var planar := Vector2.ZERO
 	if _player.launch_homing() and target != null and is_instance_valid(target):
-		var seconds := ArcadeUnits.ticks_to_seconds(_player.leap_ticks())
+		# Size the homing velocity to the ACTUAL airtime (the gravity arc), not the leap_ticks
+		# window: the planar velocity is applied for the WHOLE flight, so anything shorter than the
+		# airtime overshoots. Tying it to airtime lands the leap ON the target (capped for distance).
+		var seconds := AerialLaunch.airtime_seconds(yvel, ArcadeUnits.GRAVITY)
 		var cap_x := ArcadeUnits.vel_to_px_per_sec(_player.leap_cap_x())
 		var cap_z := ArcadeUnits.vel_to_px_per_sec(_player.leap_cap_z())
 		planar = AerialLaunch.leap_velocity(global_position, target.global_position, seconds, cap_x, cap_z)
@@ -576,14 +591,54 @@ func _step_air(delta: float) -> void:
 	_vy -= ArcadeUnits.GRAVITY * delta
 	_vy = maxf(_vy, ArcadeUnits.MAX_FALL)
 	_height += _vy * delta
-	if _height <= 0.0:
-		_height = 0.0
+	if _height > 0.0:
+		move_and_slide()
+		global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
+		_refresh_flip()   # track _height on the sprite through the arc (no frozen-at-apex snap)
+		return
+	# Touchdown (arcade ANI_WAITHITGND).
+	_height = 0.0
+	if not _land_prone:
 		_vy = 0.0
 		velocity = Vector2.ZERO
-		mode = Mode.NORMAL
+		mode = Mode.NORMAL   # recovers on its feet (flying kick)
 		return
+	if _prone_land_stage == 0:
+		# Flat landing (clothesline): bounce once (arcade ANI_BOUNCE) and shed speed to the slide
+		# rate (arcade ZEROVELS -> SET_XVEL 0x50000), so impact slows it before it coasts to a stop.
+		_prone_land_stage = 1
+		_vy = _PRONE_BOUNCE_VY
+		var dir := signf(velocity.x) if velocity.x != 0.0 else _facing
+		velocity.x = dir * minf(absf(velocity.x), _PRONE_SLIDE_SPEED)
+		move_and_slide()
+		global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
+		_refresh_flip()
+		return
+	# Grounded slide: decelerate the forward momentum (arcade ANI_FRICTION); get up once it settles.
+	_vy = 0.0
+	velocity.x = move_toward(velocity.x, 0.0, _PRONE_SLIDE_FRICTION * delta)
 	move_and_slide()
 	global_position = MovementMath.clamp_to_floor(global_position, floor_min_y, floor_max_y)
+	if absf(velocity.x) <= _PRONE_SETTLE_SPEED:
+		velocity = Vector2.ZERO
+		_begin_prone_recovery()
+	else:
+		_refresh_flip()
+
+## Land a flat-landing aerial (clothesline) into the standard knockdown -> getup recovery instead
+## of snapping to a standing idle. Arcade dnk_fly_cline lands ONGROUND then plays the getup. Our
+## clothesline art lands the body prone, so it HOLDS that prone frame and rises with the FACE_DOWN
+## getup (get_up_back) — never swapping to the face-up lying pose, which would visibly flip the body.
+func _begin_prone_recovery() -> void:
+	_land_prone = false
+	_prone_land_stage = 0
+	_player.play(null)          # the aerial is done; the landing owns the rest
+	_hit_by_current_move.clear()
+	mode = Mode.ONGROUND
+	_fall_orientation = Fall.FACE_DOWN   # -> get_up_back, matching the prone landing art
+	_react_recover_mode = Mode.NORMAL
+	_react_timer = ArcadeUnits.ticks_to_seconds(AMode.getup_ticks(AMode.Family.KNOCKDOWN))
+	_refresh_flip()   # keep the move's prone end-frame; the getup rises from it
 
 ## Integrate a reaction's vertical pop-up (e.g. the headbutt hop) while a hitstun/dizzy timer
 ## runs. Same gravity arc as _step_air but altitude-only: the planar position is held by the
@@ -735,7 +790,10 @@ const _DEATH_FADE_SECONDS := 0.5
 ## Defeat this fighter (HP-zero now; a future pit/hole trigger calls this too). Idempotent.
 ## Releases any grapple in both directions, cancels the current action, collapses, then lies for
 ## a beat, fades out, and frees itself.
-func die() -> void:
+## `collapse_anim` is the death pose: the default "droped" is a stand-up-then-collapse, right for a
+## strike kill. A throw kill is already ON the ground, so it passes "damage_lying" to lie still
+## instead of snapping back to a standing collapse first.
+func die(collapse_anim := "droped") -> void:
 	if mode == Mode.DEAD:
 		return
 	_release_grapple_on_death()
@@ -744,13 +802,15 @@ func die() -> void:
 	_react_timer = 0.0
 	_getup_rising = false
 	_getup_rise_time = 0.0
+	_land_prone = false
+	_prone_land_stage = 0
 	_vy = 0.0
 	_height = 0.0
 	velocity = Vector2.ZERO
 	mode = Mode.DEAD
 	_fall_orientation = Fall.FACE_UP
-	if sprite != null and sprite.sprite_frames != null and sprite.sprite_frames.has_animation("droped"):
-		sprite.play("droped")   # reuse the knockdown collapse; settles to its lying frame
+	if sprite != null and sprite.sprite_frames != null and sprite.sprite_frames.has_animation(collapse_anim):
+		sprite.play(collapse_anim)
 		_refresh_flip()
 	if is_inside_tree():
 		var tw := create_tween()
@@ -783,7 +843,13 @@ func _detach_victim() -> void:
 				Sound.play_body_drop(vic)
 				Sound.play_throw_pain(vic, _player.sequence)
 				_throw_impact_played = true
-			vic.die()
+			# Apply the same landing facing as the live path: a flip-over throw (hip toss) lands the
+			# body facing AWAY from the attacker. Without this the corpse's left-drawn `droped` clip
+			# mirrors against the throw clip and the body visibly flips horizontally on death.
+			var lethal_mv_id: String = _player.sequence.id if _player.sequence != null else ""
+			if _LAND_FACING_AWAY_MOVES.has(lethal_mv_id):
+				vic._facing = -_facing
+			vic.die("damage_lying")   # already grounded by the throw: lie still, no standing collapse
 			return
 		vic.mode = Mode.ONGROUND
 		vic._react_recover_mode = Mode.NORMAL
@@ -987,6 +1053,8 @@ func _enter_reaction(r: Dictionary, hit_dir: int) -> void:
 	_hit_by_current_move.clear()             # a cancelled move leaves no stale hit-list
 	_getup_rising = false                    # a fresh hit cancels any in-progress getup RISE
 	_getup_rise_time = 0.0
+	_land_prone = false                      # knocked out of the air: drop the pending prone landing
+	_prone_land_stage = 0
 	mode = r.mode
 	global_position.x += hit_dir * r.knockback  # push the victim AWAY from the attacker
 	_react_recover_mode = Mode.NORMAL

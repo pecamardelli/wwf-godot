@@ -59,15 +59,20 @@ func _init() -> void:
 	# Aerials (arcade DNKSEQ2.ASM). Flying kick: homing LEAPATOPP (11 ticks, caps 0x50000),
 	# launch yvel 0x90000, box 46,76 / 42x42 (DNKSEQ2.ASM:902-909). Use the existing power-kick
 	# art; launch on an early frame, contact mid-clip.
+	# yvel lowered from the arcade 0x90000 to a SMALL hop (~18px apex) per playtest — "jump a little".
+	# TUNING KNOB: raise toward 0x90000 for a bigger leap (0x44000 ~= 18px, 0x60000 ~= 36px).
 	_save(_aerial("flying_kick", "power_kick_front", AMode.SPINKICK,
 		_sf.get_frame_count("power_kick_front"), 1, 3, _ab(46, 76, 0, 42, 42, 10),
-		0x90000, 0, true, 11, 0x50000, 0x50000, 3, "power_kick_back"))
+		0x44000, 0, true, 11, 0x50000, 0x50000, 3, "power_kick_back"))
 	# Flying clothesline: fixed launch yvel 0x64000 + forward xvel 0x5c000, box 25,6 / 23x37
-	# (DNKSEQ2.ASM:2401-2405). Use the boxing-glove smash art as the body-check clip placeholder
-	# (tune the anim/box in playtest).
-	_save(_aerial("flying_clothesline", "boxing_glove_smash_front", AMode.BIGBOOT,
-		_sf.get_frame_count("boxing_glove_smash_front"), 0, 2, _ab(25, 6, 0, 23, 37, 10),
-		0x64000, 0x5c000, false, 0, 0, 0, 3, "boxing_glove_smash_back"))
+	# (DNKSEQ2.ASM:2401-2405). Uses its own `flying_clothesline` body-check clip (9 frames); no
+	# back variant, so it renders the front clip both ways (tune the box in playtest).
+	# lands_prone=true: the body-check ends FLAT on the mat, slides + bounces, then gets up (arcade
+	# dnk_fly_cline). yvel/xvel raised over the arcade 0x64000/0x5c000 for a higher + longer leap per
+	# playtest. TUNING KNOBS: yvel = apex height, xvel = forward reach.
+	_save(_aerial("flying_clothesline", "flying_clothesline", AMode.BIGBOOT,
+		_sf.get_frame_count("flying_clothesline"), 0, 2, _ab(25, 6, 0, 23, 37, 10),
+		0x80000, 0x68000, false, 0, 0, 0, 3, "", true))
 	# Head grab: connect -> HEADHOLD (no DAMAGE_OPP/DETACH here; head-hold drives follow-ups).
 	_save(_neck_grab())
 	_save(_hair_pickup())
@@ -120,9 +125,10 @@ func _gframe(dur: int, img: int, cmd: int, slave: String, voff: Vector3, vimg: i
 ## is live from `contact` to `contact+2`. `homing` true -> LEAPATOPP toward the target (flying
 ## kick); false -> a fixed face-relative forward launch (clothesline).
 func _aerial(id: String, anim_name: String, amode: int, frame_count: int, launch: int, contact: int, box: Box3,
-		yvel: int, xvel: int, homing: bool, leap_ticks: int, cap_x: int, cap_z: int, ticks_per_frame: int = 3, anim_back: String = "") -> MoveSequence:
+		yvel: int, xvel: int, homing: bool, leap_ticks: int, cap_x: int, cap_z: int, ticks_per_frame: int = 3, anim_back: String = "", lands_prone: bool = false) -> MoveSequence:
 	var m := MoveSequence.new()
 	m.id = id; m.anim_name = anim_name; m.anim_name_back = anim_back; m.attack_mode = amode
+	m.lands_prone = lands_prone
 	var off_frame := mini(contact + 2, frame_count - 1)
 	var arr: Array[SequenceFrame] = []
 	for i in range(frame_count):

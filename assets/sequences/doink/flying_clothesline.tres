@@ -8,8 +8,8 @@
 script = ExtResource("1_mtdrq")
 duration_ticks = 3
 command = 11
-launch_yvel = 409600
-launch_xvel = 376832
+launch_yvel = 524288
+launch_xvel = 425984
 
 [sub_resource type="Resource" id="Resource_87c1r"]
 script = ExtResource("1_mtdrq")
@@ -54,10 +54,15 @@ script = ExtResource("1_mtdrq")
 duration_ticks = 3
 anim_frame = 7
 
+[sub_resource type="Resource" id="Resource_73136"]
+script = ExtResource("1_mtdrq")
+duration_ticks = 3
+anim_frame = 8
+
 [resource]
 script = ExtResource("3_p7nd0")
 id = "flying_clothesline"
-anim_name = "boxing_glove_smash_front"
-anim_name_back = "boxing_glove_smash_back"
+anim_name = "flying_clothesline"
 attack_mode = 5
-frames = Array[ExtResource("1_mtdrq")]([SubResource("Resource_b6bkh"), SubResource("Resource_87c1r"), SubResource("Resource_g8bmh"), SubResource("Resource_00mbr"), SubResource("Resource_1kh62"), SubResource("Resource_0vvdc"), SubResource("Resource_xhhoj"), SubResource("Resource_hre1x")])
+frames = Array[ExtResource("1_mtdrq")]([SubResource("Resource_b6bkh"), SubResource("Resource_87c1r"), SubResource("Resource_g8bmh"), SubResource("Resource_00mbr"), SubResource("Resource_1kh62"), SubResource("Resource_0vvdc"), SubResource("Resource_xhhoj"), SubResource("Resource_hre1x"), SubResource("Resource_73136")])
+lands_prone = true
