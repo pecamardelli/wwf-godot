@@ -107,3 +107,41 @@ func test_enemy_reverses_a_headhold_when_skill_roll_succeeds():
 			reversed = true
 			break
 	assert_true(reversed, "high-skill enemy reverses the head hold")
+
+# --- Bug fix: head-hold reversal must be a per-DECISION roll, not a per-frame coin flip ---
+# The roll ran every physics frame, so over the ~200-frame hold window even a small chance
+# compounded to near-certain -> the player got hip-tossed almost every time they applied a
+# headlock. The reversal attempt is now gated to the AI decision cadence (reaction_delay).
+func test_headhold_reversal_is_gated_to_a_decision_cadence_not_every_frame():
+	var captor := Player.new(); add_child_autofree(captor)
+	captor.global_position = Vector2(100, 400); captor.separation_radii = Vector2.ZERO
+	captor.side = Fighter.Side.PLAYER
+	var e := _enemy(); e.global_position = Vector2(150, 400)
+	e.profile.skill = 29; e.profile.reversal_skill = 2.0   # would reverse on ANY roll
+	e.profile.reaction_delay = Vector2i(30, 30)            # ~0.57s decision cadence
+	e._ai.rng.seed = 1
+	captor._grappling = e
+	e._grappled_by = captor
+	e.mode = Fighter.Mode.HEADHELD
+	captor.mode = Fighter.Mode.HEADHOLD
+	e._physics_process(1.0 / 60.0)   # ONE frame: well inside the first decision window
+	assert_false(e._grappling == captor, "no instant frame-1 reversal: the roll waits for a decision tick")
+
+# --- Bug fix: a DISABLED enemy must not reverse a head hold (no AI at all when ai_enabled is off) ---
+func test_disabled_enemy_does_not_reverse_a_headhold():
+	var captor := Player.new(); add_child_autofree(captor)
+	captor.global_position = Vector2(100, 400); captor.separation_radii = Vector2.ZERO
+	captor.side = Fighter.Side.PLAYER
+	var e := _enemy(); e.global_position = Vector2(150, 400)
+	e.ai_enabled = false                                   # AI toggled OFF in the sandbox
+	e.profile.skill = 29; e.profile.reversal_skill = 2.0   # would always reverse if it rolled
+	e.profile.reaction_delay = Vector2i(1, 1)              # tiny cadence -> rolls fast if at all
+	e._ai.rng.seed = 1
+	captor._grappling = e
+	e._grappled_by = captor
+	e.mode = Fighter.Mode.HEADHELD
+	captor.mode = Fighter.Mode.HEADHOLD
+	for _n in range(60):
+		e._physics_process(1.0 / 60.0)
+	assert_true(e.mode == Fighter.Mode.HEADHELD, "disabled enemy stays held — no AI reversal")
+	assert_false(e._grappling == captor, "disabled enemy never becomes the grappler")

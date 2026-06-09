@@ -22,6 +22,11 @@ var _last_health: int = 0
 var _consecutive_incoming: int = 0
 var _target_was_attacking: bool = false
 var _signalled_low_health: bool = false   # LOW_HEALTH event is edge-triggered, fired once
+## Head-hold reversal is a per-DECISION roll, not a per-frame coin flip: rolling every frame over
+## the ~200-frame hold window compounded to near-certain (the player got tossed almost every time).
+## Countdown to the next reversal attempt; primed on entry to the hold, redrawn each attempt.
+var _reversal_attempt_time: float = 0.0
+var _reversal_primed: bool = false
 
 func _ready() -> void:
 	super()
@@ -39,7 +44,16 @@ func wants_to_run() -> bool:
 func wants_to_block() -> bool:
 	return _intent.action == AIIntent.Action.BLOCK
 
+## One AI decision window in seconds, drawn from the profile's reaction_delay (arcade DRN_DELAY).
+## The reversal attempt cadence; keeps the per-attempt chance meaningful instead of per-frame.
+func _reversal_delay_seconds() -> float:
+	var lo: int = profile.reaction_delay.x if profile != null else 15
+	var hi: int = profile.reaction_delay.y if profile != null else 40
+	return ArcadeUnits.ticks_to_seconds(_ai.rng.randi_range(lo, maxi(lo, hi)))
+
 func _physics_process(delta: float) -> void:
+	if mode != Mode.HEADHELD:
+		_reversal_primed = false   # re-prime the decision timer each time a fresh hold begins
 	if mode == Mode.DEAD:
 		super(delta)
 		return
@@ -48,10 +62,18 @@ func _physics_process(delta: float) -> void:
 		super(delta)
 		return
 	if mode == Mode.HEADHELD:
-		if not is_immobilized() and not is_dead() and _grappled_by != null \
-				and is_instance_valid(_grappled_by) \
-				and AIController.should_reverse(profile.skill, profile.reversal_skill, _ai.rng.randf()):
-			reverse_into_grappler(_grappled_by, _GRABS["hip_toss"])
+		# Roll for a reversal once per AI decision window (reaction_delay), NOT every frame — a
+		# per-frame roll over the whole hold is effectively guaranteed (arcade rolls per decision).
+		if not _reversal_primed:
+			_reversal_primed = true
+			_reversal_attempt_time = _reversal_delay_seconds()
+		if ai_enabled and not is_immobilized() and not is_dead() and _grappled_by != null \
+				and is_instance_valid(_grappled_by):
+			_reversal_attempt_time -= delta
+			if _reversal_attempt_time <= 0.0:
+				_reversal_attempt_time = _reversal_delay_seconds()
+				if AIController.should_reverse(profile.skill, profile.reversal_skill, _ai.rng.randf()):
+					reverse_into_grappler(_grappled_by, _GRABS["hip_toss"])
 		super(delta)
 		return
 	# AI gate: when disabled, the enemy is inert — no decision, no movement, no attacks. A zero
